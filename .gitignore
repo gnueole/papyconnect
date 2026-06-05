@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs & Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Toolkit Configuration and Backups
+toolkit/.env
+toolkit/workflow_backup.json
+n8n/workflow_backup.json
+
+# Secrets / Environment files
+.env
+.env.dev
+.env.prod
+.env.local
+
+# Node dependencies
+node_modules/
+npm-debug.log*
+
+# Git lock / logs
+.git-credentials
