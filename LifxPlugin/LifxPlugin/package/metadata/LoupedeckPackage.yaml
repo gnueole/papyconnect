@@ -1,0 +1,69 @@
+# ==================================================================================================
+# GENERAL SETTINGS
+# ==================================================================================================
+
+# Package type. Must be plugin4 for plugins.
+type: plugin4
+
+# Name that identifies the plugin.
+name: Lifx
+
+# Plugin name that is shown to the user.
+displayName: LIFX Lights
+
+# Short description of the plugin.
+description: Controls LIFX smart lights via the Cloud API
+
+# Name of the plugin library file.
+pluginFileName: LifxPlugin.dll
+
+# Plugin version.
+version: 1.1
+
+
+
+# Author of the plugin. The author can be a company or an individual developer.
+author: Éole
+
+# Homepage of the plugin.
+homepage: https://github.com/gnueole/mxconsole-lifx-plugin
+homePageUrl: https://github.com/gnueole/mxconsole-lifx-plugin
+
+# Support and Contact information.
+support: hi@eole.me
+supportEmail: hi@eole.me
+supportPageUrl: https://github.com/gnueole/mxconsole-lifx-plugin/issues
+
+# License information.
+license: MIT
+contentLicence: MIT
+contentLicense: MIT
+licenseUrl: https://github.com/gnueole/mxconsole-lifx-plugin/blob/master/LICENSE
+
+# Copyright information.
+copyright: Copyright © 2026 Éole. MIT Licensed.
+
+# Minimum SDK version supported by the plugin.
+minimumLoupedeckVersion: 6.0
+
+
+# ==================================================================================================
+# PLUGIN PROPERTIES
+# ==================================================================================================
+
+# Location of plugin files on Windows (relative to the plugin base directory).
+# This parameter is required to support Windows.
+pluginFolderWin: bin
+
+# Location of plugin files on macOS (relative to the plugin base directory).
+# This parameter is required to support Mac.
+pluginFolderMac: bin
+
+# List of devices the plugin is optimized for.
+supportedDevices:
+    # LoupedeckCtFamily covers the following devices: Loupedeck CT, Live and Live S,
+    # Razer Stream Controller, and Razer Stream Controller X.
+    - LoupedeckCtFamily
+
+    # Logitech MX Creative Console family devices.
+    - LoupedeckExtendedFamily

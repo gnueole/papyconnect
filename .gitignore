@@ -34,3 +34,13 @@ npm-debug.log*
 
 # Git lock / logs
 .git-credentials
+
+# C# / .NET Build outputs
+**/bin/
+**/obj/
+**/Debug/
+**/Release/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
