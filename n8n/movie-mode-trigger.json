@@ -1,0 +1,261 @@
+{
+  "updatedAt": "2026-06-05T11:22:56.485Z",
+  "createdAt": "2026-06-05T11:22:56.485Z",
+  "id": "xBZFzF4muLtD510L",
+  "name": "Movie Mode Trigger",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "movie-mode",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook-trigger-id",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        100,
+        250
+      ],
+      "webhookId": "bbed2e4e-acdf-468e-aabf-6b86ae31cba1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.1.100/sony/system",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Auth-PSK",
+              "value": "0000"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"method\": \"setPowerStatus\",\n  \"version\": \"1.0\",\n  \"id\": 1,\n  \"params\": [\n    {\n      \"status\": true\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "bravia-tv-id",
+      "name": "Turn On Bravia TV",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        350,
+        150
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "https://api.lifx.com/v1/lights/all/state",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_LIFX_TOKEN"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"power\": \"on\",\n  \"brightness\": 0.2\n}",
+        "options": {}
+      },
+      "id": "lifx-dim-id",
+      "name": "Dim LIFX Lights (20%)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        350,
+        350
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Turn On Bravia TV",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Dim LIFX Lights (20%)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": null,
+  "versionId": "252b4aa7-8631-4d38-807f-245f7ce16d1a",
+  "activeVersionId": "252b4aa7-8631-4d38-807f-245f7ce16d1a",
+  "versionCounter": 1,
+  "triggerCount": 1,
+  "sourceWorkflowId": null,
+  "shared": [
+    {
+      "updatedAt": "2026-06-05T11:22:56.489Z",
+      "createdAt": "2026-06-05T11:22:56.489Z",
+      "role": "workflow:owner",
+      "workflowId": "xBZFzF4muLtD510L",
+      "projectId": "GfFdmZTqGEJQkrXG",
+      "project": {
+        "updatedAt": "2026-05-11T09:44:44.757Z",
+        "createdAt": "2026-05-11T09:34:45.695Z",
+        "id": "GfFdmZTqGEJQkrXG",
+        "name": "Éole Wind <megazef@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "2792484d-cba3-4156-adba-fbc49134eb55"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-06-05T11:22:56.491Z",
+    "createdAt": "2026-06-05T11:22:56.491Z",
+    "versionId": "252b4aa7-8631-4d38-807f-245f7ce16d1a",
+    "workflowId": "xBZFzF4muLtD510L",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "movie-mode",
+          "responseMode": "onReceived",
+          "options": {}
+        },
+        "id": "webhook-trigger-id",
+        "name": "Webhook Trigger",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [
+          100,
+          250
+        ],
+        "webhookId": "bbed2e4e-acdf-468e-aabf-6b86ae31cba1"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://192.168.1.100/sony/system",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Auth-PSK",
+                "value": "0000"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "{\n  \"method\": \"setPowerStatus\",\n  \"version\": \"1.0\",\n  \"id\": 1,\n  \"params\": [\n    {\n      \"status\": true\n    }\n  ]\n}",
+          "options": {}
+        },
+        "id": "bravia-tv-id",
+        "name": "Turn On Bravia TV",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.1,
+        "position": [
+          350,
+          150
+        ]
+      },
+      {
+        "parameters": {
+          "method": "PUT",
+          "url": "https://api.lifx.com/v1/lights/all/state",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Authorization",
+                "value": "Bearer YOUR_LIFX_TOKEN"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "{\n  \"power\": \"on\",\n  \"brightness\": 0.2\n}",
+          "options": {}
+        },
+        "id": "lifx-dim-id",
+        "name": "Dim LIFX Lights (20%)",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.1,
+        "position": [
+          350,
+          350
+        ]
+      }
+    ],
+    "connections": {
+      "Webhook Trigger": {
+        "main": [
+          [
+            {
+              "node": "Turn On Bravia TV",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Dim LIFX Lights (20%)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "nodeGroups": [],
+    "authors": "Éole Wind",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-06-05T11:22:56.578Z",
+        "id": 219,
+        "workflowId": "xBZFzF4muLtD510L",
+        "versionId": "252b4aa7-8631-4d38-807f-245f7ce16d1a",
+        "event": "activated",
+        "userId": "2792484d-cba3-4156-adba-fbc49134eb55"
+      }
+    ]
+  }
+}

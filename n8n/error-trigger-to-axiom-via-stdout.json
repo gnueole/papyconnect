@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-01T22:21:07.682Z",
+  "updatedAt": "2026-06-05T11:22:56.647Z",
   "createdAt": "2026-06-01T22:21:07.682Z",
   "id": "QmE7mVc1XpxaEu0u",
   "name": "Error Trigger to Axiom (via stdout)",
@@ -134,6 +134,38 @@
         "workflowId": "QmE7mVc1XpxaEu0u",
         "versionId": "98fe50be-4502-49a6-b136-866d7f8197ef",
         "event": "activated",
+        "userId": "2792484d-cba3-4156-adba-fbc49134eb55"
+      },
+      {
+        "createdAt": "2026-06-05T11:22:56.672Z",
+        "id": 221,
+        "workflowId": "QmE7mVc1XpxaEu0u",
+        "versionId": "98fe50be-4502-49a6-b136-866d7f8197ef",
+        "event": "activated",
+        "userId": "2792484d-cba3-4156-adba-fbc49134eb55"
+      },
+      {
+        "createdAt": "2026-06-05T11:22:56.750Z",
+        "id": 223,
+        "workflowId": "QmE7mVc1XpxaEu0u",
+        "versionId": "98fe50be-4502-49a6-b136-866d7f8197ef",
+        "event": "activated",
+        "userId": "2792484d-cba3-4156-adba-fbc49134eb55"
+      },
+      {
+        "createdAt": "2026-06-05T11:22:56.664Z",
+        "id": 220,
+        "workflowId": "QmE7mVc1XpxaEu0u",
+        "versionId": "98fe50be-4502-49a6-b136-866d7f8197ef",
+        "event": "deactivated",
+        "userId": "2792484d-cba3-4156-adba-fbc49134eb55"
+      },
+      {
+        "createdAt": "2026-06-05T11:22:56.740Z",
+        "id": 222,
+        "workflowId": "QmE7mVc1XpxaEu0u",
+        "versionId": "98fe50be-4502-49a6-b136-866d7f8197ef",
+        "event": "deactivated",
         "userId": "2792484d-cba3-4156-adba-fbc49134eb55"
       }
     ]
