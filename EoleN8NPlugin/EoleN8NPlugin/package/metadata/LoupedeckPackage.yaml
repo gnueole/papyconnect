@@ -1,0 +1,54 @@
+# ==================================================================================================
+# GENERAL SETTINGS
+# ==================================================================================================
+
+# Package type. Must be plugin4 for plugins.
+type: plugin4
+
+# Name that identifies the plugin.
+name: EoleN8N
+
+# Plugin name that is shown to the user.
+displayName: Eole n8n Trigger
+
+# Short description of the plugin.
+description: Triggers n8n webhook workflows from your console
+
+# Name of the plugin library file.
+pluginFileName: EoleN8NPlugin.dll
+
+# Plugin version.
+version: 1.0
+
+# Author of the plugin. The author can be a company or an individual developer.
+author: Éole
+
+# Support and Contact information.
+support: hi@eole.me
+supportEmail: hi@eole.me
+
+# License information.
+license: MIT
+contentLicence: MIT
+contentLicense: MIT
+
+# Copyright information.
+copyright: Copyright © 2026 Éole. MIT Licensed.
+
+# Minimum SDK version supported by the plugin.
+minimumLoupedeckVersion: 6.0
+
+# ==================================================================================================
+# PLUGIN PROPERTIES
+# ==================================================================================================
+
+# Location of plugin files on Windows (relative to the plugin base directory).
+pluginFolderWin: bin
+
+# Location of plugin files on macOS (relative to the plugin base directory).
+pluginFolderMac: bin
+
+# List of devices the plugin is optimized for.
+supportedDevices:
+    - LoupedeckCtFamily
+    - LoupedeckExtendedFamily
