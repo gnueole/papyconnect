@@ -44,7 +44,9 @@
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "{\n  \"method\": \"setPowerStatus\",\n  \"version\": \"1.0\",\n  \"id\": 1,\n  \"params\": [\n    {\n      \"status\": true\n    }\n  ]\n}",
-        "options": {}
+        "options": {
+          "onError": "continueRegularInfo"
+        }
       },
       "id": "bravia-tv-id",
       "name": "Turn On Bravia TV",
@@ -53,7 +55,8 @@
       "position": [
         350,
         150
-      ]
+      ],
+      "continueOnFail": true
     },
     {
       "parameters": {
@@ -64,7 +67,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "Bearer YOUR_LIFX_TOKEN"
+              "value": "Bearer cde4f226eda9ba9115f954c1291236d230ceece99c8d02804f69ece13bfbe779"
             },
             {
               "name": "Content-Type",
@@ -75,7 +78,9 @@
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "{\n  \"power\": \"on\",\n  \"brightness\": 0.2\n}",
-        "options": {}
+        "options": {
+          "onError": "continueRegularInfo"
+        }
       },
       "id": "lifx-dim-id",
       "name": "Dim LIFX Lights (20%)",
@@ -84,7 +89,85 @@
       "position": [
         350,
         350
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Wait 3 seconds for TV to wake up before launching app\nawait new Promise(resolve => setTimeout(resolve, 3000));\nreturn $input.all();"
+      },
+      "id": "sleep-code-id",
+      "name": "Wait 3 Seconds",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        550,
+        150
       ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "if-cond-1",
+              "leftValue": "={{ $('Webhook Trigger').item.json.query.app }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-node-id",
+      "name": "If App Specified",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        750,
+        150
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.1.100/sony/appControl",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Auth-PSK",
+              "value": "0000"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ \"method\": \"setActiveApp\", \"version\": \"1.0\", \"id\": 1, \"params\": [{ \"uri\": { \"netflix\": \"com.sony.dtv.com.netflix.ninja.com.netflix.ninja.MainActivity\", \"disney\": \"com.sony.dtv.com.disney.disneyplus.com.disney.disneyplus.MainActivity\", \"amazon\": \"com.sony.dtv.com.amazon.amazonvideo.livingroom.com.amazon.amazonvideo.livingroom.MainActivity\", \"youtube\": \"com.sony.dtv.com.google.android.youtube.tv.com.google.android.youtube.tv.MainActivity\" }[$('Webhook Trigger').item.json.query.app] }] }) }}",
+        "options": {}
+      },
+      "id": "launch-app-id",
+      "name": "Launch App on TV",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        950,
+        150
+      ],
+      "continueOnFail": true
     }
   ],
   "connections": {
@@ -102,6 +185,40 @@
             "index": 0
           }
         ]
+      ]
+    },
+    "Turn On Bravia TV": {
+      "main": [
+        [
+          {
+            "node": "Wait 3 Seconds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 3 Seconds": {
+      "main": [
+        [
+          {
+            "node": "If App Specified",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If App Specified": {
+      "main": [
+        [
+          {
+            "node": "Launch App on TV",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
       ]
     }
   },
@@ -128,7 +245,7 @@
         "updatedAt": "2026-05-11T09:44:44.757Z",
         "createdAt": "2026-05-11T09:34:45.695Z",
         "id": "GfFdmZTqGEJQkrXG",
-        "name": "Éole Wind <megazef@gmail.com>",
+        "name": "\u00c9ole Wind <megazef@gmail.com>",
         "type": "personal",
         "icon": null,
         "description": null,
@@ -149,7 +266,9 @@
           "httpMethod": "POST",
           "path": "movie-mode",
           "responseMode": "onReceived",
-          "options": {}
+          "options": {
+            "onError": "continueRegularInfo"
+          }
         },
         "id": "webhook-trigger-id",
         "name": "Webhook Trigger",
@@ -181,7 +300,9 @@
           "sendBody": true,
           "specifyBody": "json",
           "jsonBody": "{\n  \"method\": \"setPowerStatus\",\n  \"version\": \"1.0\",\n  \"id\": 1,\n  \"params\": [\n    {\n      \"status\": true\n    }\n  ]\n}",
-          "options": {}
+          "options": {
+            "onError": "continueRegularInfo"
+          }
         },
         "id": "bravia-tv-id",
         "name": "Turn On Bravia TV",
@@ -201,7 +322,7 @@
             "parameters": [
               {
                 "name": "Authorization",
-                "value": "Bearer YOUR_LIFX_TOKEN"
+                "value": "Bearer cde4f226eda9ba9115f954c1291236d230ceece99c8d02804f69ece13bfbe779"
               },
               {
                 "name": "Content-Type",
@@ -212,7 +333,9 @@
           "sendBody": true,
           "specifyBody": "json",
           "jsonBody": "{\n  \"power\": \"on\",\n  \"brightness\": 0.2\n}",
-          "options": {}
+          "options": {
+            "onError": "continueRegularInfo"
+          }
         },
         "id": "lifx-dim-id",
         "name": "Dim LIFX Lights (20%)",
@@ -222,6 +345,83 @@
           350,
           350
         ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Wait 3 seconds for TV to wake up before launching app\nawait new Promise(resolve => setTimeout(resolve, 3000));\nreturn $input.all();"
+        },
+        "id": "sleep-code-id",
+        "name": "Wait 3 Seconds",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          550,
+          150
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "id": "if-cond-1",
+                "leftValue": "={{ $('Webhook Trigger').item.json.query.app }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          }
+        },
+        "id": "if-node-id",
+        "name": "If App Specified",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          750,
+          150
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://192.168.1.100/sony/appControl",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Auth-PSK",
+                "value": "0000"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ \"method\": \"setActiveApp\", \"version\": \"1.0\", \"id\": 1, \"params\": [{ \"uri\": { \"netflix\": \"com.sony.dtv.com.netflix.ninja.com.netflix.ninja.MainActivity\", \"disney\": \"com.sony.dtv.com.disney.disneyplus.com.disney.disneyplus.MainActivity\", \"amazon\": \"com.sony.dtv.com.amazon.amazonvideo.livingroom.com.amazon.amazonvideo.livingroom.MainActivity\", \"youtube\": \"com.sony.dtv.com.google.android.youtube.tv.com.google.android.youtube.tv.MainActivity\" }[$('Webhook Trigger').item.json.query.app] }] }) }}",
+          "options": {}
+        },
+        "id": "launch-app-id",
+        "name": "Launch App on TV",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.1,
+        "position": [
+          950,
+          150
+        ],
+        "continueOnFail": true
       }
     ],
     "connections": {
@@ -240,10 +440,44 @@
             }
           ]
         ]
+      },
+      "Turn On Bravia TV": {
+        "main": [
+          [
+            {
+              "node": "Wait 3 Seconds",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Wait 3 Seconds": {
+        "main": [
+          [
+            {
+              "node": "If App Specified",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If App Specified": {
+        "main": [
+          [
+            {
+              "node": "Launch App on TV",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          []
+        ]
       }
     },
     "nodeGroups": [],
-    "authors": "Éole Wind",
+    "authors": "\u00c9ole Wind",
     "name": null,
     "description": null,
     "autosaved": false,

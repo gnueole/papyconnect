@@ -1,17 +1,38 @@
 # Variables
 DOTNET = /home/eole/.dotnet/dotnet
 CSPROJ = EoleN8NPlugin/EoleN8NPlugin/EoleN8NPlugin.csproj
-WINDOWS_USER = $(shell powershell.exe -Command "Write-Host -NoNewline \$$env:USERNAME" | tr -d '\r')
+WINDOWS_USER = $(shell cmd.exe /C "echo %USERNAME%" | tr -d '\r\n ')
 PLUGINS_DIR = /mnt/c/Users/$(WINDOWS_USER)/AppData/Local/Logi/LogiPluginService/Plugins
 TARGET_DIR = $(PLUGINS_DIR)/EoleN8N
 DOWNLOADS_DIR = /mnt/c/Users/$(WINDOWS_USER)/Downloads
 
 DOTNET_EXISTS = $(shell [ -f $(DOTNET) ] && echo yes || echo no)
 
-.PHONY: all build deploy restart clean status prepare check-dotnet publish
+.PHONY: all build deploy restart clean status prepare check-dotnet publish help
 
 # Default target: build, deploy and restart service
 all: build deploy restart
+
+# Show available make targets
+help:
+	@echo ""
+	@echo "  Eole n8n Plugin — Available commands"
+	@echo "  ─────────────────────────────────────────────────────────"
+	@echo "  make all        Build + deploy + restart (full cycle)"
+	@echo "  make build      Compile the plugin DLL with .NET"
+	@echo "  make deploy     Copy built files to Logi Options+ plugin folder"
+	@echo "  make restart    Restart LogiPluginService AND LogiOptions+ UI"
+	@echo "  make publish    Build + package as .lproj4 in Downloads folder"
+	@echo "  make clean      Remove .NET build artifacts"
+	@echo "  make status     Show current build configuration"
+	@echo "  make prepare    Install .NET 8.0 SDK if missing"
+	@echo "  make help       Show this help message"
+	@echo "  ─────────────────────────────────────────────────────────"
+	@echo "  Typical workflow:"
+	@echo "    1. Edit plugin source in EoleN8NPlugin/"
+	@echo "    2. Run: make all"
+	@echo "    3. Wait a few seconds for Logi Options+ to reload"
+	@echo ""
 
 # Check if dotnet exists before running commands
 check-dotnet:
@@ -48,11 +69,19 @@ deploy:
 	cp -r EoleN8NPlugin/EoleN8NPlugin/Debug/metadata "$(TARGET_DIR)/"
 	@echo "Deploy completed successfully."
 
-# Restart the LogiPluginService on Windows
+# Restart LogiPluginService (backend) AND LogiOptions+ (UI)
 restart:
-	@echo "Restarting LogiPluginService on Windows..."
-	powershell.exe -Command "Stop-Process -Name LogiPluginService -Force; Start-Process -FilePath 'C:\Program Files\Logi\LogiPluginService\LogiPluginService.exe'"
-	@echo "LogiPluginService restarted."
+	@echo "Restarting Logi Options+ and LogiPluginService..."
+	powershell.exe -Command "\
+		Stop-Process -Name 'logioptionsplus' -Force -ErrorAction SilentlyContinue; \
+		Stop-Process -Name 'logioptionsplus_agent' -Force -ErrorAction SilentlyContinue; \
+		Stop-Process -Name 'LogiPluginService' -Force -ErrorAction SilentlyContinue; \
+		Stop-Process -Name 'LogiPluginServiceExt' -Force -ErrorAction SilentlyContinue; \
+		Start-Sleep -Seconds 2; \
+		Start-Process -FilePath 'C:\Program Files\Logi\LogiPluginService\LogiPluginService.exe'; \
+		Start-Sleep -Seconds 2; \
+		Start-Process -FilePath 'C:\Program Files\LogiOptionsPlus\logioptionsplus.exe'"
+	@echo "Logi restarted. Wait ~5 seconds for the UI to appear."
 
 # Clean build artifacts
 clean: check-dotnet
