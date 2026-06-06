@@ -363,7 +363,12 @@
                       <button @click.stop="openTuto(d.catalog.tuto)" class="text-gray-500 hover:text-gold text-xs font-semibold">ⓘ</button>
                     </template>
                   </div>
-                  <p class="text-[10px] font-mono text-gray-500 mt-0.5" x-text="d.ip"></p>
+                  <p class="text-[10px] font-mono text-gray-500 mt-0.5">
+                    <span x-text="d.ip"></span>
+                    <template x-if="d.vendor">
+                      <span> · <span class="text-amber-500 font-semibold" x-text="d.vendor"></span></span>
+                    </template>
+                  </p>
                 </div>
               </div>
 
@@ -418,6 +423,12 @@
                 <span class="font-mono" x-text="selectedDeviceForDetails.ip"></span>
                 <span class="mx-1.5 text-gray-600">·</span>
                 <span class="text-[10px] uppercase font-semibold tracking-wider text-gray-500" x-text="selectedDeviceForDetails.type"></span>
+                <template x-if="selectedDeviceForDetails.vendor">
+                  <span>
+                    <span class="mx-1.5 text-gray-600">·</span>
+                    <span class="text-[10px] uppercase font-semibold tracking-wider text-amber-500" x-text="selectedDeviceForDetails.vendor"></span>
+                  </span>
+                </template>
               </p>
             </div>
           </div>
@@ -504,10 +515,119 @@
     </div>
   </div>
 
+  <!-- Fullscreen Fireworks Canvas -->
+  <canvas id="fireworksCanvas" class="fixed inset-0 pointer-events-none z-[190]" style="display: none;"></canvas>
+
+  <!-- About Modal (Alpine.js) -->
+  <div
+    x-show="aboutModal.open"
+    class="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
+    x-transition:enter="transition ease-out duration-300"
+    x-transition:enter-start="opacity-0 scale-95"
+    x-transition:enter-end="opacity-100 scale-100"
+    x-transition:leave="transition ease-in duration-200"
+    x-transition:leave-start="opacity-100 scale-100"
+    x-transition:leave-end="opacity-0 scale-95"
+    @click.self="closeAbout()"
+    style="display: none;"
+  >
+    <div class="bg-[#131722]/90 border border-gold/30 rounded-2xl max-w-md w-full p-8 relative shadow-2xl text-center backdrop-blur-lg">
+      <button
+        @click="closeAbout()"
+        class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors focus:outline-none text-2xl font-semibold leading-none"
+        title="Close"
+      >
+        &times;
+      </button>
+
+      <div class="mb-4 flex justify-center">
+        <div class="w-16 h-16 rounded-2xl bg-gold/10 border border-gold/30 flex items-center justify-center text-gold shadow-lg shadow-gold/10">
+          <svg class="w-10 h-10 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+      </div>
+
+      <h3 class="text-xl font-extrabold text-gold tracking-tight mb-2">PapyConnect</h3>
+      <p class="text-xs text-gray-400 mb-6">IoT Service Registry & Gateway</p>
+      
+      <div class="py-4 border-y border-rim/40 mb-6 bg-rim/10 rounded-xl px-4">
+        <p class="text-sm text-gray-200 font-medium tracking-wide">Coded by <span class="text-gold font-bold">Éole</span> & <span class="text-gold font-bold">Antigravity</span></p>
+      </div>
+
+      <p class="text-[10px] text-gray-500 mb-2">PapyConnect is part of Éole's Home Lab</p>
+      <p class="text-[10px] text-gray-600">v1.3.0 &copy; 2026</p>
+    </div>
+  </div>
+
+  <!-- Factory Reset Confirmation Modal (Alpine.js) -->
+  <div
+    x-show="factoryResetModal.open"
+    class="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
+    x-transition:enter="transition ease-out duration-300"
+    x-transition:enter-start="opacity-0 scale-95"
+    x-transition:enter-end="opacity-100 scale-100"
+    x-transition:leave="transition ease-in duration-200"
+    x-transition:leave-start="opacity-100 scale-100"
+    x-transition:leave-end="opacity-0 scale-95"
+    @click.self="factoryResetModal.open = false"
+    style="display: none;"
+  >
+    <div class="bg-[#1f1315]/95 border border-red-500/30 rounded-2xl max-w-md w-full p-8 relative shadow-2xl text-center backdrop-blur-lg">
+      <button
+        @click="factoryResetModal.open = false"
+        class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors focus:outline-none text-2xl font-semibold leading-none"
+        title="Close"
+      >
+        &times;
+      </button>
+
+      <div class="mb-4 flex justify-center">
+        <div class="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-500 shadow-lg shadow-red-500/10">
+          <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+      </div>
+
+      <h3 class="text-xl font-extrabold text-red-400 tracking-tight mb-2">Factory Reset</h3>
+      <p class="text-xs text-gray-400 mb-6">Are you absolutely sure?</p>
+      
+      <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-left text-xs text-red-300 space-y-2 mb-6">
+        <p class="font-bold">This operation is irreversible and will:</p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li>Delete all registered IoT devices on the server.</li>
+          <li>Delete all configured virtual actions/shortcuts.</li>
+          <li>Clear all local storage and settings in this browser.</li>
+        </ul>
+      </div>
+
+      <div class="flex gap-4">
+        <button
+          @click="factoryResetModal.open = false"
+          class="flex-1 px-4 py-2.5 rounded-xl border border-rim/60 text-xs font-semibold text-gray-300 hover:bg-rim/20 active:scale-98 transition-all"
+        >
+          Cancel
+        </button>
+        <button
+          @click="executeFactoryReset()"
+          class="flex-1 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-xs font-semibold text-white active:scale-98 transition-all shadow-lg shadow-red-600/20"
+        >
+          Yes, Reset Everything
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ══════════════ FOOTER ══════════════ -->
-  <footer class="text-center text-xs text-gray-700 pb-10 mt-12">
-    PapyConnect v1.3 &mdash; Éole's Home Lab &nbsp;·&nbsp;
+  <footer class="text-center text-xs text-gray-700 pb-10 mt-12 flex flex-col sm:flex-row items-center justify-center gap-3">
+    <span>PapyConnect v1.3 &mdash; Éole's Home Lab</span>
+    <span class="hidden sm:inline text-gray-800">·</span>
     <a href="/docs" class="hover:text-gold transition-colors underline">Swagger API Docs</a>
+    <span class="hidden sm:inline text-gray-800">·</span>
+    <button @click="openAbout()" class="hover:text-gold transition-colors underline bg-transparent border-0 cursor-pointer">About</button>
+    <span class="hidden sm:inline text-gray-800">·</span>
+    <button @click="confirmFactoryReset()" class="hover:text-red-400 transition-colors text-red-600/80 underline bg-transparent border-0 cursor-pointer">Factory Reset</button>
   </footer>
 
   <!-- ══════════════ ALPINE.JS LOGIC ══════════════ -->
@@ -539,6 +659,12 @@
         toast:    '',
         selectedDeviceForDetails: null,
         deviceDetailsModal: {
+          open: false
+        },
+        aboutModal: {
+          open: false
+        },
+        factoryResetModal: {
           open: false
         },
         _toastTimer: null,
@@ -642,6 +768,40 @@
           this.toast = msg;
           clearTimeout(this._toastTimer);
           this._toastTimer = setTimeout(() => this.toast = '', 6000);
+        },
+
+        openAbout() {
+          this.aboutModal.open = true;
+          setTimeout(() => {
+            startFireworks();
+          }, 50);
+        },
+
+        closeAbout() {
+          this.aboutModal.open = false;
+          stopFireworks();
+        },
+
+        confirmFactoryReset() {
+          this.factoryResetModal.open = true;
+        },
+
+        async executeFactoryReset() {
+          this.factoryResetModal.open = false;
+          this.loading = true;
+          try {
+            const r = await fetch('/api/factory-reset', { method: 'POST' });
+            if (!r.ok) throw new Error();
+            localStorage.clear();
+            sessionStorage.clear();
+            this.notify('Factory reset successful. Reloading...');
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
+          } catch {
+            this.notify('Failed to perform factory reset.');
+            this.loading = false;
+          }
         },
 
         ago(iso) {
@@ -795,6 +955,186 @@
           }[type] || 'bg-rim text-gray-500';
         },
       };
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Canvas Fireworks Particle System (Coded by Éole & Antigravity)
+    // ─────────────────────────────────────────────────────────────────────────
+    let fireworksAnimId = null;
+    let fireworksCanvas = null;
+    let fireworksCtx = null;
+    let fireworksParticles = [];
+    let fireworksExplosions = [];
+
+    function startFireworks() {
+      fireworksCanvas = document.getElementById('fireworksCanvas');
+      if (!fireworksCanvas) return;
+      fireworksCanvas.style.display = 'block';
+      fireworksCtx = fireworksCanvas.getContext('2d');
+      
+      resizeFireworksCanvas();
+      window.addEventListener('resize', resizeFireworksCanvas);
+
+      fireworksParticles = [];
+      fireworksExplosions = [];
+      
+      // Spawn initial set
+      for (let i = 0; i < 5; i++) {
+        setTimeout(spawnFirework, i * 150);
+      }
+
+      animateFireworks();
+    }
+
+    function stopFireworks() {
+      if (fireworksAnimId) {
+        cancelAnimationFrame(fireworksAnimId);
+        fireworksAnimId = null;
+      }
+      if (fireworksCanvas) {
+        fireworksCanvas.style.display = 'none';
+      }
+      window.removeEventListener('resize', resizeFireworksCanvas);
+    }
+
+    function resizeFireworksCanvas() {
+      if (fireworksCanvas) {
+        fireworksCanvas.width = window.innerWidth;
+        fireworksCanvas.height = window.innerHeight;
+      }
+    }
+
+    class FireworkParticle {
+      constructor(x, y, targetX, targetY, color) {
+        this.x = x;
+        this.y = y;
+        this.targetX = targetX;
+        this.targetY = targetY;
+        this.color = color;
+        this.speed = 3 + Math.random() * 4;
+        this.angle = Math.atan2(targetY - y, targetX - x);
+        this.distToTarget = Math.hypot(targetX - x, targetY - y);
+        this.distTraveled = 0;
+        this.coordinates = [];
+        this.coordinateCount = 3;
+        while (this.coordinateCount--) {
+          this.coordinates.push([this.x, this.y]);
+        }
+      }
+
+      update() {
+        this.coordinates.pop();
+        this.coordinates.unshift([this.x, this.y]);
+        
+        let vx = Math.cos(this.angle) * this.speed;
+        let vy = Math.sin(this.angle) * this.speed;
+        
+        this.x += vx;
+        this.y += vy;
+        
+        return Math.hypot(this.targetX - this.x, this.targetY - this.y) <= this.speed;
+      }
+
+      draw() {
+        fireworksCtx.beginPath();
+        fireworksCtx.moveTo(this.coordinates[this.coordinates.length - 1][0], this.coordinates[this.coordinates.length - 1][1]);
+        fireworksCtx.lineTo(this.x, this.y);
+        fireworksCtx.strokeStyle = this.color;
+        fireworksCtx.lineWidth = 2.5;
+        fireworksCtx.stroke();
+      }
+    }
+
+    class ExplosionParticle {
+      constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.angle = Math.random() * Math.PI * 2;
+        this.speed = 2 + Math.random() * 8;
+        this.friction = 0.94;
+        this.gravity = 0.12;
+        this.alpha = 1.0;
+        this.decay = 0.008 + Math.random() * 0.012;
+        this.coordinates = [];
+        this.coordinateCount = 5;
+        while (this.coordinateCount--) {
+          this.coordinates.push([this.x, this.y]);
+        }
+      }
+
+      update() {
+        this.coordinates.pop();
+        this.coordinates.unshift([this.x, this.y]);
+        this.speed *= this.friction;
+        this.x += Math.cos(this.angle) * this.speed;
+        this.y += Math.sin(this.angle) * this.speed + this.gravity;
+        this.alpha -= this.decay;
+        return this.alpha <= this.decay;
+      }
+
+      draw() {
+        fireworksCtx.beginPath();
+        fireworksCtx.moveTo(this.coordinates[this.coordinates.length - 1][0], this.coordinates[this.coordinates.length - 1][1]);
+        fireworksCtx.lineTo(this.x, this.y);
+        fireworksCtx.strokeStyle = `rgba(${this.color}, ${this.alpha})`;
+        fireworksCtx.lineWidth = 2.0;
+        fireworksCtx.stroke();
+      }
+    }
+
+    function hexToRgb(hex) {
+      let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '255, 255, 255';
+    }
+
+    function spawnFirework() {
+      let x = Math.random() * window.innerWidth;
+      let y = window.innerHeight;
+      let targetX = Math.random() * window.innerWidth;
+      let targetY = 100 + Math.random() * (window.innerHeight * 0.4);
+      let colors = ['#e9a623', '#ff0055', '#00ffcc', '#ffcc00', '#ff00ff', '#33ccff', '#99ff33'];
+      let color = colors[Math.floor(Math.random() * colors.length)];
+      
+      fireworksParticles.push(new FireworkParticle(x, y, targetX, targetY, color));
+    }
+
+    function createExplosion(x, y, colorHex) {
+      let rgb = hexToRgb(colorHex);
+      let count = 100 + Math.floor(Math.random() * 60); // Big big explosions!
+      for (let i = 0; i < count; i++) {
+        fireworksExplosions.push(new ExplosionParticle(x, y, rgb));
+      }
+    }
+
+    function animateFireworks() {
+      fireworksCtx.globalCompositeOperation = 'destination-out';
+      fireworksCtx.fillStyle = 'rgba(0, 0, 0, 0.18)';
+      fireworksCtx.fillRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
+      fireworksCtx.globalCompositeOperation = 'lighter';
+
+      for (let i = fireworksParticles.length - 1; i >= 0; i--) {
+        let p = fireworksParticles[i];
+        p.draw();
+        if (p.update()) {
+          createExplosion(p.targetX, p.targetY, p.color);
+          fireworksParticles.splice(i, 1);
+        }
+      }
+
+      for (let i = fireworksExplosions.length - 1; i >= 0; i--) {
+        let ep = fireworksExplosions[i];
+        ep.draw();
+        if (ep.update()) {
+          fireworksExplosions.splice(i, 1);
+        }
+      }
+
+      if (Math.random() < 0.07) {
+        spawnFirework();
+      }
+
+      fireworksAnimId = requestAnimationFrame(animateFireworks);
     }
   </script>
 

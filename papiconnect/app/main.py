@@ -153,6 +153,7 @@ KNOWN_DEVICES: dict[str, dict] = {
     "192.168.1.193": {
         "name": "Denon AVC-X3800H Salon",
         "type": "amplifier",
+        "vendor": "Denon",
         "ip": "192.168.1.193",
         "variables": {
             "zone": "MAIN",
@@ -162,6 +163,7 @@ KNOWN_DEVICES: dict[str, dict] = {
     "192.168.1.200": {
         "name": "Denon de Louistib (Superior Model)",
         "type": "amplifier",
+        "vendor": "Denon",
         "ip": "192.168.1.200",
         "variables": {
             "zone": "MAIN",
@@ -171,6 +173,7 @@ KNOWN_DEVICES: dict[str, dict] = {
     "192.168.1.100": {
         "name": "Sony Bravia TV Salon",
         "type": "sony_bravia_tv",
+        "vendor": "Sony",
         "ip": "192.168.1.100",
         "variables": {}
     }
@@ -192,28 +195,134 @@ def _slugify(text: str) -> str:
     return text.strip('_')
 
 
-async def _fetch_sony_apps(ip: str, timeout: float = 1.5) -> list[dict]:
-    """Fetch the list of installed applications from a Sony Bravia TV using PSK."""
-    url = f"http://{ip}/sony/appControl"
-    headers = {
-        "X-Auth-PSK": "0000",
-        "Content-Type": "application/json"
-    }
-    payload = {
-        "method": "getApplicationList",
-        "version": "1.0",
-        "id": 1,
-        "params": []
-    }
+class Vendor:
+    name: str = "Generic"
+
+    @classmethod
+    def get_app_list_request(cls, ip: str) -> dict | None:
+        """Return a request configuration to get the application list from this device.
+        Should return a dictionary with keys: 'url', 'method', 'headers', 'json'.
+        """
+        return None
+
+    @classmethod
+    def parse_app_list_response(cls, data: dict) -> list[dict]:
+        """Parse the raw response from get_app_list_request and return a list of apps.
+        Each app in the list should be a dict with keys 'title' and 'uri'.
+        """
+        return []
+
+    @classmethod
+    def get_launch_action_payload(cls, app_uri: str) -> dict | None:
+        """Return the action payload config to execute launching this application."""
+        return None
+
+
+class SonyVendor(Vendor):
+    name: str = "Sony"
+
+    @classmethod
+    def get_app_list_request(cls, ip: str) -> dict | None:
+        return {
+            "url": f"http://{ip}/sony/appControl",
+            "method": "POST",
+            "headers": {
+                "X-Auth-PSK": "0000",
+                "Content-Type": "application/json"
+            },
+            "json": {
+                "method": "getApplicationList",
+                "version": "1.0",
+                "id": 1,
+                "params": []
+            }
+        }
+
+    @classmethod
+    def parse_app_list_response(cls, data: dict) -> list[dict]:
+        if "result" in data and isinstance(data["result"], list) and len(data["result"]) > 0:
+            return data["result"][0]
+        return []
+
+    @classmethod
+    def get_launch_action_payload(cls, app_uri: str) -> dict | None:
+        return {
+            "protocol": "HTTP",
+            "method": "POST",
+            "port": 80,
+            "path": "/sony/appControl",
+            "headers": {
+                "X-Auth-PSK": "0000",
+                "Content-Type": "application/json"
+            },
+            "payload": json.dumps({
+                "method": "setActiveApp",
+                "version": "1.0",
+                "id": 1,
+                "params": [{"uri": app_uri}]
+            })
+        }
+
+
+class DenonVendor(Vendor):
+    name: str = "Denon"
+
+
+class GenericVendor(Vendor):
+    name: str = "Generic"
+
+
+VENDORS: dict[str, type[Vendor]] = {
+    "Sony": SonyVendor,
+    "Denon": DenonVendor,
+    "Generic": GenericVendor
+}
+
+
+def _get_device_vendor_name(device: dict) -> str:
+    """Determine vendor name from device dict, with fallback logic based on type/name."""
+    if "vendor" in device and device["vendor"]:
+        return device["vendor"]
+    dtype = device.get("type", "").lower()
+    if dtype in ["sony_bravia_tv", "tv"]:
+        return "Sony"
+    if dtype in ["amplifier"]:
+        return "Denon"
+    name = device.get("name", "").lower()
+    if "sony" in name or "bravia" in name:
+        return "Sony"
+    if "denon" in name or "marantz" in name:
+        return "Denon"
+    return "Generic"
+
+
+def _get_device_vendor(device: dict) -> type[Vendor]:
+    """Retrieve Vendor class for a device."""
+    vendor_name = _get_device_vendor_name(device)
+    return VENDORS.get(vendor_name, GenericVendor)
+
+
+async def _fetch_device_apps(device: dict, timeout: float = 1.5) -> list[dict]:
+    """Fetch list of installed applications from a device using its Vendor configuration."""
+    ip = device.get("ip")
+    vendor_cls = _get_device_vendor(device)
+    req_config = vendor_cls.get_app_list_request(ip)
+    if not req_config:
+        return []
+
+    url = req_config.get("url")
+    method = req_config.get("method", "POST")
+    headers = req_config.get("headers", {})
+    json_payload = req_config.get("json")
+
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.post(url, json=payload, headers=headers, timeout=timeout) as response:
+            async with session.request(method, url, json=json_payload, headers=headers, timeout=timeout) as response:
                 if response.status == 200:
                     data = await response.json()
-                    if "result" in data and isinstance(data["result"], list) and len(data["result"]) > 0:
-                        return data["result"][0]
+                    return vendor_cls.parse_app_list_response(data)
     except Exception as e:
-        log.warning("Failed to fetch Sony apps from %s: %s", ip, e)
+        log.warning("Failed to fetch applications for %s (%s) @ %s: %s", device.get("name"), vendor_cls.name, ip, e)
     return []
 
 
@@ -287,10 +396,12 @@ def _merge_devices(devices: list[dict], new_device: dict) -> list[dict]:
         if existing.get("ip") == new_device.get("ip"):
             existing.setdefault("name", new_device.get("name", "Unknown"))
             existing["type"] = new_device.get("type", existing.get("type", "unknown"))
+            existing["vendor"] = new_device.get("vendor", existing.get("vendor", _get_device_vendor_name(existing)))
             existing["variables"] = new_device.get("variables", existing.get("variables", {}))
             existing["last_seen"] = datetime.utcnow().isoformat()
             return devices
     new_device.setdefault("last_seen", datetime.utcnow().isoformat())
+    new_device["vendor"] = new_device.get("vendor", _get_device_vendor_name(new_device))
     devices.append(new_device)
     return devices
 
@@ -382,7 +493,7 @@ class _MDNSListener:
         raw_name = info.properties.get(b"fn", b"")
         label = raw_name.decode(errors="replace") if raw_name else name.split(".")[0]
         log.info("mDNS discovered: %s @ %s", label, ip)
-        self.found.append({"name": label, "ip": ip, "type": "tv", "source": "mdns"})
+        self.found.append({"name": label, "ip": ip, "type": "tv", "vendor": "Sony", "source": "mdns"})
 
     def remove_service(self, *_): pass
     def update_service(self, *_): pass
@@ -497,14 +608,16 @@ async def get_devices():
     import copy
     
     async def process_device(device):
+        device["vendor"] = _get_device_vendor_name(device)
         dtype = device.get("type")
         if dtype in DEVICE_CATALOGS:
             catalog = copy.deepcopy(DEVICE_CATALOGS[dtype])
             device["catalog"] = catalog
             
-            # If it's a TV and online, fetch apps dynamically and merge
-            if dtype in ["sony_bravia_tv", "tv"] and device.get("status") == "online":
-                apps = await _fetch_sony_apps(device["ip"])
+            vendor_cls = _get_device_vendor(device)
+            # If the vendor supports app listing and the device is online, fetch dynamically and merge
+            if vendor_cls.get_app_list_request(device["ip"]) is not None and device.get("status") == "online":
+                apps = await _fetch_device_apps(device)
                 device_dynamic = {}
                 for app in apps:
                     app_title = app.get("title")
@@ -512,24 +625,10 @@ async def get_devices():
                     if app_title and app_uri:
                         slug = _slugify(app_title)
                         action_key = f"launch_{slug}"
-                        action_payload = {
-                            "protocol": "HTTP",
-                            "method": "POST",
-                            "port": 80,
-                            "path": "/sony/appControl",
-                            "headers": {
-                                "X-Auth-PSK": "0000",
-                                "Content-Type": "application/json"
-                            },
-                            "payload": json.dumps({
-                                "method": "setActiveApp",
-                                "version": "1.0",
-                                "id": 1,
-                                "params": [{"uri": app_uri}]
-                            })
-                        }
-                        catalog["actions"][action_key] = action_payload
-                        device_dynamic[action_key] = action_payload
+                        action_payload = vendor_cls.get_launch_action_payload(app_uri)
+                        if action_payload:
+                            catalog["actions"][action_key] = action_payload
+                            device_dynamic[action_key] = action_payload
                 
                 # Cache the dynamic actions for lookup during execution/config fetch
                 if device_dynamic:
@@ -543,6 +642,7 @@ class DeviceIn(BaseModel):
     name: str
     ip: str
     type: str = "unknown"
+    vendor: str = "Generic"
     variables: dict = {}
 
 
@@ -566,6 +666,23 @@ async def delete_device(ip: str):
     _save_registry(filtered)
     log.info("Device removed from registry: %s", ip)
     return {"ok": True, "removed": ip}
+
+
+@app.post("/api/factory-reset", summary="Factory reset all database and configurations")
+async def factory_reset():
+    """Delete all local files and reset registry/actions back to clean initial states."""
+    try:
+        if REGISTRY_PATH.exists():
+            REGISTRY_PATH.unlink()
+        if ACTIONS_PATH.exists():
+            ACTIONS_PATH.unlink()
+        REGISTRY_PATH.parent.mkdir(parents=True, exist_ok=True)
+        DYNAMIC_ACTIONS_CACHE.clear()
+        log.warning("Factory Reset executed: deleted registry.json and actions.json")
+        return {"ok": True, "message": "Factory reset complete. System is back to a clean install state."}
+    except Exception as e:
+        log.error("Failed to execute factory reset: %s", e)
+        raise HTTPException(status_code=500, detail=f"Factory reset failed: {str(e)}")
 
 
 @app.post("/api/scan", summary="Trigger mDNS and ping network scan")
