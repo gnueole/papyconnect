@@ -241,6 +241,21 @@
               <div>
                 <label class="block text-[10px] uppercase font-bold tracking-wider text-gray-500 mb-1">Shortcut Name</label>
                 <input type="text" x-model="wizard.title" class="bg-rim border border-rim rounded-xl px-4 py-2.5 w-full text-white text-sm focus:border-gold outline-none" />
+                
+                <div class="mt-2.5 space-y-2" x-show="wizard.device">
+                  <span class="block text-[9px] uppercase font-bold tracking-wider text-gray-500">Insert Quick Name:</span>
+                  <div class="flex flex-wrap gap-1.5">
+                    <!-- Device name button -->
+                    <button type="button" @click="wizard.title = getUniqueTitle(serviceLabel(wizard.service) + ' (' + wizard.device.name + ')')" class="px-2.5 py-1 rounded-lg bg-rim/30 hover:bg-gold/20 border border-rim text-[10px] text-gray-400 hover:text-white transition-colors">
+                      Device: <span class="text-gold font-semibold" x-text="wizard.device.name"></span>
+                    </button>
+                    <!-- Rooms list buttons -->
+                    <template x-for="r in ['Living Room', 'Bedroom', 'Bathroom', 'Kitchen']" :key="r">
+                      <button type="button" @click="wizard.title = getUniqueTitle(serviceLabel(wizard.service) + ' (' + r + ')')" class="px-2.5 py-1 rounded-lg bg-rim/30 hover:bg-gold/20 border border-rim text-[10px] text-gray-400 hover:text-white transition-colors" x-text="r">
+                      </button>
+                    </template>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -651,8 +666,19 @@
           if (device.name.toLowerCase().includes('salon')) room = 'Living Room';
           else if (device.name.toLowerCase().includes('louistib')) room = 'Louistib';
           else if (device.name.toLowerCase().includes('chambre')) room = 'Bedroom';
-          this.wizard.title = `${this.serviceLabel(this.wizard.service)} (${room})`;
+          let baseTitle = `${this.serviceLabel(this.wizard.service)} (${room})`;
+          this.wizard.title = this.getUniqueTitle(baseTitle);
           this.wizard.step = 3;
+        },
+
+        getUniqueTitle(baseTitle) {
+          let finalTitle = baseTitle;
+          let counter = 2;
+          while (this.actions.some(act => act.title.toLowerCase() === finalTitle.toLowerCase())) {
+            finalTitle = `${baseTitle} ${counter}`;
+            counter++;
+          }
+          return finalTitle;
         },
 
         serviceLabel(service) {
