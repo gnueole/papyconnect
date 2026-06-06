@@ -32,13 +32,23 @@ namespace Loupedeck.PapyConnectPlugin
 
         public static HttpClient Http => _http;
 
+        public static string GetBaseDirectory()
+        {
+            var dir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "PapyConnect");
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+            return dir;
+        }
+
         public static string GetFilePath()
         {
             if (string.IsNullOrEmpty(_filePath))
             {
-                _filePath = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                    "n8n_triggers.json");
+                _filePath = Path.Combine(GetBaseDirectory(), "n8n_triggers.json");
             }
             return _filePath;
         }
@@ -47,9 +57,7 @@ namespace Loupedeck.PapyConnectPlugin
         {
             if (string.IsNullOrEmpty(_configFilePath))
             {
-                _configFilePath = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                    "papyconnect_config.json");
+                _configFilePath = Path.Combine(GetBaseDirectory(), "config.json");
             }
             return _configFilePath;
         }

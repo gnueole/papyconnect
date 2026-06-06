@@ -24,8 +24,8 @@ graph TD
 The compiled C# plugin is located in [PapyConnectPlugin/](file:///home/eole/projects/papyconnect/PapyConnectPlugin).
 
 ### 1. How it works
-The plugin reads the n8n Gateway URL from a configuration file in your Windows Documents folder:
-👉 `C:\Users\YOUR_USERNAME\Documents\papyconnect_config.json`
+The plugin reads the n8n Gateway URL from a configuration file under a dedicated `PapyConnect` folder in your Windows Documents folder:
+👉 `C:\Users\YOUR_USERNAME\Documents\PapyConnect\config.json`
 
 Example:
 ```json
@@ -35,7 +35,7 @@ Example:
 ```
 
 The dynamic action parameters are fetched automatically from the gateway and cached in:
-👉 `C:\Users\YOUR_USERNAME\Documents\n8n_triggers.json`
+👉 `C:\Users\YOUR_USERNAME\Documents\PapyConnect\n8n_triggers.json`
 
 Example of cached triggers file:
 ```json
