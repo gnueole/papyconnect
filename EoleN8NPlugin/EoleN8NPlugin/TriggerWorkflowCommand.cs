@@ -67,7 +67,7 @@ namespace Loupedeck.EoleN8NPlugin
         private readonly string _triggerId;
 
         protected N8NTriggerCommandBase(string displayName, string description, string triggerId)
-            : base(displayName, description, "N8N")
+            : base(displayName, description, "PapyConnect")
         {
             _triggerId = triggerId;
         }

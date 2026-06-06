@@ -1,0 +1,207 @@
+{
+  "name": "launchAction",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "papyconnect-action",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook-trigger-id",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        100,
+        250
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://localhost:8000/api/actions/{{ $json.query.id || $json.body.action_id }}/execute"
+      },
+      "id": "get-contract-id",
+      "name": "Resolve Execution Contract",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        300,
+        250
+      ]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.protocol }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "HTTP",
+              "output": 0
+            },
+            {
+              "value2": "TCP",
+              "output": 1
+            }
+          ]
+        }
+      },
+      "id": "protocol-router-id",
+      "name": "Protocol Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        550,
+        250
+      ]
+    },
+    {
+      "parameters": {
+        "method": "={{ $json.method }}",
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": []
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.payload }}",
+        "options": {}
+      },
+      "id": "http-execution-id",
+      "name": "HTTP Request Execution",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        750,
+        150
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const net = require('net');\n\nconst sendTCP = (ip, port, payload) => {\n  return new Promise((resolve, reject) => {\n    const client = new net.Socket();\n    client.setTimeout(3000);\n\n    client.connect(port, ip, () => {\n      client.write(payload);\n      client.end();\n      resolve({ success: true, message: `Commande transmise à ${ip}:${port}` });\n    });\n\n    client.on('error', (err) => {\n      client.destroy();\n      reject(err);\n    });\n\n    client.on('timeout', () => {\n      client.destroy();\n      reject(new Error('Délai d\\'attente dépassé'));\n    });\n  });\n};\n\nconst items = $input.all();\nfor (const item of items) {\n  try {\n    const res = await sendTCP(item.json.ip, item.json.port, item.json.payload);\n    item.json.execution = res;\n  } catch (err) {\n    item.json.execution = { success: false, error: err.message };\n  }\n}\nreturn items;"
+      },
+      "id": "tcp-execution-id",
+      "name": "TCP Code Execution",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        750,
+        350
+      ]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.action_id }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "netflix_salon",
+              "output": 0
+            }
+          ]
+        }
+      },
+      "id": "ambient-light-router-id",
+      "name": "Ambient Light Switch",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        550,
+        450
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.lifx.com/v1/lights/all/state",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer MOCK_LIFX_TOKEN"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"power\":\"on\",\"brightness\":0.2,\"duration\":3.0}",
+        "options": {}
+      },
+      "id": "lifx-request-id",
+      "name": "LIFX Ambient Dim (20%)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        750,
+        480
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Resolve Execution Contract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Execution Contract": {
+      "main": [
+        [
+          {
+            "node": "Protocol Router",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Ambient Light Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Protocol Router": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request Execution",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "TCP Code Execution",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ambient Light Switch": {
+      "main": [
+        [
+          {
+            "node": "LIFX Ambient Dim (20%)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

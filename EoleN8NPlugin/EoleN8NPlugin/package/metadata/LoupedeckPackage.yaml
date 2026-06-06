@@ -6,13 +6,13 @@
 type: plugin4
 
 # Name that identifies the plugin.
-name: EoleN8N
+name: PapyConnect
 
 # Plugin name that is shown to the user.
-displayName: Eole n8n Trigger
+displayName: PapyConnect
 
 # Short description of the plugin.
-description: Triggers n8n webhook workflows from your console
+description: PapyConnect dynamic webhook triggers
 
 # Name of the plugin library file.
 pluginFileName: EoleN8NPlugin.dll

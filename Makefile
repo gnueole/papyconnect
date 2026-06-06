@@ -3,7 +3,7 @@ DOTNET = /home/eole/.dotnet/dotnet
 CSPROJ = EoleN8NPlugin/EoleN8NPlugin/EoleN8NPlugin.csproj
 WINDOWS_USER = $(shell cmd.exe /C "echo %USERNAME%" | tr -d '\r\n ')
 PLUGINS_DIR = /mnt/c/Users/$(WINDOWS_USER)/AppData/Local/Logi/LogiPluginService/Plugins
-TARGET_DIR = $(PLUGINS_DIR)/EoleN8N
+TARGET_DIR = $(PLUGINS_DIR)/PapyConnect
 DOWNLOADS_DIR = /mnt/c/Users/$(WINDOWS_USER)/Downloads
 
 # Server automation for papiconnect (Using root as requested)

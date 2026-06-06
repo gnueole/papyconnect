@@ -38,7 +38,7 @@
   </Target>
   
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Condition="$(OS) == 'Windows_NT'" ContinueOnError="true" Command="echo $(BaseOutputPath)$(Configuration)\ &gt; &quot;$(PluginDir)$(ProjectName).link&quot;&#xD;&#xA;start loupedeck:plugin/EoleN8N/reload" />
+    <Exec Condition="$(OS) == 'Windows_NT'" ContinueOnError="true" Command="echo $(BaseOutputPath)$(Configuration)\ &gt; &quot;$(PluginDir)$(ProjectName).link&quot;&#xD;&#xA;start loupedeck:plugin/PapyConnect/reload" />
     <Exec Condition="$(OS) != 'Windows_NT'" ContinueOnError="true" Command="echo $(BaseOutputPath)$(Configuration)\ &gt; $(PluginDir)$(ProjectName).link" />
   </Target>
 
