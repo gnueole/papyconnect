@@ -169,13 +169,6 @@ KNOWN_DEVICES: dict[str, dict] = {
             "zone": "MAIN",
             "max_volume": 90
         }
-    },
-    "192.168.1.100": {
-        "name": "Sony Bravia TV Salon",
-        "type": "sony_bravia_tv",
-        "vendor": "Sony",
-        "ip": "192.168.1.100",
-        "variables": {}
     }
 }
 
@@ -197,6 +190,12 @@ def _slugify(text: str) -> str:
 
 class Vendor:
     name: str = "Generic"
+    version: str = "1.0"
+    description: str = "Generic fallback vendor"
+
+    @classmethod
+    def get_api_calls(cls) -> dict:
+        return {}
 
     @classmethod
     def get_app_list_request(cls, ip: str) -> dict | None:
@@ -220,6 +219,45 @@ class Vendor:
 
 class SonyVendor(Vendor):
     name: str = "Sony"
+    version: str = "v1.0 (Bravia Simple IP)"
+    description: str = "Sony Bravia TVs using Pre-Shared Key (PSK) authentication."
+
+    @classmethod
+    def get_api_calls(cls) -> dict:
+        return {
+            "Get Application List": {
+                "protocol": "HTTP",
+                "method": "POST",
+                "port": 80,
+                "path": "/sony/appControl",
+                "headers": {
+                    "X-Auth-PSK": "0000",
+                    "Content-Type": "application/json"
+                },
+                "payload": {
+                    "method": "getApplicationList",
+                    "version": "1.0",
+                    "id": 1,
+                    "params": []
+                }
+            },
+            "Launch Application": {
+                "protocol": "HTTP",
+                "method": "POST",
+                "port": 80,
+                "path": "/sony/appControl",
+                "headers": {
+                    "X-Auth-PSK": "0000",
+                    "Content-Type": "application/json"
+                },
+                "payload": {
+                    "method": "setActiveApp",
+                    "version": "1.0",
+                    "id": 1,
+                    "params": [{"uri": "App URI (e.g. com.sony.dtv.com.netflix.ninja...)"}]
+                }
+            }
+        }
 
     @classmethod
     def get_app_list_request(cls, ip: str) -> dict | None:
@@ -266,10 +304,29 @@ class SonyVendor(Vendor):
 
 class DenonVendor(Vendor):
     name: str = "Denon"
+    version: str = "v1.0 (Telnet TCP)"
+    description: str = "Denon and Marantz AV Receivers controlled via raw TCP Telnet protocol commands."
+
+    @classmethod
+    def get_api_calls(cls) -> dict:
+        return {
+            "Power On & Select Spotify/NET Input": {
+                "protocol": "TCP",
+                "port": 23,
+                "payload": "SINET\r"
+            },
+            "Power Off (Standby)": {
+                "protocol": "TCP",
+                "port": 23,
+                "payload": "PWSTANDBY\r"
+            }
+        }
 
 
 class GenericVendor(Vendor):
     name: str = "Generic"
+    version: str = "N/A"
+    description: str = "Generic unsupported hardware vendor."
 
 
 VENDORS: dict[str, type[Vendor]] = {
@@ -492,8 +549,18 @@ class _MDNSListener:
         ip = socket.inet_ntoa(info.addresses[0])
         raw_name = info.properties.get(b"fn", b"")
         label = raw_name.decode(errors="replace") if raw_name else name.split(".")[0]
-        log.info("mDNS discovered: %s @ %s", label, ip)
-        self.found.append({"name": label, "ip": ip, "type": "tv", "vendor": "Sony", "source": "mdns"})
+        
+        # Determine vendor based on friendly name or model properties
+        model = info.properties.get(b"md", b"").decode(errors="replace") if info.properties.get(b"md") else ""
+        friendly = label.lower()
+        model_lower = model.lower()
+        
+        vendor = "Generic"
+        if "sony" in friendly or "bravia" in friendly or "sony" in model_lower or "bravia" in model_lower:
+            vendor = "Sony"
+            
+        log.info("mDNS discovered: %s @ %s (Vendor: %s)", label, ip, vendor)
+        self.found.append({"name": label, "ip": ip, "type": "tv", "vendor": vendor, "source": "mdns"})
 
     def remove_service(self, *_): pass
     def update_service(self, *_): pass
@@ -666,6 +733,20 @@ async def delete_device(ip: str):
     _save_registry(filtered)
     log.info("Device removed from registry: %s", ip)
     return {"ok": True, "removed": ip}
+
+
+@app.get("/api/vendors", summary="List all supported hardware vendors and API specs")
+async def get_vendors():
+    """Retrieve metadata and API contract specifications for all supported hardware vendors."""
+    return [
+        {
+            "name": v.name,
+            "version": v.version,
+            "description": v.description,
+            "api_calls": v.get_api_calls()
+        }
+        for name, v in VENDORS.items() if name != "Generic"
+    ]
 
 
 @app.post("/api/factory-reset", summary="Factory reset all database and configurations")
