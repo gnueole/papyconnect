@@ -16,14 +16,68 @@ namespace Loupedeck.PapyConnectPlugin
         public string Color { get; set; }
     }
 
+    // ── Shared config model ──────────────────────────────────────────────────
+    public class PapyConfig
+    {
+        public string N8nGatewayUrl { get; set; } = "http://gronas:5678";
+    }
+
     // ── Shared config loader (singleton) ─────────────────────────────────────
     internal static class N8NTriggerConfig
     {
         private static readonly HttpClient _http = new HttpClient();
         private static List<N8NTrigger> _triggers;
         private static string _filePath;
+        private static string _configFilePath;
 
         public static HttpClient Http => _http;
+
+        public static string GetFilePath()
+        {
+            if (string.IsNullOrEmpty(_filePath))
+            {
+                _filePath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                    "n8n_triggers.json");
+            }
+            return _filePath;
+        }
+
+        public static string GetConfigFilePath()
+        {
+            if (string.IsNullOrEmpty(_configFilePath))
+            {
+                _configFilePath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                    "papyconnect_config.json");
+            }
+            return _configFilePath;
+        }
+
+        public static PapyConfig LoadConfig()
+        {
+            try
+            {
+                var path = GetConfigFilePath();
+                if (File.Exists(path))
+                {
+                    var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    return JsonSerializer.Deserialize<PapyConfig>(File.ReadAllText(path), opts) ?? new PapyConfig();
+                }
+                else
+                {
+                    var config = new PapyConfig();
+                    var opts = new JsonSerializerOptions { WriteIndented = true };
+                    File.WriteAllText(path, JsonSerializer.Serialize(config, opts));
+                    return config;
+                }
+            }
+            catch (Exception ex)
+            {
+                PluginLog.Error(ex, "N8NTriggerConfig: failed to load config");
+                return new PapyConfig();
+            }
+        }
 
         public static List<N8NTrigger> Load()
         {
@@ -32,15 +86,12 @@ namespace Loupedeck.PapyConnectPlugin
 
             try
             {
-                _filePath = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                    "n8n_triggers.json");
-
-                if (File.Exists(_filePath))
+                var path = GetFilePath();
+                if (File.Exists(path))
                 {
                     var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                     _triggers = JsonSerializer.Deserialize<List<N8NTrigger>>(
-                        File.ReadAllText(_filePath), opts)
+                        File.ReadAllText(path), opts)
                         ?? new List<N8NTrigger>();
                 }
                 else
@@ -57,27 +108,85 @@ namespace Loupedeck.PapyConnectPlugin
             return _triggers;
         }
 
+        public static void Save(List<N8NTrigger> triggers)
+        {
+            try
+            {
+                _triggers = triggers;
+                var path = GetFilePath();
+                var opts = new JsonSerializerOptions { WriteIndented = true };
+                File.WriteAllText(path, JsonSerializer.Serialize(triggers, opts));
+            }
+            catch (Exception ex)
+            {
+                PluginLog.Error(ex, "N8NTriggerConfig: failed to save triggers");
+            }
+        }
+
         public static N8NTrigger Find(string id)
             => Load().Find(t => t.Id == id);
     }
 
-    // ── Base class for individual trigger commands ────────────────────────────
-    public abstract class N8NTriggerCommandBase : PluginDynamicCommand
+    // ── Dynamic actions trigger class ─────────────────────────────────────────
+    public class PapyConnectActionsCommand : PluginDynamicCommand
     {
-        private readonly string _triggerId;
-
-        protected N8NTriggerCommandBase(string displayName, string description, string triggerId)
-            : base(displayName, description, "PapyConnect")
+        public PapyConnectActionsCommand()
+            : base("PapyConnect Actions", "Dynamic actions triggered via n8n", "PapyConnect")
         {
-            _triggerId = triggerId;
+            // Initial parameter loading
+            this.RefreshParameters();
+
+            // Asynchronously fetch latest actions from n8n
+            _ = this.FetchLatestActionsAsync();
+        }
+
+        private void RefreshParameters()
+        {
+            // Remove parameters from Loupedeck registration
+            this.RemoveAllParameters();
+
+            var triggers = N8NTriggerConfig.Load();
+            foreach (var trigger in triggers)
+            {
+                this.AddParameter(trigger.Id, trigger.Name, "PapyConnect");
+            }
+        }
+
+        private async Task FetchLatestActionsAsync()
+        {
+            try
+            {
+                var config = N8NTriggerConfig.LoadConfig();
+                string baseUrl = (config.N8nGatewayUrl ?? "http://gronas:5678").TrimEnd('/');
+
+                PluginLog.Info($"[PapyConnect] Fetching actions from {baseUrl}/webhook/get-exposed-actions");
+                var resp = await N8NTriggerConfig.Http.GetAsync($"{baseUrl}/webhook/get-exposed-actions");
+                if (resp.IsSuccessStatusCode)
+                {
+                    var content = await resp.Content.ReadAsStringAsync();
+                    var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var remoteTriggers = JsonSerializer.Deserialize<List<N8NTrigger>>(content, opts);
+                    if (remoteTriggers != null && remoteTriggers.Count > 0)
+                    {
+                        N8NTriggerConfig.Save(remoteTriggers);
+                        this.RefreshParameters();
+                        this.ParametersChanged();
+                        PluginLog.Info($"[PapyConnect] Successfully synchronized dynamic actions.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                PluginLog.Warning($"[PapyConnect] Failed to synchronize dynamic actions: {ex.Message}");
+            }
         }
 
         protected override void RunCommand(string actionParameter)
         {
-            var trigger = N8NTriggerConfig.Find(_triggerId);
+            var trigger = N8NTriggerConfig.Find(actionParameter);
             if (trigger == null)
             {
-                PluginLog.Warning($"[{_triggerId}] Trigger not found in config.");
+                PluginLog.Warning($"[{actionParameter}] Trigger not found in config.");
                 return;
             }
 
@@ -85,71 +194,38 @@ namespace Loupedeck.PapyConnectPlugin
             {
                 try
                 {
-                    PluginLog.Info($"[{_triggerId}] Sending request to {trigger.Url}");
+                    PluginLog.Info($"[{actionParameter}] Sending request to {trigger.Url}");
                     var resp = await N8NTriggerConfig.Http.PostAsync(
                         trigger.Url,
                         new System.Net.Http.StringContent("{}", System.Text.Encoding.UTF8, "application/json"));
 
                     if (resp.IsSuccessStatusCode)
-                        PluginLog.Info($"[{_triggerId}] Success");
+                        PluginLog.Info($"[{actionParameter}] Success");
                     else
-                        PluginLog.Warning($"[{_triggerId}] HTTP {resp.StatusCode}");
+                        PluginLog.Warning($"[{actionParameter}] HTTP {resp.StatusCode}");
                 }
                 catch (Exception ex)
                 {
-                    PluginLog.Error(ex, $"[{_triggerId}] Request failed");
+                    PluginLog.Error(ex, $"[{actionParameter}] Request failed");
                 }
             });
         }
 
         protected override BitmapImage GetCommandImage(string actionParameter, PluginImageSize imageSize)
         {
-            // Use brand icon for streaming apps, colored tile for others
-            if (_triggerId == "netflix" || _triggerId == "disney_plus" ||
-                _triggerId == "amazon"  || _triggerId == "youtube")
+            if (actionParameter == "netflix" || actionParameter == "disney_plus" ||
+                actionParameter == "amazon"  || actionParameter == "youtube" || actionParameter == "spotify")
             {
-                return PluginImages.CreateAppButtonImage(imageSize, _triggerId);
+                return PluginImages.CreateAppButtonImage(imageSize, actionParameter);
             }
 
-            var trigger = N8NTriggerConfig.Find(_triggerId);
+            var trigger = N8NTriggerConfig.Find(actionParameter);
             var color = trigger != null
                 ? PluginImages.ParseHexColor(trigger.Color)
                 : PluginImages.PurpleColor;
 
-            var label = trigger?.Name ?? _triggerId;
+            var label = trigger?.Name ?? actionParameter;
             return PluginImages.CreateButtonImage(imageSize, label, color, PluginImages.BlackColor);
         }
-    }
-
-    // ── One concrete class per trigger ────────────────────────────────────────
-
-    public class MovieModeCommand : N8NTriggerCommandBase
-    {
-        public MovieModeCommand()
-            : base("Movie Mode", "Dim lights and turn on the TV", "movie_mode") { }
-    }
-
-    public class NetflixCommand : N8NTriggerCommandBase
-    {
-        public NetflixCommand()
-            : base("Netflix", "Launch Netflix on the TV", "netflix") { }
-    }
-
-    public class DisneyPlusCommand : N8NTriggerCommandBase
-    {
-        public DisneyPlusCommand()
-            : base("Disney+", "Launch Disney+ on the TV", "disney_plus") { }
-    }
-
-    public class AmazonCommand : N8NTriggerCommandBase
-    {
-        public AmazonCommand()
-            : base("Amazon", "Launch Amazon Prime Video on the TV", "amazon") { }
-    }
-
-    public class YouTubeCommand : N8NTriggerCommandBase
-    {
-        public YouTubeCommand()
-            : base("YouTube", "Launch YouTube on the TV", "youtube") { }
     }
 }

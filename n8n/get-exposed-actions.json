@@ -7,6 +7,7 @@
         "httpMethod": "GET",
         "path": "get-exposed-actions",
         "responseMode": "lastNode",
+        "responseData": "allEntries",
         "options": {}
       },
       "id": "webhook-trigger-id",
@@ -21,7 +22,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "http://localhost:8000/api/actions"
+        "url": "http://127.0.0.1:8000/api/actions"
       },
       "id": "get-actions-id",
       "name": "GET Actions from PapyConnect",
@@ -34,7 +35,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all();\nconst colors = {\n  netflix: '#E50914',\n  spotify: '#1DB954',\n  youtube: '#FF0000'\n};\n\nconst formatted = items.map(item => {\n  return {\n    Id: item.json.id,\n    Name: item.json.title,\n    Url: `http://gronas:5678/webhook/papyconnect-action?id=${item.json.id}`,\n    Color: colors[item.json.icon] || '#8200FF'\n  };\n});\n\nreturn [{ json: formatted }];"
+        "jsCode": "const items = $input.all();\nconst colors = {\n  netflix: '#E50914',\n  spotify: '#1DB954',\n  youtube: '#FF0000'\n};\n\nconst formatted = items.map(item => {\n  return {\n    Id: item.json.id,\n    Name: item.json.title,\n    Url: `http://gronas:5678/webhook/papyconnect-action?id=${item.json.id}`,\n    Color: colors[item.json.icon] || '#8200FF'\n  };\n});\n\nreturn formatted.map(item => ({ json: item }));"
       },
       "id": "format-actions-id",
       "name": "Format Actions for Console",
