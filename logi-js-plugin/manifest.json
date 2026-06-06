@@ -6,7 +6,7 @@
   "description": "Exécute des actions virtuelles via la passerelle n8n",
   "author": "Éole Lab",
   "background": {
-    "scripts": ["background.js"]
+    "scripts": ["plugin.js"]
   },
   "actions": [
     {
