@@ -1,6 +1,6 @@
 # Variables
 DOTNET = /home/eole/.dotnet/dotnet
-CSPROJ = EoleN8NPlugin/EoleN8NPlugin/EoleN8NPlugin.csproj
+CSPROJ = PapyConnectPlugin/PapyConnectPlugin/PapyConnectPlugin.csproj
 WINDOWS_USER = $(shell cmd.exe /C "echo %USERNAME%" | tr -d '\r\n ')
 PLUGINS_DIR = /mnt/c/Users/$(WINDOWS_USER)/AppData/Local/Logi/LogiPluginService/Plugins
 TARGET_DIR = $(PLUGINS_DIR)/PapyConnect
@@ -84,8 +84,8 @@ deploy:
 	@echo "Deploying to $(TARGET_DIR)..."
 	rm -rf "$(TARGET_DIR)"
 	mkdir -p "$(TARGET_DIR)"
-	cp -r EoleN8NPlugin/EoleN8NPlugin/Debug/bin "$(TARGET_DIR)/"
-	cp -r EoleN8NPlugin/EoleN8NPlugin/Debug/metadata "$(TARGET_DIR)/"
+	cp -r PapyConnectPlugin/PapyConnectPlugin/Debug/bin "$(TARGET_DIR)/"
+	cp -r PapyConnectPlugin/PapyConnectPlugin/Debug/metadata "$(TARGET_DIR)/"
 	@echo "Deploy completed successfully."
 
 # Restart LogiPluginService (backend) AND LogiOptions+ (UI)
@@ -109,10 +109,10 @@ clean: check-dotnet
 
 # Package the plugin as a .lproj4 archive to the Windows Downloads folder
 publish: build
-	@echo "Packaging Eole n8n Plugin..."
-	powershell.exe -Command "Compress-Archive -Path 'EoleN8NPlugin\EoleN8NPlugin\Debug\*' -DestinationPath 'eolen8n-1.0.0.zip' -Force"
-	mv eolen8n-1.0.0.zip "$(DOWNLOADS_DIR)/eolen8n-1.0.0.lproj4"
-	@echo "Published to $(DOWNLOADS_DIR)/eolen8n-1.0.0.lproj4"
+	@echo "Packaging PapyConnect Plugin..."
+	powershell.exe -Command "Compress-Archive -Path 'PapyConnectPlugin\PapyConnectPlugin\Debug\*' -DestinationPath 'papyconnect-1.0.0.zip' -Force"
+	mv papyconnect-1.0.0.zip "$(DOWNLOADS_DIR)/papyconnect-1.0.0.lproj4"
+	@echo "Published to $(DOWNLOADS_DIR)/papyconnect-1.0.0.lproj4"
 
 # Prepare the build environment by installing .NET 8.0 SDK automatically
 prepare:

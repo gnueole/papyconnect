@@ -21,7 +21,7 @@ graph TD
 
 ## 🔌 PapyConnect C# Plugin (Loupedeck/Logi)
 
-The compiled C# plugin is located in [EoleN8NPlugin/](file:///home/eole/projects/papyconnect/EoleN8NPlugin).
+The compiled C# plugin is located in [PapyConnectPlugin/](file:///home/eole/projects/papyconnect/PapyConnectPlugin).
 
 ### 1. How it works
 The plugin loads your custom webhook triggers dynamically from a JSON configuration file in your Windows Documents folder:
