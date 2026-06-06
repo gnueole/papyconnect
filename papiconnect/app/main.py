@@ -180,6 +180,55 @@ KNOWN_DEVICES: dict[str, dict] = {
 # JSON Persistence Helpers
 # ─────────────────────────────────────────────────────────────────────────────
 
+# In-memory cache for dynamically discovered actions, keyed by (device_ip, action_name)
+DYNAMIC_ACTIONS_CACHE: dict[str, dict[str, dict]] = {}
+
+import re
+
+def _slugify(text: str) -> str:
+    """Helper to convert application titles into clean URL/action ID slugs."""
+    text = text.lower()
+    text = re.sub(r'[^a-z0-9]+', '_', text)
+    return text.strip('_')
+
+
+async def _fetch_sony_apps(ip: str, timeout: float = 1.5) -> list[dict]:
+    """Fetch the list of installed applications from a Sony Bravia TV using PSK."""
+    url = f"http://{ip}/sony/appControl"
+    headers = {
+        "X-Auth-PSK": "0000",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "method": "getApplicationList",
+        "version": "1.0",
+        "id": 1,
+        "params": []
+    }
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, json=payload, headers=headers, timeout=timeout) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    if "result" in data and isinstance(data["result"], list) and len(data["result"]) > 0:
+                        return data["result"][0]
+    except Exception as e:
+        log.warning("Failed to fetch Sony apps from %s: %s", ip, e)
+    return []
+
+
+def _get_device_actions(device: dict) -> dict:
+    """Get all actions (static catalog + dynamically cached) for a device."""
+    dtype = device.get("type")
+    ip = device.get("ip")
+    actions = {}
+    if dtype in DEVICE_CATALOGS:
+        actions.update(DEVICE_CATALOGS[dtype].get("actions", {}))
+    if ip in DYNAMIC_ACTIONS_CACHE:
+        actions.update(DYNAMIC_ACTIONS_CACHE[ip])
+    return actions
+
+
 def _load_registry() -> list[dict]:
     """Load registry devices from disk. Returns empty list on absence/errors."""
     try:
@@ -444,10 +493,49 @@ async def dashboard(request: Request):
 async def get_devices():
     """Retrieve all devices from local registry, checking status in real time."""
     devices = await _enrich_status(_load_registry())
-    for device in devices:
+    
+    import copy
+    
+    async def process_device(device):
         dtype = device.get("type")
         if dtype in DEVICE_CATALOGS:
-            device["catalog"] = DEVICE_CATALOGS[dtype]
+            catalog = copy.deepcopy(DEVICE_CATALOGS[dtype])
+            device["catalog"] = catalog
+            
+            # If it's a TV and online, fetch apps dynamically and merge
+            if dtype in ["sony_bravia_tv", "tv"] and device.get("status") == "online":
+                apps = await _fetch_sony_apps(device["ip"])
+                device_dynamic = {}
+                for app in apps:
+                    app_title = app.get("title")
+                    app_uri = app.get("uri")
+                    if app_title and app_uri:
+                        slug = _slugify(app_title)
+                        action_key = f"launch_{slug}"
+                        action_payload = {
+                            "protocol": "HTTP",
+                            "method": "POST",
+                            "port": 80,
+                            "path": "/sony/appControl",
+                            "headers": {
+                                "X-Auth-PSK": "0000",
+                                "Content-Type": "application/json"
+                            },
+                            "payload": json.dumps({
+                                "method": "setActiveApp",
+                                "version": "1.0",
+                                "id": 1,
+                                "params": [{"uri": app_uri}]
+                            })
+                        }
+                        catalog["actions"][action_key] = action_payload
+                        device_dynamic[action_key] = action_payload
+                
+                # Cache the dynamic actions for lookup during execution/config fetch
+                if device_dynamic:
+                    DYNAMIC_ACTIONS_CACHE[device["ip"]] = device_dynamic
+                    
+    await asyncio.gather(*[process_device(d) for d in devices])
     return devices
 
 
@@ -510,8 +598,7 @@ async def run_device_action(ip: str, action_name: str):
         log.warning("Execution failed: No catalog action defined for device type %s", dtype)
         raise HTTPException(status_code=400, detail=f"No action available for device type '{dtype}'.")
         
-    catalog = DEVICE_CATALOGS[dtype]
-    actions = catalog.get("actions", {})
+    actions = _get_device_actions(device)
     if action_name not in actions:
         log.warning("Execution failed: Action '%s' not defined for type '%s'", action_name, dtype)
         raise HTTPException(status_code=404, detail=f"Action '{action_name}' not defined for type '{dtype}'.")
@@ -570,8 +657,7 @@ async def get_device_action_config(ip: str, action_name: str):
     if dtype not in DEVICE_CATALOGS:
         raise HTTPException(status_code=400, detail=f"No action catalog available for type '{dtype}'.")
         
-    catalog = DEVICE_CATALOGS[dtype]
-    actions = catalog.get("actions", {})
+    actions = _get_device_actions(device)
     if action_name not in actions:
         raise HTTPException(status_code=404, detail=f"Action '{action_name}' not defined for type '{dtype}'.")
         
@@ -714,8 +800,7 @@ async def execute_action(action_id: str):
     if dtype not in DEVICE_CATALOGS:
         raise HTTPException(status_code=400, detail=f"No action catalog available for type '{dtype}'.")
         
-    catalog = DEVICE_CATALOGS[dtype]
-    actions_cat = catalog.get("actions", {})
+    actions_cat = _get_device_actions(device)
     if action_name not in actions_cat:
         raise HTTPException(status_code=404, detail=f"Action '{action_name}' not defined for type '{dtype}'.")
         
