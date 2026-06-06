@@ -416,6 +416,13 @@
             </span>
           </div>
 
+          <!-- Help / Configuration Guide -->
+          <template x-if="selectedDeviceForDetails.catalog && selectedDeviceForDetails.catalog.tuto">
+            <div class="mb-6 p-4 bg-rim/20 border border-rim/50 rounded-xl text-xs text-gray-300 prose prose-invert max-w-none [&>h3]:text-gold [&>h3]:font-bold [&>h3]:text-sm [&>h3]:mb-2 [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:space-y-1 [&>p]:mb-2">
+              <div x-html="selectedDeviceForDetails.catalog.tuto"></div>
+            </div>
+          </template>
+
           <!-- Applications / Actions List -->
           <div>
             <h4 class="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-3.5">Available Applications & Actions</h4>
