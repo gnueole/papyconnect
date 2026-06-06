@@ -31,6 +31,26 @@ from zeroconf.asyncio import AsyncZeroconf
 # Configuration
 # ─────────────────────────────────────────────────────────────────────────────
 REGISTRY_PATH = Path("./data/registry.json")
+ACTIONS_PATH = Path("./data/actions.json")
+
+
+def _load_actions() -> list[dict]:
+    """Charge les actions virtuelles configurées."""
+    try:
+        if ACTIONS_PATH.exists() and ACTIONS_PATH.stat().st_size > 2:
+            return json.loads(ACTIONS_PATH.read_text(encoding="utf-8"))
+    except Exception as exc:
+        log.warning("Actions virtuelles illisibles — réinitialisation : %s", exc)
+    return []
+
+
+def _save_actions(actions: list[dict]) -> None:
+    """Écrit les actions virtuelles sur le disque avec rename atomique."""
+    ACTIONS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    tmp = ACTIONS_PATH.with_suffix(".tmp")
+    tmp.write_text(json.dumps(actions, indent=2, ensure_ascii=False), encoding="utf-8")
+    tmp.replace(ACTIONS_PATH)
+
 
 # Appareils à IP fixe — détectés par ping lors de chaque scan
 # Complète selon ton réseau (ampli, TV câblée, box domotique…)
@@ -93,6 +113,17 @@ CATALOGUE_CONSTRUCTEURS = {
                     "Content-Type": "application/json"
                 },
                 "payload": "{\"method\":\"setActiveApp\",\"version\":\"1.0\",\"id\":1,\"params\":[{\"uri\":\"com.sony.dtv.com.netflix.ninja.com.netflix.ninja.MainActivity\"}]}"
+            },
+            "launch_youtube": {
+                "protocol": "HTTP",
+                "method": "POST",
+                "port": 80,
+                "path": "/sony/appControl",
+                "headers": {
+                    "X-Auth-PSK": "0000",
+                    "Content-Type": "application/json"
+                },
+                "payload": "{\"method\":\"setActiveApp\",\"version\":\"1.0\",\"id\":1,\"params\":[{\"uri\":\"com.sony.dtv.com.google.android.youtube.tv.com.google.android.youtube.tv.MainActivity\"}]}"
             }
         }
     }
@@ -316,12 +347,32 @@ templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 
 @app.on_event("startup")
 async def _startup() -> None:
-    """Initialise le registre JSON vide s'il n'existe pas encore."""
+    """Initialise le registre JSON vide et les actions de base."""
     REGISTRY_PATH.parent.mkdir(parents=True, exist_ok=True)
     if not REGISTRY_PATH.exists():
         _save([])
         log.info("Registre initialisé : %s", REGISTRY_PATH.resolve())
+    if not ACTIONS_PATH.exists():
+        default_actions = [
+            {
+                "id": "netflix_salon",
+                "title": "Netflix (Salon)",
+                "icon": "netflix",
+                "device_ip": "192.168.1.100",
+                "target_app": "launch_netflix"
+            },
+            {
+                "id": "spotify_salon",
+                "title": "Spotify (Salon)",
+                "icon": "spotify",
+                "device_ip": "192.168.1.193",
+                "target_app": "launch_spotify"
+            }
+        ]
+        _save_actions(default_actions)
+        log.info("Actions de base initialisées : %s", ACTIONS_PATH.resolve())
     log.info("PapyConnect démarré — http://0.0.0.0:8000")
+
 
 
 # ── Dashboard ────────────────────────────────────────────────────────────────
@@ -519,3 +570,110 @@ async def trigger_scan(bg: BackgroundTasks):
         "ok": True,
         "message": f"Scan démarré (mDNS {int(MDNS_SCAN_DURATION)}s + ping connus)",
     }
+
+
+
+# ── Virtual Actions ──────────────────────────────────────────────────────────
+
+class ActionIn(BaseModel):
+    id: str
+    title: str
+    icon: str
+    device_ip: str
+    target_app: str
+
+
+@app.get("/api/actions", summary="Liste des actions configurées pour la console")
+async def get_actions():
+    """Renvoie la liste complète des actions configurées (uniquement ID, Titre, Icône) pour la console."""
+    actions = _load_actions()
+    return [{"id": a["id"], "title": a["title"], "icon": a["icon"]} for a in actions]
+
+
+@app.post("/api/actions", status_code=201, summary="Enregistrer une nouvelle action virtuelle")
+async def create_action(body: ActionIn):
+    """Enregistre ou met à jour une action virtuelle dans actions.json."""
+    actions = _load_actions()
+    # Met à jour si existant, sinon ajoute
+    actions = [a for a in actions if a["id"] != body.id]
+    actions.append(body.model_dump())
+    _save_actions(actions)
+    return {"ok": True, "total": len(actions)}
+
+
+@app.delete("/api/actions/{action_id}", summary="Supprimer une action virtuelle")
+async def delete_action(action_id: str):
+    """Supprime une action virtuelle par son ID."""
+    actions = _load_actions()
+    filtered = [a for a in actions if a["id"] != action_id]
+    if len(filtered) == len(actions):
+        raise HTTPException(status_code=404, detail=f"Action '{action_id}' non trouvée.")
+    _save_actions(filtered)
+    return {"ok": True, "removed": action_id}
+
+
+@app.post("/api/actions/{action_id}/execute", summary="Résoudre le contrat d'exécution pour n8n")
+async def execute_action(action_id: str):
+    """
+    Résout l'action virtuelle, récupère l'IP cible et le payload brut dans le catalogue constructeur,
+    et renvoie le contrat d'exécution détaillé pour n8n.
+    """
+    actions = _load_actions()
+    action_item = next((a for a in actions if a["id"] == action_id), None)
+    if not action_item:
+        raise HTTPException(status_code=404, detail=f"Action '{action_id}' non trouvée.")
+        
+    ip = action_item["device_ip"]
+    action_name = action_item["target_app"]
+    
+    # Trouver l'appareil
+    devices = _load()
+    device = next((d for d in devices if d.get("ip") == ip), None)
+    if not device and ip in KNOWN_DEVICES:
+        device = KNOWN_DEVICES[ip]
+        
+    if not device:
+        raise HTTPException(status_code=404, detail=f"Appareil cible avec l'IP {ip} non trouvé.")
+        
+    # Récupérer le catalogue constructeur
+    dtype = device.get("type")
+    if dtype not in CATALOGUE_CONSTRUCTEURS:
+        raise HTTPException(status_code=400, detail=f"Aucune action disponible pour le type '{dtype}'.")
+        
+    catalog = CATALOGUE_CONSTRUCTEURS[dtype]
+    actions_cat = catalog.get("actions", {})
+    if action_name not in actions_cat:
+        raise HTTPException(status_code=404, detail=f"Action '{action_name}' non définie pour le type '{dtype}'.")
+        
+    action = actions_cat[action_name]
+    
+    # Formater la payload si des variables sont définies
+    payload = action.get("payload", "")
+    variables = device.get("variables", {})
+    if isinstance(payload, str) and variables:
+        try:
+            payload = payload.format(**variables)
+        except Exception as e:
+            log.warning("Échec du formatage de la payload pour %s: %s", ip, e)
+            
+    # Construire le contrat d'exécution
+    config = {
+        "action_id": action_id,
+        "ip": ip,
+        "name": device.get("name"),
+        "type": dtype,
+        "action": action_name,
+        "protocol": action.get("protocol"),
+        "port": action.get("port"),
+        "payload": payload
+    }
+    
+    # Paramètres HTTP spécifiques
+    if action.get("protocol") == "HTTP":
+        config["method"] = action.get("method", "POST")
+        config["path"] = action.get("path", "")
+        config["url"] = f"http://{ip}:{action.get('port', 80)}{action.get('path', '')}"
+        config["headers"] = action.get("headers", {})
+        
+    return config
+

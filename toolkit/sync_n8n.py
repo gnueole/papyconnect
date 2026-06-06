@@ -278,6 +278,27 @@ def activate_workflow_by_id(workflow_id):
         print(f"Warning: Could not auto-activate workflow {workflow_id}: {e}")
     return False
 
+def deactivate_workflow_by_id(workflow_id):
+    url = f"{BASE_URL}/api/v1/workflows/{workflow_id}/deactivate"
+    req = urllib.request.Request(
+        url,
+        data=b"{}",
+        headers={
+            "X-N8N-API-KEY": API_KEY,
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        },
+        method="POST"
+    )
+    try:
+        with urllib.request.urlopen(req, context=ctx) as response:
+            if response.status == 200:
+                print(f"SUCCESS: Workflow {workflow_id} successfully deactivated on n8n!")
+                return True
+    except Exception as e:
+        print(f"Warning: Could not deactivate workflow {workflow_id}: {e}")
+    return False
+
 def backup_all(n8n_dir, use_dev):
     import subprocess
     global API_KEY, BASE_URL
@@ -455,6 +476,8 @@ def push_all(n8n_dir, use_dev):
             if update_workflow_by_id(wf_id, wf):
                 if wf.get("active") is True:
                     activate_workflow_by_id(wf_id)
+                else:
+                    deactivate_workflow_by_id(wf_id)
         else:
             print(f"Creating new workflow: '{name}'...")
             new_wf = create_workflow(wf)

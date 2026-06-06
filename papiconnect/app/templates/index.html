@@ -165,135 +165,210 @@
       <span x-text="toast"></span>
     </div>
 
-    <!-- Barre section -->
-    <div class="flex items-center justify-between mb-6">
-      <h2 class="text-[11px] font-semibold uppercase tracking-widest text-gray-500">
-        Appareils enregistrés
-      </h2>
-      <button @click="load()" class="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gold transition-colors">
-        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" d="M4 4v5h5M20 20v-5h-5M4 9a9 9 0 0 1 15-6.7M20 15a9 9 0 0 1-15 6.7"/>
-        </svg>
-        Rafraîchir
-      </button>
-    </div>
+    <!-- Split Pane Layout -->
+    <div class="grid gap-8 lg:grid-cols-12 mb-10">
 
-    <!-- ── Skeleton chargement ── -->
-    <template x-if="loading">
-      <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        <template x-for="i in 3">
-          <div class="card rounded-2xl p-6 animate-pulse">
-            <div class="flex gap-4">
-              <div class="w-12 h-12 rounded-xl bg-rim shrink-0"></div>
-              <div class="flex-1 space-y-2 pt-1">
-                <div class="h-4 bg-rim rounded w-2/3"></div>
-                <div class="h-3 bg-rim rounded w-1/2"></div>
-              </div>
+      <!-- WIZARD (Left Panel) -->
+      <section class="lg:col-span-5 bg-panel border border-rim rounded-2xl p-6 flex flex-col justify-between" style="min-height: 400px;">
+        <div>
+          <div class="flex items-center justify-between pb-4 border-b border-rim mb-5">
+            <h3 class="font-extrabold text-sm uppercase tracking-wider text-gold">Créer une Action</h3>
+            <span class="text-xs text-gray-500 font-semibold" x-text="'Étape ' + wizard.step + '/3'"></span>
+          </div>
+
+          <!-- Étape 1 : Choix de l'Intention -->
+          <div x-show="wizard.step === 1" class="space-y-4 animate-fadeUp">
+            <p class="text-xs text-gray-400 mb-2">Choisissez l'application ou le service à lancer :</p>
+            <div class="grid grid-cols-3 gap-3">
+              <button @click="selectService('netflix')" class="flex flex-col items-center justify-center p-4 rounded-xl bg-rim/20 hover:bg-red-950/20 border border-rim hover:border-red-600/50 transition-all duration-150 active:scale-95 group">
+                <span class="p-2.5 rounded-lg bg-red-900/10 text-red-500 group-hover:bg-red-900/20" x-html="icon('netflix')"></span>
+                <span class="text-xs font-bold mt-2.5">Netflix</span>
+              </button>
+
+              <button @click="selectService('spotify')" class="flex flex-col items-center justify-center p-4 rounded-xl bg-rim/20 hover:bg-emerald-950/20 border border-rim hover:border-emerald-600/50 transition-all duration-150 active:scale-95 group">
+                <span class="p-2.5 rounded-lg bg-emerald-900/10 text-emerald-400 group-hover:bg-emerald-900/20" x-html="icon('spotify')"></span>
+                <span class="text-xs font-bold mt-2.5">Spotify</span>
+              </button>
+
+              <button @click="selectService('youtube')" class="flex flex-col items-center justify-center p-4 rounded-xl bg-rim/20 hover:bg-red-950/10 border border-rim hover:border-red-500/50 transition-all duration-150 active:scale-95 group">
+                <span class="p-2.5 rounded-lg bg-red-900/10 text-red-400 group-hover:bg-red-900/20" x-html="icon('youtube')"></span>
+                <span class="text-xs font-bold mt-2.5">YouTube</span>
+              </button>
             </div>
           </div>
-        </template>
-      </div>
-    </template>
 
-    <!-- ── État vide ── -->
-    <template x-if="!loading && devices.length === 0">
-      <div class="flex flex-col items-center justify-center py-28 text-gray-600 text-center">
-        <svg class="w-16 h-16 mb-5 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
-          <path stroke-linecap="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"/>
-        </svg>
-        <p class="font-semibold text-gray-500">Aucun appareil enregistré</p>
-        <p class="text-sm mt-1">Lancez un scan pour découvrir votre réseau.</p>
-      </div>
-    </template>
+          <!-- Étape 2 : Choix du Lieu -->
+          <div x-show="wizard.step === 2" class="space-y-4 animate-fadeUp">
+            <div class="flex items-center gap-2 mb-2">
+              <button @click="wizard.step = 1" class="text-gray-500 hover:text-white text-xs flex items-center gap-1">
+                ← Retour
+              </button>
+            </div>
+            <p class="text-xs text-gray-400">Sélectionnez la pièce ou l'appareil cible :</p>
+            
+            <div class="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+              <template x-for="d in filteredWizardDevices()" :key="d.ip">
+                <button @click="selectDevice(d)" class="w-full flex items-center justify-between p-3.5 rounded-xl bg-rim/20 hover:bg-gold/10 border border-rim hover:border-gold/30 transition-all duration-150 text-left active:scale-[0.99]">
+                  <div class="flex items-center gap-3">
+                    <span :class="iconBg(d.type)" class="p-2 rounded-lg" x-html="icon(d.type)"></span>
+                    <div>
+                      <p class="text-xs font-bold" x-text="d.name"></p>
+                      <p class="text-[10px] font-mono text-gray-500" x-text="d.ip"></p>
+                    </div>
+                  </div>
+                  <span class="text-[10px] uppercase font-semibold tracking-wider text-gold">Choisir →</span>
+                </button>
+              </template>
 
-    <!-- ── Grille d'appareils ── -->
-    <template x-if="!loading && devices.length > 0">
-      <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        <template x-for="d in devices" :key="d.ip">
-          <div class="card rounded-2xl p-6 animate-fadeUp relative group">
+              <template x-if="filteredWizardDevices().length === 0">
+                <div class="text-center py-6 text-gray-600 text-xs">
+                  Aucun appareil compatible en ligne. Enregistrez un appareil ou lancez un scan ci-dessus.
+                </div>
+              </template>
+            </div>
+          </div>
 
-            <!-- Bouton supprimer (apparaît au survol) -->
-            <button
-              @click="remove(d.ip)"
-              class="absolute top-4 right-4 opacity-0 group-hover:opacity-100
-                     text-gray-600 hover:text-red-400 transition-all duration-150"
-              title="Supprimer"
-            >
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-            </button>
+          <!-- Étape 3 : Look & Nom -->
+          <div x-show="wizard.step === 3" class="space-y-4 animate-fadeUp">
+            <div class="flex items-center gap-2 mb-2">
+              <button @click="wizard.step = 2" class="text-gray-500 hover:text-white text-xs flex items-center gap-1">
+                ← Retour
+              </button>
+            </div>
+            <p class="text-xs text-gray-400">Configurez le look et le nom du raccourci :</p>
 
-            <div class="flex items-start gap-4">
-              <!-- Icône type -->
-              <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" :class="iconBg(d.type)">
-                <span x-html="icon(d.type)"></span>
+            <div class="space-y-3">
+              <div>
+                <label class="block text-[10px] uppercase font-bold tracking-wider text-gray-500 mb-1">Nom du bouton</label>
+                <input type="text" x-model="wizard.title" class="bg-rim border border-rim rounded-xl px-4 py-2.5 w-full text-white text-sm focus:border-gold outline-none" />
               </div>
 
-              <!-- Infos -->
-              <div class="flex-1 min-w-0 pr-4">
-                <div class="flex items-center gap-1.5">
-                  <p class="font-semibold truncate" x-text="d.name || 'Appareil inconnu'"></p>
-                  <!-- Bouton Info/Tuto (ⓘ) -->
-                  <template x-if="d.catalog && d.catalog.tuto">
-                    <button
-                      @click="openTuto(d.catalog.tuto)"
-                      class="text-gray-500 hover:text-gold transition-colors focus:outline-none text-sm font-semibold ml-1"
-                      title="Configuration & Tutoriel"
-                    >
-                      ⓘ
+              <div>
+                <label class="block text-[10px] uppercase font-bold tracking-wider text-gray-500 mb-1.5">Couleur de la touche</label>
+                <div class="flex gap-2">
+                  <template x-for="c in ['#8200FF', '#E50914', '#113CCF', '#1DB954', '#FF9800']" :key="c">
+                    <button @click="wizard.color = c" :style="'background-color: ' + c" class="w-8 h-8 rounded-lg active:scale-90 transition-transform relative" :class="wizard.color === c ? 'ring-2 ring-white scale-105' : ''">
+                      <svg x-show="wizard.color === c" class="w-4 h-4 text-white absolute inset-0 m-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                      </svg>
                     </button>
                   </template>
                 </div>
-                <p class="text-xs font-mono text-gray-500 mt-0.5" x-text="d.ip"></p>
-                <p class="text-xs text-gray-600 capitalize mt-0.5" x-text="d.type || 'inconnu'"></p>
-                
-                <!-- Variables -->
-                <template x-if="d.variables && Object.keys(d.variables).length > 0">
-                  <div class="mt-2 flex flex-wrap gap-1.5">
-                    <template x-for="(val, key) in d.variables" :key="key">
-                      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono bg-rim/50 text-gray-400">
-                        <span x-text="key"></span>: <span class="text-gray-200 ml-1" x-text="val"></span>
-                      </span>
-                    </template>
-                  </div>
-                </template>
               </div>
-            </div>
-
-            <!-- Actions buttons -->
-            <template x-if="d.catalog && d.catalog.actions">
-              <div class="mt-4 flex flex-wrap gap-2 pt-3 border-t border-rim">
-                <template x-for="(actionMeta, actionName) in d.catalog.actions" :key="actionName">
-                  <button
-                    @click="runAction(d.ip, actionName)"
-                    class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-rim hover:bg-gold hover:text-black transition-colors focus:outline-none active:scale-95"
-                    x-text="actionName.replace('_', ' ')"
-                    :title="'Protocole: ' + actionMeta.protocol + ' | Port: ' + actionMeta.port"
-                  ></button>
-                </template>
-              </div>
-            </template>
-
-            <!-- Badge statut -->
-            <div class="mt-5 flex items-center justify-between">
-              <span
-                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
-                :class="d.status === 'online'
-                  ? 'bg-emerald-900/35 text-emerald-400 animate-sonar'
-                  : 'bg-red-900/25 text-red-400'"
-              >
-                <span class="w-1.5 h-1.5 rounded-full" :class="d.status === 'online' ? 'bg-emerald-400' : 'bg-red-500'"></span>
-                <span x-text="d.status === 'online' ? 'En ligne' : 'Hors ligne'"></span>
-              </span>
-
-              <!-- Dernière vue -->
-              <span class="text-[11px] text-gray-600" x-text="ago(d.last_seen)"></span>
             </div>
           </div>
-        </template>
+        </div>
+
+        <!-- Validation Button (Step 3 only) -->
+        <div class="mt-6 pt-4 border-t border-rim/60" x-show="wizard.step === 3">
+          <button @click="submitWizard()" class="bg-gold hover:bg-ember text-black font-bold py-3 px-6 rounded-xl w-full text-center transition-all duration-150 active:scale-95" style="box-shadow: 0 0 20px rgba(233,166,35,.2)">
+            Ajouter à ma Console
+          </button>
+        </div>
+      </section>
+
+      <!-- MES ACTIONS CONSOLE (Right Panel) -->
+      <section class="lg:col-span-7 bg-panel border border-rim rounded-2xl p-6">
+        <div class="flex items-center justify-between pb-4 border-b border-rim mb-5">
+          <h3 class="font-extrabold text-sm uppercase tracking-wider text-gray-400">Actions sur la Console</h3>
+          <span class="text-xs text-gray-500 font-semibold" x-text="actions.length + ' boutons'"></span>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2 max-h-[420px] overflow-y-auto pr-1">
+          <template x-for="a in actions" :key="a.id">
+            <div class="relative group p-4 rounded-xl bg-rim/15 border border-rim hover:border-gold/30 transition-all duration-150">
+              
+              <!-- Bouton supprimer -->
+              <button @click="removeAction(a.id)" class="absolute top-3 right-3 text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity" title="Supprimer de la console">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+
+              <div class="flex items-center gap-3">
+                <div :class="iconBg(a.icon)" class="w-10 h-10 rounded-lg flex items-center justify-center" x-html="icon(a.icon)"></div>
+                <div>
+                  <h4 class="text-xs font-bold text-gray-200" x-text="a.title"></h4>
+                  <p class="text-[9px] font-mono text-gray-500 mt-0.5" x-text="a.id"></p>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <template x-if="actions.length === 0">
+            <div class="sm:col-span-2 flex flex-col items-center justify-center py-16 text-gray-600 text-center">
+              <svg class="w-12 h-12 mb-3 opacity-15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p class="text-xs font-semibold text-gray-500">Aucun bouton configuré</p>
+              <p class="text-[10px] mt-0.5">Utilisez l'assistant à gauche pour configurer votre console.</p>
+            </div>
+          </template>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- APPAREILS ENREGISTRES (Registre IoT Bottom Pane) -->
+    <section class="bg-[#0b0c10] border border-rim/60 rounded-2xl p-6">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="text-xs font-extrabold uppercase tracking-wider text-gray-500">Registre IoT / Appareils Découverts</h3>
+        <button @click="load()" class="text-xs text-gray-500 hover:text-gold flex items-center gap-1.5 transition-colors">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" d="M4 4v5h5M20 20v-5h-5M4 9a9 9 0 0 1 15-6.7M20 15a9 9 0 0 1-15 6.7"/>
+          </svg>
+          Rafraîchir
+        </button>
       </div>
-    </template>
+
+      <!-- Skeleton loader pour appareils -->
+      <template x-if="loading">
+        <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 animate-pulse">
+          <div class="h-20 bg-rim/20 rounded-xl"></div>
+          <div class="h-20 bg-rim/20 rounded-xl"></div>
+          <div class="h-20 bg-rim/20 rounded-xl"></div>
+        </div>
+      </template>
+
+      <!-- Liste des appareils enregistrés -->
+      <template x-if="!loading">
+        <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+          <template x-for="d in devices" :key="d.ip">
+            <div class="flex items-center justify-between p-3.5 rounded-xl bg-panel/50 border border-rim/50 relative group">
+              
+              <!-- Supprimer de registre -->
+              <button @click="remove(d.ip)" class="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 text-gray-600 hover:text-red-400 transition-opacity">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+
+              <div class="flex items-center gap-3">
+                <div :class="iconBg(d.type)" class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" x-html="icon(d.type)"></div>
+                <div>
+                  <div class="flex items-center gap-1">
+                    <p class="text-xs font-bold text-gray-300" x-text="d.name"></p>
+                    <template x-if="d.catalog && d.catalog.tuto">
+                      <button @click="openTuto(d.catalog.tuto)" class="text-gray-500 hover:text-gold text-xs font-semibold">ⓘ</button>
+                    </template>
+                  </div>
+                  <p class="text-[10px] font-mono text-gray-500 mt-0.5" x-text="d.ip"></p>
+                </div>
+              </div>
+
+              <!-- Statut -->
+              <span class="w-2 h-2 rounded-full mr-2 shrink-0" :class="d.status === 'online' ? 'bg-emerald-400 animate-sonar' : 'bg-red-500'"></span>
+            </div>
+          </template>
+
+          <template x-if="devices.length === 0">
+            <div class="col-span-full py-8 text-center text-xs text-gray-600">
+              Aucun équipement enregistré dans le registre. Lancez un scan ci-dessus pour la découverte.
+            </div>
+          </template>
+        </div>
+      </template>
+    </section>
 
   </main>
 
@@ -321,7 +396,7 @@
 
   <!-- ══════════════ FOOTER ══════════════ -->
   <footer class="text-center text-xs text-gray-700 pb-10 mt-12">
-    PapyConnect v1.0 &mdash; Éole's Home Lab &nbsp;·&nbsp;
+    PapyConnect v1.2 &mdash; Éole's Home Lab &nbsp;·&nbsp;
     <a href="/docs" class="hover:text-gold transition-colors underline">API Swagger</a>
   </footer>
 
@@ -348,10 +423,19 @@
     function app() {
       return {
         devices:  [],
+        actions:  [],
         loading:  true,
         scanning: false,
         toast:    '',
         _toastTimer: null,
+
+        wizard: {
+          step: 1,
+          service: '',
+          device: null,
+          title: '',
+          color: '#8200FF'
+        },
 
         get onlineCount() {
           return this.devices.filter(d => d.status === 'online').length;
@@ -365,10 +449,21 @@
             const r = await fetch('/api/devices');
             if (!r.ok) throw new Error();
             this.devices = await r.json();
+            await this.loadActions();
           } catch {
-            this.notify('Impossible de charger les appareils.');
+            this.notify('Impossible de charger les données.');
           } finally {
             this.loading = false;
+          }
+        },
+
+        async loadActions() {
+          try {
+            const r = await fetch('/api/actions');
+            if (!r.ok) throw new Error();
+            this.actions = await r.json();
+          } catch {
+            this.notify('Impossible de charger les actions.');
           }
         },
 
@@ -399,18 +494,6 @@
           }
         },
 
-        async runAction(ip, actionName) {
-          try {
-            this.notify(`Exécution de l'action ${actionName}...`);
-            const r = await fetch(`/api/devices/${ip}/action/${actionName}`, { method: 'POST' });
-            const data = await r.json();
-            if (!r.ok) throw new Error(data.detail || 'Erreur d\'exécution');
-            this.notify(`Succès: ${data.message || 'action lancée'}`);
-          } catch (e) {
-            this.notify(`Erreur: ${e.message}`);
-          }
-        },
-
         notify(msg) {
           this.toast = msg;
           clearTimeout(this._toastTimer);
@@ -427,26 +510,116 @@
           } catch { return ''; }
         },
 
+        // Wizard Logic
+        selectService(service) {
+          this.wizard.service = service;
+          this.wizard.step = 2;
+        },
+
+        selectDevice(device) {
+          this.wizard.device = device;
+          let room = 'Salon';
+          if (device.name.toLowerCase().includes('salon')) room = 'Salon';
+          else if (device.name.toLowerCase().includes('louistib')) room = 'Louistib';
+          else if (device.name.toLowerCase().includes('chambre')) room = 'Chambre';
+          this.wizard.title = `${this.serviceLabel(this.wizard.service)} (${room})`;
+          this.wizard.step = 3;
+        },
+
+        serviceLabel(service) {
+          return { netflix: 'Netflix', spotify: 'Spotify', youtube: 'YouTube' }[service] || service;
+        },
+
+        filteredWizardDevices() {
+          if (this.wizard.service === 'netflix' || this.wizard.service === 'youtube') {
+            return this.devices.filter(d => d.type === 'sony_bravia_tv');
+          } else if (this.wizard.service === 'spotify') {
+            return this.devices.filter(d => d.type === 'amplifier');
+          }
+          return [];
+        },
+
+        resetWizard() {
+          this.wizard = {
+            step: 1,
+            service: '',
+            device: null,
+            title: '',
+            color: '#8200FF'
+          };
+        },
+
+        async submitWizard() {
+          if (!this.wizard.device || !this.wizard.title) return;
+          let room = 'Salon';
+          if (this.wizard.device.name.toLowerCase().includes('salon')) room = 'Salon';
+          else if (this.wizard.device.name.toLowerCase().includes('louistib')) room = 'Louistib';
+          else if (this.wizard.device.name.toLowerCase().includes('chambre')) room = 'Chambre';
+          const slug = room.toLowerCase().replace(/[^a-z0-9]/g, '');
+          const actionId = `${this.wizard.service}_${slug}`;
+          const targetApp = this.wizard.service === 'spotify' ? 'launch_spotify' : 'launch_' + this.wizard.service;
+
+          const payload = {
+            id: actionId,
+            title: this.wizard.title,
+            icon: this.wizard.service,
+            device_ip: this.wizard.device.ip,
+            target_app: targetApp
+          };
+
+          try {
+            this.notify("Ajout de l'action à la console...");
+            const r = await fetch('/api/actions', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+            if (!r.ok) throw new Error();
+            await this.loadActions();
+            this.resetWizard();
+            this.notify("Action ajoutée avec succès !");
+          } catch {
+            this.notify("Erreur lors de l'ajout de l'action.");
+          }
+        },
+
+        async removeAction(id) {
+          try {
+            const r = await fetch(`/api/actions/${id}`, { method: 'DELETE' });
+            if (!r.ok) throw new Error();
+            this.actions = this.actions.filter(a => a.id !== id);
+            this.notify("Action retirée de la console.");
+          } catch {
+            this.notify("Erreur lors du retrait.");
+          }
+        },
+
         icon(type) {
           const map = {
-            tv: `<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+            tv: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
                    <rect x="2" y="3" width="20" height="14" rx="2"/>
                    <path stroke-linecap="round" d="M8 21h8M12 17v4"/>
                  </svg>`,
-            sony_bravia_tv: `<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+            sony_bravia_tv: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
                                <rect x="2" y="3" width="20" height="14" rx="2"/>
                                <path stroke-linecap="round" d="M8 21h8M12 17v4"/>
                              </svg>`,
-            amplifier: `<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+            amplifier: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
                           <rect x="2" y="6" width="20" height="12" rx="2"/>
                           <circle cx="8"  cy="12" r="2"/>
                           <circle cx="16" cy="12" r="2"/>
                           <line x1="12" y1="9" x2="12" y2="15"/>
                         </svg>`,
-            light: `<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
-                      <path stroke-linecap="round" d="M9 21h6M12 3a6 6 0 0 1 4 10.6V17H8v-3.4A6 6 0 0 1 12 3z"/>
-                    </svg>`,
-            unknown: `<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+            netflix: `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M5.6 2h4.5l3.9 14.8V2h4.4v20h-4.5L10 7.2V22H5.6V2z"/>
+                      </svg>`,
+            spotify: `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424c-.18.295-.565.387-.86.207-2.377-1.454-5.37-1.783-8.892-1.007-.333.075-.664-.135-.74-.467-.075-.333.136-.665.468-.742 3.847-.878 7.144-.508 9.817 1.13.298.18.39.563.207.86zm1.223-2.72c-.226.367-.707.487-1.074.26-2.72-1.672-6.87-2.157-10.076-1.183-.413.125-.85-.107-.978-.52-.128-.415.108-.853.52-.98 3.67-1.114 8.243-.574 11.348 1.335.367.226.487.707.26 1.074zm.106-2.833C14.39 8.667 8.57 8.475 5.2 9.5c-.523.158-1.077-.142-1.235-.665-.158-.523.14-1.078.663-1.237 3.864-1.173 10.29-.95 14.34 1.458.47.28.625.892.347 1.362-.28.47-.892.625-1.362.347z"/>
+                      </svg>`,
+            youtube: `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.528 3.545 12 3.545 12 3.545s-7.528 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.022 0 12 0 12s0 3.978.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.86.508 9.388.508 9.388.508s7.528 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.978 24 12 24 12s0-3.978-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                      </svg>`,
+            unknown: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
                         <circle cx="12" cy="12" r="9"/>
                         <path stroke-linecap="round" d="M9 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/>
                       </svg>`,
@@ -456,10 +629,12 @@
 
         iconBg(type) {
           return {
-            tv:             'bg-blue-900/40   text-blue-300',
-            sony_bravia_tv: 'bg-blue-900/40   text-blue-300',
-            amplifier:      'bg-purple-900/40 text-purple-300',
-            light:          'bg-amber-900/40  text-amber-300',
+            tv:             'bg-blue-900/30   text-blue-300 border border-blue-500/20',
+            sony_bravia_tv: 'bg-blue-900/30   text-blue-300 border border-blue-500/20',
+            amplifier:      'bg-purple-900/30 text-purple-300 border border-purple-500/20',
+            netflix:        'bg-red-950/30    text-red-400 border border-red-500/20',
+            spotify:        'bg-emerald-950/30 text-emerald-400 border border-emerald-500/20',
+            youtube:        'bg-red-950/30    text-red-400 border border-red-500/20',
             unknown:        'bg-rim           text-gray-500',
           }[type] || 'bg-rim text-gray-500';
         },
@@ -469,3 +644,4 @@
 
 </body>
 </html>
+
