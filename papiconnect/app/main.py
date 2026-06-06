@@ -34,17 +34,32 @@ REGISTRY_PATH = Path("./data/registry.json")
 ACTIONS_PATH = Path("./data/actions.json")
 
 
-def _load_actions() -> list[dict]:
-    """Charge les actions virtuelles configurées."""
+def _load_actions() -> dict[str, dict]:
+    """Charge les actions virtuelles configurées sous forme de dictionnaire."""
     try:
         if ACTIONS_PATH.exists() and ACTIONS_PATH.stat().st_size > 2:
-            return json.loads(ACTIONS_PATH.read_text(encoding="utf-8"))
+            data = json.loads(ACTIONS_PATH.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                return data
+            elif isinstance(data, list):
+                # Migration transparente de la liste vers le dictionnaire
+                migrated = {}
+                for idx, a in enumerate(data):
+                    btn_id = f"papyconnect_btn_{idx+1}"
+                    migrated[btn_id] = {
+                        "device_ip": a.get("device_ip"),
+                        "target_app": a.get("target_app"),
+                        "state": a.get("state", "inactive"),
+                        "title": a.get("title"),
+                        "icon": a.get("icon")
+                    }
+                return migrated
     except Exception as exc:
         log.warning("Actions virtuelles illisibles — réinitialisation : %s", exc)
-    return []
+    return {}
 
 
-def _save_actions(actions: list[dict]) -> None:
+def _save_actions(actions: dict[str, dict]) -> None:
     """Écrit les actions virtuelles sur le disque avec rename atomique."""
     ACTIONS_PATH.parent.mkdir(parents=True, exist_ok=True)
     tmp = ACTIONS_PATH.with_suffix(".tmp")
@@ -124,6 +139,28 @@ CATALOGUE_CONSTRUCTEURS = {
                     "Content-Type": "application/json"
                 },
                 "payload": "{\"method\":\"setActiveApp\",\"version\":\"1.0\",\"id\":1,\"params\":[{\"uri\":\"com.sony.dtv.com.google.android.youtube.tv.com.google.android.youtube.tv.MainActivity\"}]}"
+            },
+            "launch_spotify": {
+                "protocol": "HTTP",
+                "method": "POST",
+                "port": 80,
+                "path": "/sony/appControl",
+                "headers": {
+                    "X-Auth-PSK": "0000",
+                    "Content-Type": "application/json"
+                },
+                "payload": "{\"method\":\"setActiveApp\",\"version\":\"1.0\",\"id\":1,\"params\":[{\"uri\":\"com.sony.dtv.com.spotify.tv.android.com.spotify.tv.android.AboutActivity\"}]}"
+            },
+            "power_off": {
+                "protocol": "HTTP",
+                "method": "POST",
+                "port": 80,
+                "path": "/sony/system",
+                "headers": {
+                    "X-Auth-PSK": "0000",
+                    "Content-Type": "application/json"
+                },
+                "payload": "{\"method\":\"setPowerStatus\",\"version\":\"1.0\",\"id\":1,\"params\":[{\"status\":false}]}"
             }
         }
     }
@@ -346,6 +383,28 @@ _TEMPLATES_DIR = Path(__file__).parent / "templates"
 templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 
 
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    log.warning("Erreur HTTP %s sur %s %s : %s", exc.status_code, request.method, request.url.path, exc.detail)
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    log.error("Erreur de validation de requête sur %s %s : %s", request.method, request.url.path, exc.errors())
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors()},
+    )
+
+
 @app.on_event("startup")
 async def _startup() -> None:
     """Initialise le registre JSON vide et les actions de base."""
@@ -454,24 +513,30 @@ async def run_device_action(ip: str, action_name: str):
             
     # 4. Exécuter selon le protocole
     if protocol == "TCP":
+        log.info("Envoi de la commande TCP à %s:%s (payload: %r)", ip, port, payload)
         success = await _send_tcp_command(ip, port, payload)
         if not success:
+            log.warning("Échec de la commande TCP à %s:%s", ip, port)
             raise HTTPException(
                 status_code=502, 
                 detail=f"Impossible de joindre l'appareil sur le port TCP {port}."
             )
+        log.info("Commande TCP envoyée avec succès à %s:%s", ip, port)
         return {"ok": True, "message": f"Action '{action_name}' envoyée avec succès par TCP à {ip}."}
     elif protocol == "HTTP":
         path = action.get("path", "")
         url = f"http://{ip}:{port}{path}"
         headers = action.get("headers", {})
         method = action.get("method", "POST")
+        log.info("Envoi de la requête HTTP %s %s (headers: %r, payload: %r)", method, url, headers, payload)
         success = await _send_http_command(url, method, headers, payload)
         if not success:
+            log.warning("Échec de la requête HTTP %s sur %s", method, url)
             raise HTTPException(
                 status_code=502, 
                 detail=f"Impossible de joindre l'appareil sur {url}."
             )
+        log.info("Requête HTTP %s envoyée avec succès sur %s", method, url)
         return {"ok": True, "message": f"Action '{action_name}' envoyée avec succès par HTTP à {ip}."}
     else:
         raise HTTPException(
@@ -576,56 +641,160 @@ async def trigger_scan(bg: BackgroundTasks):
 
 # ── Virtual Actions ──────────────────────────────────────────────────────────
 
-class ActionIn(BaseModel):
-    id: str
-    title: str
-    icon: str
+@app.get("/api/icons/{filename}", summary="Servir les icônes de la console")
+def get_icon(filename: str):
+    import os
+    from fastapi import Response
+    safe_filename = "".join(c for c in filename if c.isalnum() or c in "._-")
+    path = os.path.join("app", "static", "icons", safe_filename)
+    if not os.path.exists(path):
+        if "_active" in safe_filename:
+            path = os.path.join("app", "static", "icons", "default_active.png")
+        else:
+            path = os.path.join("app", "static", "icons", "default.png")
+    if os.path.exists(path):
+        with open(path, "rb") as f:
+            return Response(content=f.read(), media_type="image/png")
+    return Response(content=b"", media_type="image/png")
+
+
+class ButtonConfigIn(BaseModel):
+    btn_id: str
     device_ip: str
     target_app: str
+    title: str | None = None
+    icon: str | None = None
+
+
+def resolve_btn_metadata(device_ip: str, target_app: str):
+    devices = _load()
+    device = next((d for d in devices if d.get("ip") == device_ip), None)
+    if not device and device_ip in KNOWN_DEVICES:
+        device = KNOWN_DEVICES[device_ip]
+        
+    device_name = device.get("name", "Appareil") if device else "Appareil"
+    
+    # Extraire la pièce ou simplifier le nom
+    room = "Appareil"
+    for r in ["Salon", "Chambre", "Cuisine", "Bureau"]:
+        if r.lower() in device_name.lower():
+            room = r
+            break
+    if room == "Appareil" and device:
+        room = device_name.split()[-1]
+        
+    # Titre convivial de l'application
+    app_clean = target_app.replace("launch_", "").replace("_", " ")
+    app_friendly = " ".join(w.capitalize() for w in app_clean.split())
+    
+    title = f"{app_friendly} ({room})"
+    icon = target_app.replace("launch_", "")
+    return title, icon
 
 
 @app.get("/api/actions", summary="Liste des actions configurées pour la console")
 async def get_actions():
-    """Renvoie la liste complète des actions configurées (uniquement ID, Titre, Icône) pour la console."""
+    """Renvoie la liste des 9 boutons de la console (configurés ou placeholder)."""
     actions = _load_actions()
-    return [{"id": a["id"], "title": a["title"], "icon": a["icon"]} for a in actions]
+    result = []
+    for i in range(1, 10):
+        btn_id = f"papyconnect_btn_{i}"
+        cfg = actions.get(btn_id)
+        if cfg:
+            result.append({
+                "id": btn_id,
+                "title": cfg.get("title", f"Bouton {i}"),
+                "icon": cfg.get("icon", "default"),
+                "state": cfg.get("state", "inactive")
+            })
+        else:
+            result.append({
+                "id": btn_id,
+                "title": f"Touche {i} (non configurée)",
+                "icon": "default",
+                "state": "inactive"
+            })
+    return result
 
 
-@app.post("/api/actions", status_code=201, summary="Enregistrer une nouvelle action virtuelle")
-async def create_action(body: ActionIn):
-    """Enregistre ou met à jour une action virtuelle dans actions.json."""
+@app.post("/api/actions/config", summary="Configurer l'association d'une touche physique")
+async def config_button(body: ButtonConfigIn):
+    """Associe une touche physique de la console (ex: papyconnect_btn_1) à un appareil et une application."""
+    log.info("Requête de configuration du bouton %s reçue (IP: %s, App: %s, Titre: %s, Icône: %s)", body.btn_id, body.device_ip, body.target_app, body.title, body.icon)
     actions = _load_actions()
-    # Met à jour si existant, sinon ajoute
-    actions = [a for a in actions if a["id"] != body.id]
-    actions.append(body.model_dump())
-    _save_actions(actions)
-    return {"ok": True, "total": len(actions)}
-
-
-@app.delete("/api/actions/{action_id}", summary="Supprimer une action virtuelle")
-async def delete_action(action_id: str):
-    """Supprime une action virtuelle par son ID."""
-    actions = _load_actions()
-    filtered = [a for a in actions if a["id"] != action_id]
-    if len(filtered) == len(actions):
-        raise HTTPException(status_code=404, detail=f"Action '{action_id}' non trouvée.")
-    _save_actions(filtered)
-    return {"ok": True, "removed": action_id}
-
-
-@app.post("/api/actions/{action_id}/execute", summary="Résoudre le contrat d'exécution pour n8n")
-async def execute_action(action_id: str):
-    """
-    Résout l'action virtuelle, récupère l'IP cible et le payload brut dans le catalogue constructeur,
-    et renvoie le contrat d'exécution détaillé pour n8n.
-    """
-    actions = _load_actions()
-    action_item = next((a for a in actions if a["id"] == action_id), None)
-    if not action_item:
-        raise HTTPException(status_code=404, detail=f"Action '{action_id}' non trouvée.")
+    
+    btn_num = None
+    if body.btn_id.startswith("papyconnect_btn_"):
+        try:
+            btn_num = int(body.btn_id.replace("papyconnect_btn_", ""))
+        except ValueError:
+            pass
+            
+    if btn_num is None or not (1 <= btn_num <= 9):
+        log.warning("Échec de configuration: Identifiant de bouton invalide: %s", body.btn_id)
+        raise HTTPException(status_code=400, detail="L'identifiant du bouton doit être entre papyconnect_btn_1 et papyconnect_btn_9.")
         
-    ip = action_item["device_ip"]
-    action_name = action_item["target_app"]
+    title = body.title
+    icon = body.icon
+    if not title or not icon:
+        resolved_title, resolved_icon = resolve_btn_metadata(body.device_ip, body.target_app)
+        title = title or resolved_title
+        icon = icon or resolved_icon
+        
+    actions[body.btn_id] = {
+        "device_ip": body.device_ip,
+        "target_app": body.target_app,
+        "title": title,
+        "icon": icon,
+        "state": actions.get(body.btn_id, {}).get("state", "inactive")
+    }
+    
+    _save_actions(actions)
+    log.info("Configuration du bouton %s enregistrée avec succès (Titre: %s, Icône: %s)", body.btn_id, title, icon)
+    return {"ok": True, "button": body.btn_id, "title": title, "icon": icon}
+
+
+@app.delete("/api/actions/{btn_id}", summary="Effacer la configuration d'un bouton")
+async def delete_action(btn_id: str):
+    """Efface la configuration d'un bouton par son ID (le remet à non configuré)."""
+    log.info("Requête de suppression de la configuration du bouton %s", btn_id)
+    actions = _load_actions()
+    if btn_id not in actions:
+        log.warning("Échec de suppression: Touche %s non configurée dans la console", btn_id)
+        raise HTTPException(status_code=404, detail=f"Touche '{btn_id}' non configurée dans la console.")
+    del actions[btn_id]
+    _save_actions(actions)
+    log.info("Configuration du bouton %s supprimée avec succès", btn_id)
+    return {"ok": True, "removed": btn_id}
+
+
+@app.post("/api/actions/execute/{btn_id}", summary="Résoudre le contrat d'exécution pour n8n")
+@app.post("/api/actions/{btn_id}/execute", summary="Résoudre le contrat d'exécution pour n8n (compatibilité)")
+async def execute_action(btn_id: str):
+    """
+    Résout l'action du bouton physique, gère le Toggle, et renvoie le contrat pour n8n.
+    """
+    actions = _load_actions()
+    btn_config = actions.get(btn_id)
+    if not btn_config:
+        raise HTTPException(status_code=404, detail=f"Touche '{btn_id}' non configurée.")
+        
+    ip = btn_config["device_ip"]
+    
+    # Logique Toggle : Détermine si l'action est active et alterne
+    current_state = btn_config.get("state", "inactive")
+    if current_state == "active":
+        action_name = "power_off"
+        btn_config["state"] = "inactive"
+    else:
+        action_name = btn_config["target_app"]
+        btn_config["state"] = "active"
+        # Désactive les autres boutons sur le même appareil IP
+        for b_id, b_cfg in actions.items():
+            if b_id != btn_id and b_cfg.get("device_ip") == ip:
+                b_cfg["state"] = "inactive"
+                
+    _save_actions(actions)
     
     # Trouver l'appareil
     devices = _load()
@@ -659,7 +828,7 @@ async def execute_action(action_id: str):
             
     # Construire le contrat d'exécution
     config = {
-        "action_id": action_id,
+        "action_id": btn_id,
         "ip": ip,
         "name": device.get("name"),
         "type": dtype,

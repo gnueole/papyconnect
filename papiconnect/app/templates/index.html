@@ -244,6 +244,15 @@
               </div>
 
               <div>
+                <label class="block text-[10px] uppercase font-bold tracking-wider text-gray-500 mb-1">Touche Console Cible</label>
+                <select x-model="wizard.btn_id" class="bg-rim border border-rim rounded-xl px-4 py-2.5 w-full text-white text-sm focus:border-gold outline-none cursor-pointer">
+                  <template x-for="i in 9" :key="i">
+                    <option :value="'papyconnect_btn_' + i" x-text="'Touche ' + i" :selected="wizard.btn_id === 'papyconnect_btn_' + i"></option>
+                  </template>
+                </select>
+              </div>
+
+              <div>
                 <label class="block text-[10px] uppercase font-bold tracking-wider text-gray-500 mb-1.5">Couleur de la touche</label>
                 <div class="flex gap-2">
                   <template x-for="c in ['#8200FF', '#E50914', '#113CCF', '#1DB954', '#FF9800']" :key="c">
@@ -541,6 +550,7 @@
           service: '',
           device: null,
           title: '',
+          btn_id: 'papyconnect_btn_1',
           color: '#8200FF'
         },
 
@@ -683,31 +693,26 @@
             service: '',
             device: null,
             title: '',
+            btn_id: 'papyconnect_btn_1',
             color: '#8200FF'
           };
         },
 
         async submitWizard() {
-          if (!this.wizard.device || !this.wizard.title) return;
-          let room = 'Salon';
-          if (this.wizard.device.name.toLowerCase().includes('salon')) room = 'Salon';
-          else if (this.wizard.device.name.toLowerCase().includes('louistib')) room = 'Louistib';
-          else if (this.wizard.device.name.toLowerCase().includes('chambre')) room = 'Chambre';
-          const slug = room.toLowerCase().replace(/[^a-z0-9]/g, '');
-          const actionId = `${this.wizard.service}_${slug}`;
+          if (!this.wizard.device || !this.wizard.title || !this.wizard.btn_id) return;
           const targetApp = this.wizard.service === 'spotify' ? 'launch_spotify' : 'launch_' + this.wizard.service;
 
           const payload = {
-            id: actionId,
-            title: this.wizard.title,
-            icon: this.wizard.service,
+            btn_id: this.wizard.btn_id,
             device_ip: this.wizard.device.ip,
-            target_app: targetApp
+            target_app: targetApp,
+            title: this.wizard.title,
+            icon: this.wizard.service
           };
 
           try {
             this.notify("Ajout de l'action à la console...");
-            const r = await fetch('/api/actions', {
+            const r = await fetch('/api/actions/config', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(payload)
