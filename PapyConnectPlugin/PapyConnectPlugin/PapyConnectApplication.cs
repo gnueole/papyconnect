@@ -1,10 +1,10 @@
-namespace Loupedeck.EoleN8NPlugin
+namespace Loupedeck.PapyConnectPlugin
 {
     using System;
 
-    public class EoleN8NApplication : ClientApplication
+    public class PapyConnectApplication : ClientApplication
     {
-        public EoleN8NApplication()
+        public PapyConnectApplication()
         {
         }
 

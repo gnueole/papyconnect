@@ -1,8 +1,8 @@
-namespace Loupedeck.EoleN8NPlugin
+namespace Loupedeck.PapyConnectPlugin
 {
     using System;
 
-    public class EoleN8NPlugin : Plugin
+    public class PapyConnectPlugin : Plugin
     {
         // Gets a value indicating whether this is an API-only plugin.
         public override Boolean UsesApplicationApiOnly => true;
@@ -11,7 +11,7 @@ namespace Loupedeck.EoleN8NPlugin
         public override Boolean HasNoApplication => true;
 
         // Initializes a new instance of the plugin class.
-        public EoleN8NPlugin()
+        public PapyConnectPlugin()
         {
             // Initialize the plugin log.
             PluginLog.Init(this.Log);

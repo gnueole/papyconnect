@@ -15,7 +15,7 @@ displayName: PapyConnect
 description: PapyConnect dynamic webhook triggers
 
 # Name of the plugin library file.
-pluginFileName: EoleN8NPlugin.dll
+pluginFileName: PapyConnectPlugin.dll
 
 # Plugin version.
 version: 1.0

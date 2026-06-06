@@ -1,4 +1,4 @@
-namespace Loupedeck.EoleN8NPlugin
+namespace Loupedeck.PapyConnectPlugin
 {
     using System;
 
