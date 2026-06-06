@@ -229,34 +229,7 @@ DEVICE_CATALOGS["bbox"] = {
 DEVICE_CATALOGS["denon_amplifier"] = DEVICE_CATALOGS["amplifier"]
 
 # Known devices defined with specific environment/location variables
-KNOWN_DEVICES: dict[str, dict] = {
-    "192.168.1.193": {
-        "name": "Denon AVC-X3800H Salon",
-        "type": "amplifier",
-        "vendor": "Denon",
-        "ip": "192.168.1.193",
-        "variables": {
-            "zone": "MAIN",
-            "max_volume": 80
-        }
-    },
-    "192.168.1.200": {
-        "name": "Denon de Louistib (Superior Model)",
-        "type": "amplifier",
-        "vendor": "Denon",
-        "ip": "192.168.1.200",
-        "variables": {
-            "zone": "MAIN",
-            "max_volume": 90
-        }
-    },
-    "192.168.1.53": {
-        "name": "Xbox Series X",
-        "type": "xbox",
-        "vendor": "xbox",
-        "ip": "192.168.1.53"
-    }
-}
+KNOWN_DEVICES: dict[str, dict] = {}
 
 # ─────────────────────────────────────────────────────────────────────────────
 # JSON Persistence Helpers
@@ -817,8 +790,6 @@ def _merge_devices(devices: list[dict], new_device: dict) -> list[dict]:
 
 async def _ping_device(ip: str, timeout: float = 1.5) -> bool:
     """Return True if device answers an ICMP ping within timeout seconds."""
-    if ip == "192.168.1.53":
-        return True
     try:
         proc = await asyncio.create_subprocess_exec(
             "ping", "-c", "1", "-W", str(max(1, int(timeout))), ip,
@@ -998,16 +969,6 @@ async def _startup() -> None:
     if not REGISTRY_PATH.exists():
         _save_registry([])
         log.info("Registry file initialized: %s", REGISTRY_PATH.resolve())
-    
-    # Pre-inject all KNOWN_DEVICES on startup to ensure they are registered
-    devices = _load_registry()
-    modified = False
-    for ip, meta in KNOWN_DEVICES.items():
-        if not any(d.get("ip") == ip for d in devices):
-            devices = _merge_devices(devices, dict(meta))
-            modified = True
-    if modified:
-        _save_registry(devices)
         
     if not ACTIONS_PATH.exists():
         default_actions = [
