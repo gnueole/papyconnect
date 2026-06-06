@@ -10,10 +10,39 @@
   },
   "actions": [
     {
-      "id": "trigger_papy_action",
-      "name": "Action Virtuelle",
-      "type": "custom",
-      "dynamic": true
+      "id": "papyconnect_btn_1",
+      "name": "Bouton PapyConnect 1",
+      "type": "custom"
+    },
+    {
+      "id": "papyconnect_btn_2",
+      "name": "Bouton PapyConnect 2",
+      "type": "custom"
+    },
+    {
+      "id": "papyconnect_btn_3",
+      "name": "Bouton PapyConnect 3",
+      "type": "custom"
+    },
+    {
+      "id": "papyconnect_btn_4",
+      "name": "Bouton PapyConnect 4",
+      "type": "custom"
+    },
+    {
+      "id": "papyconnect_btn_5",
+      "name": "Bouton PapyConnect 5",
+      "type": "custom"
+    },
+    {
+      "id": "papyconnect_btn_6",
+      "name": "Bouton PapyConnect 6",
+      "type": "custom"
+    },
+    {
+      "id": "open_wizard",
+      "name": "Ouvrir le Wizard de Configuration",
+      "type": "custom"
     }
   ],
   "settings": {

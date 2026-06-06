@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="fr" class="dark h-full">
+<html lang="en" class="dark h-full">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PapyConnect — Dashboard</title>
-  <meta name="description" content="PapyConnect — Registre IoT dynamique pour votre réseau domotique." />
+  <meta name="description" content="PapyConnect — Dynamic IoT registry for your home automation network." />
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e9a623' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='5' r='2'/%3E%3Ccircle cx='5' cy='19' r='2'/%3E%3Ccircle cx='19' cy='19' r='2'/%3E%3Cpath d='M12 7v4M12 11l-5 6M12 11l5 6'/%3E%3C/svg%3E" />
 
   <!-- Tailwind CSS CDN -->
@@ -112,17 +112,17 @@
         </div>
       </div>
 
-      <!-- Stats live -->
+      <!-- Live stats -->
       <div class="hidden sm:flex items-center gap-6 text-sm">
         <span class="flex items-center gap-2 text-gray-400">
           <span class="w-2 h-2 rounded-full bg-emerald-400 animate-sonar inline-block"></span>
-          <span class="text-white font-semibold" x-text="onlineCount"></span> en ligne
+          <span class="text-white font-semibold" x-text="onlineCount"></span> online
         </span>
         <span class="text-gray-600">·</span>
         <span class="text-gray-400"><span class="text-white font-semibold" x-text="devices.length"></span> total</span>
       </div>
 
-      <!-- Bouton scan -->
+      <!-- Scan button -->
       <button
         id="btn-scan"
         @click="scan()"
@@ -139,7 +139,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
           </svg>
         </span>
-        <span x-text="scanning ? 'Scan en cours…' : 'Scanner le réseau'"></span>
+        <span x-text="scanning ? 'Scanning network…' : 'Scan Network'"></span>
       </button>
     </div>
   </header>
@@ -172,13 +172,13 @@
       <section class="lg:col-span-5 bg-panel border border-rim rounded-2xl p-6 flex flex-col justify-between" style="min-height: 400px;">
         <div>
           <div class="flex items-center justify-between pb-4 border-b border-rim mb-5">
-            <h3 class="font-extrabold text-sm uppercase tracking-wider text-gold">Créer une Action</h3>
-            <span class="text-xs text-gray-500 font-semibold" x-text="'Étape ' + wizard.step + '/3'"></span>
+            <h3 class="font-extrabold text-sm uppercase tracking-wider text-gold">Create Action</h3>
+            <span class="text-xs text-gray-500 font-semibold" x-text="'Step ' + wizard.step + '/3'"></span>
           </div>
 
-          <!-- Étape 1 : Choix de l'Intention -->
+          <!-- Step 1: Choose Application -->
           <div x-show="wizard.step === 1" class="space-y-4 animate-fadeUp">
-            <p class="text-xs text-gray-400 mb-2">Choisissez l'application ou le service à lancer :</p>
+            <p class="text-xs text-gray-400 mb-2">Choose the application or service to launch:</p>
             <div class="grid grid-cols-3 gap-3">
               <button @click="selectService('netflix')" class="flex flex-col items-center justify-center p-4 rounded-xl bg-rim/20 hover:bg-red-950/20 border border-rim hover:border-red-600/50 transition-all duration-150 active:scale-95 group">
                 <span class="p-2.5 rounded-lg bg-red-900/10 text-red-500 group-hover:bg-red-900/20" x-html="icon('netflix')"></span>
@@ -197,14 +197,14 @@
             </div>
           </div>
 
-          <!-- Étape 2 : Choix du Lieu -->
+          <!-- Step 2: Select Location -->
           <div x-show="wizard.step === 2" class="space-y-4 animate-fadeUp">
             <div class="flex items-center gap-2 mb-2">
               <button @click="wizard.step = 1" class="text-gray-500 hover:text-white text-xs flex items-center gap-1">
-                ← Retour
+                ← Back
               </button>
             </div>
-            <p class="text-xs text-gray-400">Sélectionnez la pièce ou l'appareil cible :</p>
+            <p class="text-xs text-gray-400">Select the target room or device:</p>
             
             <div class="space-y-2.5 max-h-60 overflow-y-auto pr-1">
               <template x-for="d in filteredWizardDevices()" :key="d.ip">
@@ -216,53 +216,31 @@
                       <p class="text-[10px] font-mono text-gray-500" x-text="d.ip"></p>
                     </div>
                   </div>
-                  <span class="text-[10px] uppercase font-semibold tracking-wider text-gold">Choisir →</span>
+                  <span class="text-[10px] uppercase font-semibold tracking-wider text-gold">Choose →</span>
                 </button>
               </template>
 
               <template x-if="filteredWizardDevices().length === 0">
                 <div class="text-center py-6 text-gray-600 text-xs">
-                  Aucun appareil compatible en ligne. Enregistrez un appareil ou lancez un scan ci-dessus.
+                  No compatible devices online. Register a device or start a scan above.
                 </div>
               </template>
             </div>
           </div>
 
-          <!-- Étape 3 : Look & Nom -->
+          <!-- Step 3: Configure Shortcut Name -->
           <div x-show="wizard.step === 3" class="space-y-4 animate-fadeUp">
             <div class="flex items-center gap-2 mb-2">
               <button @click="wizard.step = 2" class="text-gray-500 hover:text-white text-xs flex items-center gap-1">
-                ← Retour
+                ← Back
               </button>
             </div>
-            <p class="text-xs text-gray-400">Configurez le look et le nom du raccourci :</p>
+            <p class="text-xs text-gray-400">Configure the shortcut name:</p>
 
             <div class="space-y-3">
               <div>
-                <label class="block text-[10px] uppercase font-bold tracking-wider text-gray-500 mb-1">Nom du bouton</label>
+                <label class="block text-[10px] uppercase font-bold tracking-wider text-gray-500 mb-1">Shortcut Name</label>
                 <input type="text" x-model="wizard.title" class="bg-rim border border-rim rounded-xl px-4 py-2.5 w-full text-white text-sm focus:border-gold outline-none" />
-              </div>
-
-              <div>
-                <label class="block text-[10px] uppercase font-bold tracking-wider text-gray-500 mb-1">Touche Console Cible</label>
-                <select x-model="wizard.btn_id" class="bg-rim border border-rim rounded-xl px-4 py-2.5 w-full text-white text-sm focus:border-gold outline-none cursor-pointer">
-                  <template x-for="i in 9" :key="i">
-                    <option :value="'papyconnect_btn_' + i" x-text="'Touche ' + i" :selected="wizard.btn_id === 'papyconnect_btn_' + i"></option>
-                  </template>
-                </select>
-              </div>
-
-              <div>
-                <label class="block text-[10px] uppercase font-bold tracking-wider text-gray-500 mb-1.5">Couleur de la touche</label>
-                <div class="flex gap-2">
-                  <template x-for="c in ['#8200FF', '#E50914', '#113CCF', '#1DB954', '#FF9800']" :key="c">
-                    <button @click="wizard.color = c" :style="'background-color: ' + c" class="w-8 h-8 rounded-lg active:scale-90 transition-transform relative" :class="wizard.color === c ? 'ring-2 ring-white scale-105' : ''">
-                      <svg x-show="wizard.color === c" class="w-4 h-4 text-white absolute inset-0 m-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                      </svg>
-                    </button>
-                  </template>
-                </div>
               </div>
             </div>
           </div>
@@ -271,24 +249,24 @@
         <!-- Validation Button (Step 3 only) -->
         <div class="mt-6 pt-4 border-t border-rim/60" x-show="wizard.step === 3">
           <button @click="submitWizard()" class="bg-gold hover:bg-ember text-black font-bold py-3 px-6 rounded-xl w-full text-center transition-all duration-150 active:scale-95" style="box-shadow: 0 0 20px rgba(233,166,35,.2)">
-            Ajouter à ma Console
+            Add to Dashboard
           </button>
         </div>
       </section>
 
-      <!-- MES ACTIONS CONSOLE (Right Panel) -->
+      <!-- CONFIGURED ACTIONS (Right Panel) -->
       <section class="lg:col-span-7 bg-panel border border-rim rounded-2xl p-6">
         <div class="flex items-center justify-between pb-4 border-b border-rim mb-5">
-          <h3 class="font-extrabold text-sm uppercase tracking-wider text-gray-400">Actions sur la Console</h3>
-          <span class="text-xs text-gray-500 font-semibold" x-text="actions.filter(act => act.icon !== 'default').length + ' boutons'"></span>
+          <h3 class="font-extrabold text-sm uppercase tracking-wider text-gray-400">Configured Actions</h3>
+          <span class="text-xs text-gray-500 font-semibold" x-text="actions.length + ' actions'"></span>
         </div>
 
         <div class="grid gap-4 sm:grid-cols-2 max-h-[420px] overflow-y-auto pr-1">
-          <template x-for="a in actions.filter(act => act.icon !== 'default')" :key="a.id">
+          <template x-for="a in actions" :key="a.id">
             <div class="relative group p-4 rounded-xl bg-rim/15 border border-rim hover:border-gold/30 transition-all duration-150">
               
-              <!-- Bouton supprimer -->
-              <button @click="removeAction(a.id)" class="absolute top-3 right-3 text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity" title="Supprimer de la console">
+              <!-- Delete action button -->
+              <button @click="removeAction(a.id)" class="absolute top-3 right-3 text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity" title="Remove action">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
@@ -304,13 +282,13 @@
             </div>
           </template>
 
-          <template x-if="actions.filter(act => act.icon !== 'default').length === 0">
+          <template x-if="actions.length === 0">
             <div class="sm:col-span-2 flex flex-col items-center justify-center py-16 text-gray-600 text-center">
               <svg class="w-12 h-12 mb-3 opacity-15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <p class="text-xs font-semibold text-gray-500">Aucun bouton configuré</p>
-              <p class="text-[10px] mt-0.5">Utilisez l'assistant à gauche pour configurer votre console.</p>
+              <p class="text-xs font-semibold text-gray-500">No actions configured</p>
+              <p class="text-[10px] mt-0.5">Use the wizard on the left to configure your shortcuts.</p>
             </div>
           </template>
         </div>
@@ -318,25 +296,25 @@
 
     </div>
 
-    <!-- APPAREILS ENREGISTRES (Registre IoT Bottom Pane) -->
+    <!-- IoT REGISTRY (Registry Bottom Pane) -->
     <section class="bg-[#0b0c10] border border-rim/60 rounded-2xl p-6">
       <div class="flex items-center justify-between mb-5">
-        <h3 class="text-xs font-extrabold uppercase tracking-wider text-gray-500">Registre IoT / Appareils Découverts</h3>
+        <h3 class="text-xs font-extrabold uppercase tracking-wider text-gray-500">IoT Registry / Discovered Devices</h3>
         <button @click="load()" class="text-xs text-gray-500 hover:text-gold flex items-center gap-1.5 transition-colors">
           <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" d="M4 4v5h5M20 20v-5h-5M4 9a9 9 0 0 1 15-6.7M20 15a9 9 0 0 1-15 6.7"/>
           </svg>
-          Rafraîchir
+          Refresh
         </button>
       </div>
 
-      <!-- Alerte de scan en cours -->
+      <!-- Scan in progress warning -->
       <div x-show="scanning" x-transition class="mb-5 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-400 flex items-center gap-3 animate-fadeUp">
         <span class="spin shrink-0"></span>
-        <span><b>Scan en cours :</b> Recherche active d'équipements sur le réseau (mDNS + ping). Veuillez patienter jusqu'à la fin de la détection pour voir et interagir avec tous vos appareils.</span>
+        <span><b>Scan in progress:</b> Actively searching for devices on the network (mDNS + ping). Please wait for the scan to finish to see and interact with all your devices.</span>
       </div>
 
-      <!-- Skeleton loader pour appareils -->
+      <!-- Skeleton loader for devices -->
       <template x-if="loading">
         <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 animate-pulse">
           <div class="h-20 bg-rim/20 rounded-xl"></div>
@@ -345,7 +323,7 @@
         </div>
       </template>
 
-      <!-- Liste des appareils enregistrés -->
+      <!-- Registered devices list -->
       <template x-if="!loading">
         <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
           <template x-for="d in devices" :key="d.ip">
@@ -354,8 +332,8 @@
               class="flex items-center justify-between p-3.5 rounded-xl bg-panel/50 border border-rim/50 relative group cursor-pointer hover:bg-panel/80 hover:border-gold/30 transition-all duration-200"
             >
               
-              <!-- Supprimer de registre -->
-              <button @click.stop="remove(d.ip)" class="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 text-gray-600 hover:text-red-400 transition-opacity">
+              <!-- Remove from registry -->
+              <button @click.stop="remove(d.ip)" class="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 text-gray-600 hover:text-red-400 transition-opacity" title="Remove from registry">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
@@ -374,14 +352,14 @@
                 </div>
               </div>
 
-              <!-- Statut -->
+              <!-- Status -->
               <span class="w-2 h-2 rounded-full mr-2 shrink-0" :class="d.status === 'online' ? 'bg-emerald-400 animate-sonar' : 'bg-red-500'"></span>
             </div>
           </template>
 
           <template x-if="devices.length === 0">
             <div class="col-span-full py-8 text-center text-xs text-gray-600">
-              Aucun équipement enregistré dans le registre. Lancez un scan ci-dessus pour la découverte.
+              No devices registered. Run a scan above to discover network devices.
             </div>
           </template>
         </div>
@@ -390,7 +368,7 @@
 
   </main>
 
-  <!-- Modal Détails Appareil (Alpine.js) -->
+  <!-- Device Details Modal (Alpine.js) -->
   <div
     x-show="deviceDetailsModal.open"
     class="fixed inset-0 z-[140] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
@@ -408,7 +386,7 @@
       <button
         @click="deviceDetailsModal.open = false"
         class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors focus:outline-none text-2xl font-semibold leading-none"
-        title="Fermer"
+        title="Close"
       >
         &times;
       </button>
@@ -431,16 +409,16 @@
 
           <!-- Info / Status -->
           <div class="flex items-center justify-between p-3 rounded-xl bg-rim/10 border border-rim/30 mb-6">
-            <span class="text-xs text-gray-400 font-medium">Statut de connexion</span>
+            <span class="text-xs text-gray-400 font-medium">Connection Status</span>
             <span class="flex items-center gap-2 text-xs font-semibold" :class="selectedDeviceForDetails.status === 'online' ? 'text-emerald-400' : 'text-red-400'">
               <span class="w-2 h-2 rounded-full" :class="selectedDeviceForDetails.status === 'online' ? 'bg-emerald-400 animate-sonar' : 'bg-red-500'"></span>
-              <span x-text="selectedDeviceForDetails.status === 'online' ? 'En ligne' : 'Hors ligne'"></span>
+              <span x-text="selectedDeviceForDetails.status === 'online' ? 'Online' : 'Offline'"></span>
             </span>
           </div>
 
           <!-- Applications / Actions List -->
           <div>
-            <h4 class="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-3.5">Applications & Actions Disponibles</h4>
+            <h4 class="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-3.5">Available Applications & Actions</h4>
             
             <div class="space-y-2.5 max-h-60 overflow-y-auto pr-1">
               <template x-if="selectedDeviceForDetails.catalog && selectedDeviceForDetails.catalog.actions">
@@ -451,7 +429,7 @@
                         <div :class="iconBg(name.replace('launch_', ''))" class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" x-html="icon(name.replace('launch_', ''))"></div>
                         <div>
                           <p class="text-xs font-bold text-gray-200" x-text="formatActionName(name)"></p>
-                          <p class="text-[9px] font-mono text-gray-500" x-text="'Protocole: ' + action.protocol + (action.port ? ' (Port ' + action.port + ')' : '')"></p>
+                          <p class="text-[9px] font-mono text-gray-500" x-text="'Protocol: ' + action.protocol + (action.port ? ' (Port ' + action.port + ')' : '')"></p>
                         </div>
                       </div>
                       
@@ -463,7 +441,7 @@
                           ? 'bg-gold hover:bg-ember text-black active:scale-95' 
                           : 'bg-rim text-gray-600 cursor-not-allowed'"
                       >
-                        Tester
+                        Test
                       </button>
                     </div>
                   </template>
@@ -472,7 +450,7 @@
 
               <template x-if="!selectedDeviceForDetails.catalog || !selectedDeviceForDetails.catalog.actions || Object.keys(selectedDeviceForDetails.catalog.actions).length === 0">
                 <div class="text-center py-6 text-gray-600 text-xs">
-                  Aucune application ou action configurée dans le catalogue pour ce type d'appareil.
+                  No applications or actions configured in the catalog for this device type.
                 </div>
               </template>
             </div>
@@ -482,7 +460,7 @@
     </div>
   </div>
 
-  <!-- Modal Tutoriel (Vanilla JS) -->
+  <!-- Tutorial Modal (Vanilla JS) -->
   <div
     id="tuto-modal"
     class="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
@@ -490,16 +468,16 @@
     onclick="if(event.target === this) closeTuto();"
   >
     <div class="bg-[#1e2530] border border-[#2a3545] rounded-2xl max-w-lg w-full p-6 relative animate-fadeUp">
-      <!-- Bouton de fermeture (×) -->
+      <!-- Close button (×) -->
       <button
         onclick="closeTuto()"
         class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors focus:outline-none text-2xl font-semibold leading-none"
-        title="Fermer"
+        title="Close"
       >
         &times;
       </button>
       
-      <!-- Contenu du Tutoriel -->
+      <!-- Tutorial Content -->
       <div id="tuto-content" class="prose prose-invert max-w-none text-gray-300 [&>h3]:text-gold [&>h3]:font-bold [&>h3]:text-lg [&>h3]:mb-3 [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:space-y-1.5 [&>p]:mb-4"></div>
     </div>
   </div>
@@ -507,18 +485,18 @@
   <!-- ══════════════ FOOTER ══════════════ -->
   <footer class="text-center text-xs text-gray-700 pb-10 mt-12">
     PapyConnect v1.2 &mdash; Éole's Home Lab &nbsp;·&nbsp;
-    <a href="/docs" class="hover:text-gold transition-colors underline">API Swagger</a>
+    <a href="/docs" class="hover:text-gold transition-colors underline">Swagger API Docs</a>
   </footer>
 
   <!-- ══════════════ ALPINE.JS LOGIC ══════════════ -->
   <script>
-    // Fonctions globales pour le tutoriel Vanilla JS
+    // Global functions for the Vanilla JS tutorial modal
     function openTuto(tutoHtml) {
       document.getElementById('tuto-content').innerHTML = tutoHtml;
       document.getElementById('tuto-modal').style.display = 'flex';
     }
 
-    // Fermeture avec la touche Échap
+    // Close on Escape key press
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         closeTuto();
@@ -547,9 +525,7 @@
           step: 1,
           service: '',
           device: null,
-          title: '',
-          btn_id: 'papyconnect_btn_1',
-          color: '#8200FF'
+          title: ''
         },
 
         get onlineCount() {
@@ -566,7 +542,7 @@
             this.devices = await r.json();
             await this.loadActions();
           } catch {
-            this.notify('Impossible de charger les données.');
+            this.notify('Failed to load registry data.');
           } finally {
             this.loading = false;
           }
@@ -578,7 +554,7 @@
             if (!r.ok) throw new Error();
             this.actions = await r.json();
           } catch {
-            this.notify('Impossible de charger les actions.');
+            this.notify('Failed to load configured actions.');
           }
         },
 
@@ -592,8 +568,8 @@
             'launch_spotify': 'Spotify Connect',
             'launch_netflix': 'Netflix',
             'launch_youtube': 'YouTube',
-            'power_on': "Allumer l'appareil",
-            'power_off': "Éteindre l'appareil"
+            'power_on': 'Power On',
+            'power_off': 'Power Off'
           };
           if (map[name]) return map[name];
           const clean = name.replace('launch_', '').replace('_', ' ');
@@ -602,28 +578,28 @@
 
         async executeDeviceAction(ip, actionName) {
           try {
-            this.notify(`Exécution de l'action ${this.formatActionName(actionName)} sur ${ip}...`);
+            this.notify(`Executing ${this.formatActionName(actionName)} on ${ip}...`);
             const r = await fetch(`/api/devices/${ip}/action/${actionName}`, {
               method: 'POST'
             });
             if (!r.ok) throw new Error();
-            this.notify(`Action ${this.formatActionName(actionName)} exécutée avec succès !`);
+            this.notify(`Action ${this.formatActionName(actionName)} executed successfully!`);
           } catch {
-            this.notify(`Erreur lors de l'exécution de l'action.`);
+            this.notify(`Failed to execute action.`);
           }
         },
 
         async scan() {
           if (this.scanning) return;
           this.scanning = true;
-          this.notify('Scan réseau lancé (mDNS + ping, ~7 s)…');
+          this.notify('Network scan started (mDNS + ping, ~7s)…');
           try {
             await fetch('/api/scan', { method: 'POST' });
             await new Promise(r => setTimeout(r, 8000));
             await this.load();
-            this.notify(`Scan terminé — ${this.devices.length} appareil(s) dans le registre.`);
+            this.notify(`Scan completed — ${this.devices.length} device(s) found in registry.`);
           } catch {
-            this.notify('Erreur lors du scan.');
+            this.notify('Failed to scan network.');
           } finally {
             this.scanning = false;
           }
@@ -634,9 +610,9 @@
             const r = await fetch(`/api/devices/${ip}`, { method: 'DELETE' });
             if (!r.ok) throw new Error();
             this.devices = this.devices.filter(d => d.ip !== ip);
-            this.notify(`Appareil ${ip} supprimé.`);
+            this.notify(`Device ${ip} removed.`);
           } catch {
-            this.notify('Suppression impossible.');
+            this.notify('Failed to remove device.');
           }
         },
 
@@ -650,9 +626,9 @@
           if (!iso) return '';
           try {
             const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-            if (diff < 60)  return 'à l\'instant';
-            if (diff < 3600) return `il y a ${Math.floor(diff/60)} min`;
-            return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            if (diff < 60)  return 'just now';
+            if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+            return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
           } catch { return ''; }
         },
 
@@ -664,10 +640,10 @@
 
         selectDevice(device) {
           this.wizard.device = device;
-          let room = 'Salon';
-          if (device.name.toLowerCase().includes('salon')) room = 'Salon';
+          let room = 'Living Room';
+          if (device.name.toLowerCase().includes('salon')) room = 'Living Room';
           else if (device.name.toLowerCase().includes('louistib')) room = 'Louistib';
-          else if (device.name.toLowerCase().includes('chambre')) room = 'Chambre';
+          else if (device.name.toLowerCase().includes('chambre')) room = 'Bedroom';
           this.wizard.title = `${this.serviceLabel(this.wizard.service)} (${room})`;
           this.wizard.step = 3;
         },
@@ -690,18 +666,24 @@
             step: 1,
             service: '',
             device: null,
-            title: '',
-            btn_id: 'papyconnect_btn_1',
-            color: '#8200FF'
+            title: ''
           };
         },
 
         async submitWizard() {
-          if (!this.wizard.device || !this.wizard.title || !this.wizard.btn_id) return;
+          if (!this.wizard.device || !this.wizard.title) return;
           const targetApp = this.wizard.service === 'spotify' ? 'launch_spotify' : 'launch_' + this.wizard.service;
 
+          const service = this.wizard.service;
+          const deviceName = this.wizard.device.name;
+          const slug = deviceName.toLowerCase()
+            .replace(/[^a-z0-9]/g, '_')
+            .replace(/_+/g, '_')
+            .replace(/^_+|_+$/g, '');
+          const actionId = `${service}_${slug}`;
+
           const payload = {
-            btn_id: this.wizard.btn_id,
+            id: actionId,
             device_ip: this.wizard.device.ip,
             target_app: targetApp,
             title: this.wizard.title,
@@ -709,8 +691,8 @@
           };
 
           try {
-            this.notify("Ajout de l'action à la console...");
-            const r = await fetch('/api/actions/config', {
+            this.notify("Adding action to dashboard...");
+            const r = await fetch('/api/actions', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(payload)
@@ -718,9 +700,9 @@
             if (!r.ok) throw new Error();
             await this.loadActions();
             this.resetWizard();
-            this.notify("Action ajoutée avec succès !");
+            this.notify("Action added successfully!");
           } catch {
-            this.notify("Erreur lors de l'ajout de l'action.");
+            this.notify("Failed to add action.");
           }
         },
 
@@ -729,9 +711,9 @@
             const r = await fetch(`/api/actions/${id}`, { method: 'DELETE' });
             if (!r.ok) throw new Error();
             this.actions = this.actions.filter(a => a.id !== id);
-            this.notify("Action retirée de la console.");
+            this.notify("Action removed.");
           } catch {
-            this.notify("Erreur lors du retrait.");
+            this.notify("Failed to remove action.");
           }
         },
 

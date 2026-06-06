@@ -10,10 +10,13 @@ namespace Loupedeck.PapyConnectPlugin
     // ── Shared model ──────────────────────────────────────────────────────────
     public class N8NTrigger
     {
-        public string Id    { get; set; }
-        public string Name  { get; set; }
-        public string Url   { get; set; }
-        public string Color { get; set; }
+        public string Id            { get; set; }
+        public string Name          { get; set; }
+        public string Url           { get; set; }
+        public string Color         { get; set; }
+        public string IconUrl       { get; set; }
+        public string IconActiveUrl { get; set; }
+        public string State         { get; set; }
     }
 
     // ── Shared config model ──────────────────────────────────────────────────
@@ -133,6 +136,44 @@ namespace Loupedeck.PapyConnectPlugin
 
         public static N8NTrigger Find(string id)
             => Load().Find(t => t.Id == id);
+
+        public static string GetCacheDirectory()
+        {
+            var dir = Path.Combine(GetBaseDirectory(), "Cache");
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+            return dir;
+        }
+
+        public static string GetLocalIconPath(string id, bool active)
+        {
+            var suffix = active ? "_active.png" : ".png";
+            return Path.Combine(GetCacheDirectory(), $"{id}{suffix}");
+        }
+
+        public static async Task EnsureIconCachedAsync(string url, string localPath)
+        {
+            if (string.IsNullOrEmpty(url)) return;
+            try
+            {
+                if (!File.Exists(localPath))
+                {
+                    PluginLog.Info($"[PapyConnect] Downloading icon from {url} to {localPath}");
+                    var bytes = await _http.GetByteArrayAsync(url);
+                    if (bytes != null && bytes.Length > 0)
+                    {
+                        File.WriteAllBytes(localPath, bytes);
+                        PluginLog.Info($"[PapyConnect] Icon cached successfully at {localPath}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                PluginLog.Warning($"[PapyConnect] Failed to cache icon from {url}: {ex.Message}");
+            }
+        }
     }
 
     // ── Dynamic actions trigger class ─────────────────────────────────────────
@@ -191,6 +232,25 @@ namespace Loupedeck.PapyConnectPlugin
                         this.RefreshParameters();
                         this.ParametersChanged();
                         PluginLog.Info($"[PapyConnect] Successfully synchronized dynamic actions.");
+
+                        // Cache icons in background and notify when ready
+                        foreach (var trigger in remoteTriggers)
+                        {
+                            var t = trigger;
+                            _ = Task.Run(async () =>
+                            {
+                                var pathInactive = N8NTriggerConfig.GetLocalIconPath(t.Id, false);
+                                var pathActive = N8NTriggerConfig.GetLocalIconPath(t.Id, true);
+
+                                var taskInactive = N8NTriggerConfig.EnsureIconCachedAsync(t.IconUrl, pathInactive);
+                                var taskActive = N8NTriggerConfig.EnsureIconCachedAsync(t.IconActiveUrl, pathActive);
+
+                                await Task.WhenAll(taskInactive, taskActive);
+
+                                // Request UI update for this specific action button
+                                this.ActionImageChanged(t.Id);
+                            });
+                        }
                     }
                 }
             }
@@ -219,9 +279,15 @@ namespace Loupedeck.PapyConnectPlugin
                         new System.Net.Http.StringContent("{}", System.Text.Encoding.UTF8, "application/json"));
 
                     if (resp.IsSuccessStatusCode)
+                    {
                         PluginLog.Info($"[{actionParameter}] Success");
+                        // Immediately sync states after action triggered
+                        _ = this.FetchLatestActionsAsync();
+                    }
                     else
+                    {
                         PluginLog.Warning($"[{actionParameter}] HTTP {resp.StatusCode}");
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -232,19 +298,46 @@ namespace Loupedeck.PapyConnectPlugin
 
         protected override BitmapImage GetCommandImage(string actionParameter, PluginImageSize imageSize)
         {
-            if (actionParameter == "netflix" || actionParameter == "disney_plus" ||
-                actionParameter == "amazon"  || actionParameter == "youtube" || actionParameter == "spotify")
+            var trigger = N8NTriggerConfig.Find(actionParameter);
+            if (trigger != null)
             {
-                return PluginImages.CreateAppButtonImage(imageSize, actionParameter);
+                var isActive = string.Equals(trigger.State, "active", StringComparison.OrdinalIgnoreCase);
+                var localPath = N8NTriggerConfig.GetLocalIconPath(trigger.Id, isActive);
+
+                if (File.Exists(localPath))
+                {
+                    try
+                    {
+                        var bytes = File.ReadAllBytes(localPath);
+                        if (bytes != null && bytes.Length > 0)
+                        {
+                            var img = BitmapImage.FromArray(bytes);
+                            if (img != null)
+                            {
+                                return img;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        PluginLog.Error(ex, $"[PapyConnect] Error loading cached image from {localPath}");
+                    }
+                }
+
+                // Fallback to text/color button if image is not ready or fails
+                var color = PluginImages.ParseHexColor(trigger.Color);
+                var label = trigger.Name;
+                if (isActive)
+                {
+                    return PluginImages.CreateButtonImage(imageSize, label, PluginImages.BlackColor, color);
+                }
+                else
+                {
+                    return PluginImages.CreateButtonImage(imageSize, label, color, PluginImages.BlackColor);
+                }
             }
 
-            var trigger = N8NTriggerConfig.Find(actionParameter);
-            var color = trigger != null
-                ? PluginImages.ParseHexColor(trigger.Color)
-                : PluginImages.PurpleColor;
-
-            var label = trigger?.Name ?? actionParameter;
-            return PluginImages.CreateButtonImage(imageSize, label, color, PluginImages.BlackColor);
+            return PluginImages.CreateButtonImage(imageSize, actionParameter, PluginImages.PurpleColor, PluginImages.BlackColor);
         }
     }
 }

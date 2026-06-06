@@ -21,7 +21,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=http://127.0.0.1:8000/api/actions/{{ $json.query.id || $json.body.action_id }}/execute"
+        "url": "=http://127.0.0.1:8000/api/actions/execute/{{ $json.query.id || $json.body.action_id || $json.body.button_id }}"
       },
       "id": "get-contract-id",
       "name": "Resolve Execution Contract",
