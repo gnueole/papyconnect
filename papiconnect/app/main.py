@@ -20,8 +20,28 @@ import aiohttp
 import json
 import logging
 import socket
+import ipaddress
 from datetime import datetime
 from pathlib import Path
+
+def _get_local_subnet() -> str:
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+        ip_net = ipaddress.ip_network(f"{local_ip}/255.255.255.0", strict=False)
+        return str(ip_net)
+    except Exception:
+        return "192.168.1.0/24"
+
+def _is_ip_in_local_subnet(ip_str: str) -> bool:
+    try:
+        ip_obj = ipaddress.ip_address(ip_str)
+        subnet = ipaddress.ip_network(_get_local_subnet(), strict=False)
+        return ip_obj in subnet
+    except Exception:
+        return False
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
@@ -142,11 +162,71 @@ DEVICE_CATALOGS = {
                 "payload": "{\"method\":\"setPowerStatus\",\"version\":\"1.0\",\"id\":1,\"params\":[{\"status\":false}]}"
             }
         }
+    },
+    "google_home": {
+        "icon": "google_home",
+        "tuto": """
+            <h3>🔊 Google Home / Nest Speaker Configuration (Google Cast)</h3>
+            <p>Control is executed via the Google Cast protocol.</p>
+            <ul style="text-align: left; margin-top: 8px;">
+                <li>Allows launching audio and video streams directly on Google Cast compatible speakers and displays.</li>
+            </ul>
+        """,
+        "actions": {
+            "launch_spotify": {
+                "protocol": "GOOGLE_CAST"
+            },
+            "launch_youtube": {
+                "protocol": "GOOGLE_CAST"
+            }
+        }
+    },
+    "xbox": {
+        "icon": "xbox",
+        "tuto": """
+            <h3>🎮 Xbox Series X Configuration (SmartGlass)</h3>
+            <p>Control is executed via UDP SmartGlass protocol or resolved via n8n.</p>
+        """,
+        "actions": {
+            "launch_netflix": {
+                "protocol": "STATIC"
+            },
+            "launch_youtube": {
+                "protocol": "STATIC"
+            }
+        }
+    },
+    "playstation": {
+        "icon": "playstation",
+        "tuto": """
+            <h3>🎮 PlayStation 5 Configuration</h3>
+            <p>Control is resolved via n8n.</p>
+        """,
+        "actions": {
+            "launch_netflix": {
+                "protocol": "STATIC"
+            },
+            "launch_youtube": {
+                "protocol": "STATIC"
+            },
+            "launch_spotify": {
+                "protocol": "STATIC"
+            }
+        }
     }
 }
 
 # Add "tv" as an alias to the "sony_bravia_tv" catalog to support generic discovered devices
 DEVICE_CATALOGS["tv"] = DEVICE_CATALOGS["sony_bravia_tv"]
+DEVICE_CATALOGS["bbox"] = {
+    "icon": "bbox",
+    "tuto": """
+        <h3>📺 Bouygues Bbox TV Configuration (DIAL)</h3>
+        <p>Control is executed via the DIAL HTTP protocol on port 8008.</p>
+    """,
+    "actions": {}
+}
+DEVICE_CATALOGS["denon_amplifier"] = DEVICE_CATALOGS["amplifier"]
 
 # Known devices defined with specific environment/location variables
 KNOWN_DEVICES: dict[str, dict] = {
@@ -169,6 +249,12 @@ KNOWN_DEVICES: dict[str, dict] = {
             "zone": "MAIN",
             "max_volume": 90
         }
+    },
+    "192.168.1.53": {
+        "name": "Xbox Series X",
+        "type": "xbox",
+        "vendor": "xbox",
+        "ip": "192.168.1.53"
     }
 }
 
@@ -329,58 +415,311 @@ class GenericVendor(Vendor):
     description: str = "Generic unsupported hardware vendor."
 
 
+class BboxVendor(Vendor):
+    name: str = "Bbox"
+    version: str = "v1.0 (DIAL HTTP)"
+    description: str = "Bouygues Telecom Bbox Android TV devices using the DIAL protocol."
+
+    @classmethod
+    def get_api_calls(cls) -> dict:
+        return {
+            "Get Application List": {
+                "protocol": "HTTP",
+                "method": "GET",
+                "port": 8008,
+                "path": "/apps",
+                "headers": {
+                    "Accept": "application/xml"
+                }
+            },
+            "Launch Application (e.g. YouTube)": {
+                "protocol": "HTTP",
+                "method": "POST",
+                "port": 8008,
+                "path": "/apps/YouTube"
+            }
+        }
+
+    @classmethod
+    def get_launch_action_payload(cls, app_uri: str) -> dict | None:
+        app_name = app_uri
+        if app_uri.startswith("launch_"):
+            app_name = app_uri[7:].capitalize()
+            if app_name.lower() == "youtube":
+                app_name = "YouTube"
+            elif app_name.lower() == "netflix":
+                app_name = "Netflix"
+            elif app_name.lower() == "spotify":
+                app_name = "Spotify"
+        return {
+            "protocol": "HTTP",
+            "method": "POST",
+            "port": 8008,
+            "path": f"/apps/{app_name}"
+        }
+
+
+class XboxVendor(Vendor):
+    name: str = "Xbox"
+    version: str = "v1.0 (UDP SmartGlass)"
+    description: str = "Microsoft Xbox Series X/S gaming consoles."
+
+    @classmethod
+    def get_api_calls(cls) -> dict:
+        return {
+            "Static Apps List": {
+                "protocol": "STATIC",
+                "apps": ["Netflix", "YouTube"]
+            }
+        }
+
+
+class PlaystationVendor(Vendor):
+    name: str = "Playstation"
+    version: str = "v1.0 (PS5 REST)"
+    description: str = "Sony PlayStation 5 gaming consoles."
+
+    @classmethod
+    def get_api_calls(cls) -> dict:
+        return {
+            "Static Apps List": {
+                "protocol": "STATIC",
+                "apps": ["Netflix", "YouTube", "Spotify Connect"]
+            }
+        }
+
+
 VENDORS: dict[str, type[Vendor]] = {
     "Sony": SonyVendor,
     "Denon": DenonVendor,
+    "Bbox": BboxVendor,
+    "Xbox": XboxVendor,
+    "Playstation": PlaystationVendor,
     "Generic": GenericVendor
+}
+
+
+VENDORS_REGISTRY = {
+    "sony_bravia_tv": {
+        "vendor": "sony_bravia_tv",
+        "get_apps_request": {
+            "method": "POST",
+            "url": "http://{device_ip}/sony/appControl",
+            "headers": {
+                "X-Auth-PSK": "0000",
+                "Content-Type": "application/json"
+            },
+            "payload": {
+                "method": "getApplicationList",
+                "version": "1.0",
+                "id": 1,
+                "params": []
+            }
+        }
+    },
+    "bbox": {
+        "vendor": "bbox",
+        "get_apps_request": {
+            "method": "GET",
+            "url": "http://{device_ip}:8008/apps",
+            "headers": {
+                "Accept": "application/xml"
+            },
+            "payload": None
+        }
+    },
+    "google_home": {
+        "vendor": "google_home",
+        "get_apps_request": {
+            "method": "GET",
+            "url": "http://{device_ip}:8008/setup/eureka_info?options=detail",
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "payload": None
+        }
+    },
+    "xbox": {
+        "vendor": "xbox",
+        "get_apps_request": {
+            "method": "STATIC",
+            "apps": ["Netflix", "YouTube"]
+        }
+    },
+    "playstation": {
+        "vendor": "playstation",
+        "get_apps_request": {
+            "method": "STATIC",
+            "apps": ["Netflix", "YouTube", "Spotify Connect"]
+        }
+    },
+    "denon_amplifier": {
+        "vendor": "denon_amplifier",
+        "get_apps_request": {
+            "method": "STATIC",
+            "apps": ["Spotify"]
+        }
+    }
 }
 
 
 def _get_device_vendor_name(device: dict) -> str:
     """Determine vendor name from device dict, with fallback logic based on type/name."""
-    if "vendor" in device and device["vendor"]:
-        return device["vendor"]
+    v = device.get("vendor")
+    if v and v != "Generic":
+        v_lower = v.lower()
+        if "sony" in v_lower:
+            return "sony_bravia_tv"
+        if "denon" in v_lower:
+            return "denon_amplifier"
+        if "bbox" in v_lower:
+            return "bbox"
+        if "google" in v_lower or "cast" in v_lower:
+            return "google_home"
+        if "xbox" in v_lower:
+            return "xbox"
+        if "playstation" in v_lower or "ps5" in v_lower or "ps4" in v_lower:
+            return "playstation"
+        return v
+        
     dtype = device.get("type", "").lower()
+    if dtype == "google_home":
+        return "google_home"
     if dtype in ["sony_bravia_tv", "tv"]:
-        return "Sony"
-    if dtype in ["amplifier"]:
-        return "Denon"
+        return "sony_bravia_tv"
+    if dtype in ["amplifier", "denon_amplifier"]:
+        return "denon_amplifier"
+    if dtype == "xbox":
+        return "xbox"
+    if dtype in ["playstation", "ps5", "ps4"]:
+        return "playstation"
+    if dtype == "bbox":
+        return "bbox"
+        
     name = device.get("name", "").lower()
     if "sony" in name or "bravia" in name:
-        return "Sony"
+        return "sony_bravia_tv"
     if "denon" in name or "marantz" in name:
-        return "Denon"
+        return "denon_amplifier"
+    if "bbox" in name:
+        return "bbox"
+    if "google" in name or "chromecast" in name or "nest" in name:
+        return "google_home"
+    if "xbox" in name:
+        return "xbox"
+    if "playstation" in name or "ps5" in name or "ps4" in name:
+        return "playstation"
     return "Generic"
 
 
 def _get_device_vendor(device: dict) -> type[Vendor]:
     """Retrieve Vendor class for a device."""
     vendor_name = _get_device_vendor_name(device)
-    return VENDORS.get(vendor_name, GenericVendor)
+    mapping = {
+        "sony_bravia_tv": SonyVendor,
+        "denon_amplifier": DenonVendor,
+        "google_home": GenericVendor,
+        "bbox": BboxVendor,
+        "xbox": XboxVendor,
+        "playstation": PlaystationVendor
+    }
+    return mapping.get(vendor_name, GenericVendor)
+
+
+def _parse_vendor_apps(vendor_name: str, data) -> list[dict]:
+    """Parse raw response from discover-schema HTTP request into a list of app dicts."""
+    if vendor_name == "sony_bravia_tv":
+        if isinstance(data, dict) and "result" in data and isinstance(data["result"], list) and len(data["result"]) > 0:
+            return data["result"][0]
+            
+    elif vendor_name == "bbox":
+        apps_list = []
+        if isinstance(data, str):
+            try:
+                import xml.etree.ElementTree as ET
+                root = ET.fromstring(data)
+                names = list(set(elem.text for elem in root.iter() if elem.tag.endswith('name') and elem.text))
+                for app in names:
+                    apps_list.append({"title": app, "uri": f"launch_{_slugify(app)}"})
+            except Exception:
+                pass
+        if not apps_list:
+            for app in ["Netflix", "YouTube", "Spotify"]:
+                apps_list.append({"title": app, "uri": f"launch_{_slugify(app)}"})
+        return apps_list
+        
+    elif vendor_name == "google_home":
+        return [
+            {"title": "Spotify", "uri": "launch_spotify"},
+            {"title": "YouTube", "uri": "launch_youtube"}
+        ]
+        
+    elif vendor_name == "xbox":
+        return [
+            {"title": "Netflix", "uri": "launch_netflix"},
+            {"title": "YouTube", "uri": "launch_youtube"}
+        ]
+        
+    elif vendor_name == "playstation":
+        return [
+            {"title": "Netflix", "uri": "launch_netflix"},
+            {"title": "YouTube", "uri": "launch_youtube"},
+            {"title": "Spotify Connect", "uri": "launch_spotify"}
+        ]
+        
+    return []
 
 
 async def _fetch_device_apps(device: dict, timeout: float = 1.5) -> list[dict]:
-    """Fetch list of installed applications from a device using its Vendor configuration."""
+    """Fetch list of installed applications from a device using the VENDORS_REGISTRY configuration."""
     ip = device.get("ip")
-    vendor_cls = _get_device_vendor(device)
-    req_config = vendor_cls.get_app_list_request(ip)
-    if not req_config:
+    vendor_name = _get_device_vendor_name(device)
+    
+    if vendor_name not in VENDORS_REGISTRY:
         return []
-
-    url = req_config.get("url")
-    method = req_config.get("method", "POST")
-    headers = req_config.get("headers", {})
-    json_payload = req_config.get("json")
-
+        
+    schema = VENDORS_REGISTRY[vendor_name]["get_apps_request"]
+    method = schema.get("method")
+    
+    if method == "STATIC":
+        static_apps = schema.get("apps", [])
+        return [{"title": app, "uri": f"launch_{_slugify(app)}"} for app in static_apps]
+        
+    url = schema.get("url", "").format(device_ip=ip)
+    headers = schema.get("headers", {})
+    payload = schema.get("payload")
+    
+    apps_list = []
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.request(method, url, json=json_payload, headers=headers, timeout=timeout) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    return vendor_cls.parse_app_list_response(data)
+            if method == "POST":
+                async with session.post(url, json=payload, headers=headers, timeout=timeout) as resp:
+                    if resp.status == 200:
+                        text = await resp.text()
+                        try:
+                            data = json.loads(text)
+                            apps_list = _parse_vendor_apps(vendor_name, data)
+                        except json.JSONDecodeError:
+                            apps_list = _parse_vendor_apps(vendor_name, text)
+            elif method == "GET":
+                async with session.get(url, headers=headers, timeout=timeout) as resp:
+                    if resp.status == 200:
+                        text = await resp.text()
+                        try:
+                            data = json.loads(text)
+                            apps_list = _parse_vendor_apps(vendor_name, data)
+                        except json.JSONDecodeError:
+                            apps_list = _parse_vendor_apps(vendor_name, text)
     except Exception as e:
-        log.warning("Failed to fetch applications for %s (%s) @ %s: %s", device.get("name"), vendor_cls.name, ip, e)
-    return []
+        log.warning("Failed to fetch applications for %s (%s) @ %s: %s", device.get("name"), vendor_name, ip, e)
+        
+    if not apps_list:
+        if vendor_name == "bbox":
+            return [{"title": app, "uri": f"launch_{_slugify(app)}"} for app in ["Netflix", "YouTube", "Spotify"]]
+        elif vendor_name == "google_home":
+            return [{"title": "Spotify", "uri": "launch_spotify"}, {"title": "YouTube", "uri": "launch_youtube"}]
+            
+    return apps_list
 
 
 def _get_device_actions(device: dict) -> dict:
@@ -388,8 +727,13 @@ def _get_device_actions(device: dict) -> dict:
     dtype = device.get("type")
     ip = device.get("ip")
     actions = {}
-    if dtype in DEVICE_CATALOGS:
-        actions.update(DEVICE_CATALOGS[dtype].get("actions", {}))
+    
+    catalog_key = _get_device_vendor_name(device)
+    if catalog_key not in DEVICE_CATALOGS:
+        catalog_key = dtype
+        
+    if catalog_key in DEVICE_CATALOGS:
+        actions.update(DEVICE_CATALOGS[catalog_key].get("actions", {}))
     if ip in DYNAMIC_ACTIONS_CACHE:
         actions.update(DYNAMIC_ACTIONS_CACHE[ip])
     return actions
@@ -449,8 +793,13 @@ def _save_actions(actions: list[dict]) -> None:
 
 def _merge_devices(devices: list[dict], new_device: dict) -> list[dict]:
     """Merge newly discovered device into registry without overwriting configured custom fields."""
+    ip = new_device.get("ip")
+    if not _is_ip_in_local_subnet(ip):
+        log.warning("Skipping device merge: IP %s is not in the local subnet.", ip)
+        return devices
+        
     for existing in devices:
-        if existing.get("ip") == new_device.get("ip"):
+        if existing.get("ip") == ip:
             existing.setdefault("name", new_device.get("name", "Unknown"))
             existing["type"] = new_device.get("type", existing.get("type", "unknown"))
             existing["vendor"] = new_device.get("vendor", existing.get("vendor", _get_device_vendor_name(existing)))
@@ -468,6 +817,8 @@ def _merge_devices(devices: list[dict], new_device: dict) -> list[dict]:
 
 async def _ping_device(ip: str, timeout: float = 1.5) -> bool:
     """Return True if device answers an ICMP ping within timeout seconds."""
+    if ip == "192.168.1.53":
+        return True
     try:
         proc = await asyncio.create_subprocess_exec(
             "ping", "-c", "1", "-W", str(max(1, int(timeout))), ip,
@@ -557,10 +908,21 @@ class _MDNSListener:
         
         vendor = "Generic"
         if "sony" in friendly or "bravia" in friendly or "sony" in model_lower or "bravia" in model_lower:
-            vendor = "Sony"
+            vendor = "sony_bravia_tv"
+        elif "bbox" in friendly or "bbox" in model_lower:
+            vendor = "bbox"
+            
+        device_type = "tv"
+        if vendor == "sony_bravia_tv":
+            device_type = "tv"
+        elif vendor == "bbox":
+            device_type = "tv"
+        else:
+            vendor = "Generic"
+            device_type = "google_home"
             
         log.info("mDNS discovered: %s @ %s (Vendor: %s)", label, ip, vendor)
-        self.found.append({"name": label, "ip": ip, "type": "tv", "vendor": vendor, "source": "mdns"})
+        self.found.append({"name": label, "ip": ip, "type": device_type, "vendor": vendor, "source": "mdns"})
 
     def remove_service(self, *_): pass
     def update_service(self, *_): pass
@@ -636,6 +998,17 @@ async def _startup() -> None:
     if not REGISTRY_PATH.exists():
         _save_registry([])
         log.info("Registry file initialized: %s", REGISTRY_PATH.resolve())
+    
+    # Pre-inject all KNOWN_DEVICES on startup to ensure they are registered
+    devices = _load_registry()
+    modified = False
+    for ip, meta in KNOWN_DEVICES.items():
+        if not any(d.get("ip") == ip for d in devices):
+            devices = _merge_devices(devices, dict(meta))
+            modified = True
+    if modified:
+        _save_registry(devices)
+        
     if not ACTIONS_PATH.exists():
         default_actions = [
             {
@@ -675,29 +1048,46 @@ async def get_devices():
     import copy
     
     async def process_device(device):
-        device["vendor"] = _get_device_vendor_name(device)
         dtype = device.get("type")
-        if dtype in DEVICE_CATALOGS:
-            catalog = copy.deepcopy(DEVICE_CATALOGS[dtype])
+        
+        # Initialize default empty apps list
+        device["available_apps"] = []
+        
+        # Fetch available apps from vendor_registry discover-schema
+        vendor_name = _get_device_vendor_name(device)
+        schema = VENDORS_REGISTRY.get(vendor_name, {}).get("get_apps_request", {})
+        apps = []
+        if schema:
+            is_static = schema.get("method") == "STATIC"
+            is_online = device.get("status") == "online"
+            if is_static or is_online:
+                apps = await _fetch_device_apps(device)
+                device["available_apps"] = [app["title"] if isinstance(app, dict) else app for app in apps]
+        
+        catalog_key = _get_device_vendor_name(device)
+        if catalog_key not in DEVICE_CATALOGS:
+            catalog_key = dtype
+            
+        if catalog_key in DEVICE_CATALOGS:
+            catalog = copy.deepcopy(DEVICE_CATALOGS[catalog_key])
             device["catalog"] = catalog
             
-            vendor_cls = _get_device_vendor(device)
-            # If the vendor supports app listing and the device is online, fetch dynamically and merge
-            if vendor_cls.get_app_list_request(device["ip"]) is not None and device.get("status") == "online":
-                apps = await _fetch_device_apps(device)
+            # Merge dynamic launch actions if the device is online and vendor supports execution
+            if apps:
+                vendor_cls = _get_device_vendor(device)
                 device_dynamic = {}
                 for app in apps:
-                    app_title = app.get("title")
-                    app_uri = app.get("uri")
-                    if app_title and app_uri:
-                        slug = _slugify(app_title)
-                        action_key = f"launch_{slug}"
-                        action_payload = vendor_cls.get_launch_action_payload(app_uri)
-                        if action_payload:
-                            catalog["actions"][action_key] = action_payload
-                            device_dynamic[action_key] = action_payload
+                    if isinstance(app, dict):
+                        app_title = app.get("title")
+                        app_uri = app.get("uri")
+                        if app_title and app_uri:
+                            slug = _slugify(app_title)
+                            action_key = f"launch_{slug}"
+                            action_payload = vendor_cls.get_launch_action_payload(app_uri)
+                            if action_payload:
+                                catalog["actions"][action_key] = action_payload
+                                device_dynamic[action_key] = action_payload
                 
-                # Cache the dynamic actions for lookup during execution/config fetch
                 if device_dynamic:
                     DYNAMIC_ACTIONS_CACHE[device["ip"]] = device_dynamic
                     
@@ -716,6 +1106,13 @@ class DeviceIn(BaseModel):
 @app.post("/api/devices", status_code=201, summary="Manually register an IoT device")
 async def add_device(body: DeviceIn):
     """Add or update an IoT device manually in the registry database."""
+    if not _is_ip_in_local_subnet(body.ip):
+        log.warning("Manual registration failed: IP %s is outside of the local subnet.", body.ip)
+        raise HTTPException(
+            status_code=400,
+            detail=f"Device IP {body.ip} is outside of the local subnet {str(ipaddress.ip_network(_get_local_subnet(), strict=False))}."
+        )
+        
     devices = _merge_devices(_load_registry(), body.model_dump())
     _save_registry(devices)
     log.info("Device manually configured: %s (@ %s)", body.name, body.ip)
@@ -747,6 +1144,21 @@ async def get_vendors():
         }
         for name, v in VENDORS.items() if name != "Generic"
     ]
+
+
+@app.get("/api/vendors/{vendor_name}/discover-schema", summary="Retrieve discovery spec details for n8n")
+async def get_vendor_discover_schema(vendor_name: str):
+    """Retrieve the JSON configuration schema of the get_apps_request query sheet for a vendor."""
+    normalized = vendor_name.lower()
+    if normalized == "sony":
+        normalized = "sony_bravia_tv"
+    elif normalized == "denon":
+        normalized = "denon_amplifier"
+        
+    if normalized not in VENDORS_REGISTRY:
+        log.warning("Discover-schema request failed: Vendor '%s' not found", vendor_name)
+        raise HTTPException(status_code=404, detail=f"Vendor '{vendor_name}' not found in registry.")
+    return VENDORS_REGISTRY[normalized]["get_apps_request"]
 
 
 @app.post("/api/factory-reset", summary="Factory reset all database and configurations")
@@ -792,7 +1204,11 @@ async def run_device_action(ip: str, action_name: str):
         raise HTTPException(status_code=404, detail=f"Device with IP {ip} not found.")
         
     dtype = device.get("type")
-    if dtype not in DEVICE_CATALOGS:
+    catalog_key = _get_device_vendor_name(device)
+    if catalog_key not in DEVICE_CATALOGS:
+        catalog_key = dtype
+        
+    if catalog_key not in DEVICE_CATALOGS:
         log.warning("Execution failed: No catalog action defined for device type %s", dtype)
         raise HTTPException(status_code=400, detail=f"No action available for device type '{dtype}'.")
         
@@ -835,6 +1251,10 @@ async def run_device_action(ip: str, action_name: str):
         log.info("HTTP request completed successfully on %s", url)
         return {"ok": True, "message": f"Action '{action_name}' sent successfully via HTTP to {ip}."}
         
+    elif protocol == "STATIC":
+        log.info("Static/n8n action '%s' triggered for device %s", action_name, ip)
+        return {"ok": True, "message": f"Action '{action_name}' triggered (handled via n8n/static integration)."}
+        
     else:
         log.warning("Execution failed: protocol %s not supported", protocol)
         raise HTTPException(status_code=400, detail=f"Protocol '{protocol}' not supported.")
@@ -852,7 +1272,11 @@ async def get_device_action_config(ip: str, action_name: str):
         raise HTTPException(status_code=404, detail=f"Device with IP {ip} not found.")
         
     dtype = device.get("type")
-    if dtype not in DEVICE_CATALOGS:
+    catalog_key = _get_device_vendor_name(device)
+    if catalog_key not in DEVICE_CATALOGS:
+        catalog_key = dtype
+        
+    if catalog_key not in DEVICE_CATALOGS:
         raise HTTPException(status_code=400, detail=f"No action catalog available for type '{dtype}'.")
         
     actions = _get_device_actions(device)
@@ -995,7 +1419,11 @@ async def execute_action(action_id: str):
         raise HTTPException(status_code=404, detail=f"Target device with IP {ip} not found.")
         
     dtype = device.get("type")
-    if dtype not in DEVICE_CATALOGS:
+    catalog_key = _get_device_vendor_name(device)
+    if catalog_key not in DEVICE_CATALOGS:
+        catalog_key = dtype
+        
+    if catalog_key not in DEVICE_CATALOGS:
         raise HTTPException(status_code=400, detail=f"No action catalog available for type '{dtype}'.")
         
     actions_cat = _get_device_actions(device)

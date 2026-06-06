@@ -110,3 +110,40 @@ PapyConnect runs as a FastAPI container stack on your Synology NAS `gronas`.
   ```
 - **API URL**: `http://gronas:8000/docs`
 - **Dashboard URL**: `http://gronas:8000/` (features the 3-step Papy-friendly actions creation wizard).
+
+---
+
+## 🗂️ PapyConnect Data Structures & Vendor Catalog
+
+PapyConnect utilizes a dynamic, schema-driven approach to interact with different hardware vendor devices.
+
+### 1. Vendor Discovery Schema (`VENDORS_REGISTRY`)
+Every constructeur belongs to a catalog sheet mapping how PapyConnect should execute discovery queries to retrieve their available applications. The query sheets are declared in `VENDORS_REGISTRY` inside [main.py](file:///home/eole/projects/papyconnect/papiconnect/app/main.py):
+
+- **HTTP Discovery (e.g., Sony TV, Bbox, Google Home)**:
+  Defines the HTTP method, request headers, targets, and JSON/XML request payloads.
+- **Static Discovery (e.g., Xbox, Denon Amplifier)**:
+  Returns a hardcoded list of compatible app shortcuts for socket/telnet protocols that do not support standard HTTP application lists.
+
+### 2. The `/api/vendors/{vendor_name}/discover-schema` Endpoint
+Exposes the query sheet directly to the n8n automation gateway, allowing it to retrieve request templates and perform network calls dynamically:
+```bash
+curl -s http://gronas:8000/api/vendors/google_home/discover-schema
+```
+
+### 3. Device Available Apps (`available_apps`)
+When a device is refreshed or scanned, the backend resolves its vendor discovery schema, queries the device, parses the response (XML, JSON, or Static list), and updates the `"available_apps"` field:
+```json
+{
+  "name": "BRAVIA 4K UR1",
+  "ip": "192.168.1.55",
+  "type": "tv",
+  "vendor": "Sony",
+  "available_apps": [
+    "Netflix",
+    "YouTube",
+    "Spotify"
+  ],
+  "status": "online"
+}
+```
