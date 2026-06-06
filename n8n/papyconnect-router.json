@@ -1,0 +1,141 @@
+{
+  "name": "PapyConnect Router",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "papyconnect-action",
+        "responseMode": "onReceived"
+      },
+      "id": "webhook-trigger-id",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        100,
+        250
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=http://localhost:8000/api/devices/{{ $json.body.ip }}/action/{{ $json.body.action }}/config"
+      },
+      "id": "get-device-config-id",
+      "name": "Get Device Config",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        350,
+        250
+      ]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.protocol }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "HTTP",
+              "output": 0
+            },
+            {
+              "value2": "TCP",
+              "output": 1
+            }
+          ]
+        }
+      },
+      "id": "protocol-router-id",
+      "name": "Protocol Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        600,
+        250
+      ]
+    },
+    {
+      "parameters": {
+        "method": "={{ $json.method }}",
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": []
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.payload }}",
+        "options": {}
+      },
+      "id": "http-execution-id",
+      "name": "HTTP Request Execution",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        850,
+        150
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const net = require('net');\n\nconst sendTCP = (ip, port, payload) => {\n  return new Promise((resolve, reject) => {\n    const client = new net.Socket();\n    client.setTimeout(3000);\n\n    client.connect(port, ip, () => {\n      client.write(payload);\n      client.end();\n      resolve({ success: true, message: `Commande transmise à ${ip}:${port}` });\n    });\n\n    client.on('error', (err) => {\n      client.destroy();\n      reject(err);\n    });\n\n    client.on('timeout', () => {\n      client.destroy();\n      reject(new Error('Délai d\\'attente dépassé'));\n    });\n  });\n};\n\nconst items = $input.all();\nfor (const item of items) {\n  try {\n    const res = await sendTCP(item.json.ip, item.json.port, item.json.payload);\n    item.json.execution = res;\n  } catch (err) {\n    item.json.execution = { success: false, error: err.message };\n  }\n}\nreturn items;"
+      },
+      "id": "tcp-execution-id",
+      "name": "TCP Code Execution",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        850,
+        350
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Device Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Device Config": {
+      "main": [
+        [
+          {
+            "node": "Protocol Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Protocol Router": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request Execution",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "TCP Code Execution",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
