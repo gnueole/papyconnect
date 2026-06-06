@@ -10,7 +10,7 @@ logi.actions.onRegisterDynamicActions("trigger_papy_action", async () => {
   try {
     // Récupère l'URL configurée par l'utilisateur dans l'interface Logi+
     const settings = await logi.settings.getAll();
-    const gatewayUrl = settings.n8n_gateway_url || "http://gronas:5678";
+    const gatewayUrl = settings.gronas_n8n_url || "http://gronas:5678";
 
     // Appelle le workflow n8n (getActionsList)
     const response = await fetch(`${gatewayUrl.replace(/\/$/, "")}/webhook/get-exposed-actions`);
@@ -38,7 +38,7 @@ logi.actions.onTriggered("trigger_papy_action", async (actionId) => {
 
   try {
     const settings = await logi.settings.getAll();
-    const gatewayUrl = settings.n8n_gateway_url || "http://gronas:5678";
+    const gatewayUrl = settings.gronas_n8n_url || "http://gronas:5678";
 
     // Envoie l'ID au webhook d'exécution de n8n (launchAction)
     const response = await fetch(`${gatewayUrl.replace(/\/$/, "")}/webhook/papyconnect-action`, {
