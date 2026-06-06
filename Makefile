@@ -97,10 +97,11 @@ restart:
 		Stop-Process -Name 'LogiPluginService' -Force -ErrorAction SilentlyContinue; \
 		Stop-Process -Name 'LogiPluginServiceExt' -Force -ErrorAction SilentlyContinue; \
 		Start-Sleep -Seconds 2; \
-		Start-Process -FilePath 'C:\Program Files\Logi\LogiPluginService\LogiPluginService.exe'; \
+		Start-Process -FilePath 'C:\Program Files\Logi\LogiPluginService\LogiPluginService.exe' -WorkingDirectory 'C:\Program Files\Logi\LogiPluginService'; \
 		Start-Sleep -Seconds 2; \
-		Start-Process -FilePath 'C:\Program Files\LogiOptionsPlus\logioptionsplus.exe'"
+		Start-Process -FilePath 'C:\Program Files\LogiOptionsPlus\logioptionsplus.exe' -WorkingDirectory 'C:\Program Files\LogiOptionsPlus'"
 	@echo "Logi restarted. Wait ~5 seconds for the UI to appear."
+
 
 # Clean build artifacts
 clean: check-dotnet
