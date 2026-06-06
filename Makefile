@@ -14,7 +14,8 @@ DOTNET_EXISTS = $(shell [ -f $(DOTNET) ] && echo yes || echo no)
 
 .PHONY: all build deploy restart clean status prepare check-dotnet publish help \
         papiconnect-sync papiconnect-up papiconnect-down \
-        papiconnect-logs papiconnect-status papiconnect-recreate papiconnect-redeploy
+        papiconnect-logs papiconnect-status papiconnect-recreate papiconnect-redeploy \
+        papiconnect-n8n-push papiconnect-n8n-backup
 
 # Default target: build, deploy and restart service
 all: build deploy restart
@@ -36,13 +37,15 @@ help:
 	@echo "    make prepare               Install .NET 8.0 SDK if missing"
 	@echo "  ─────────────────────────────────────────────────────────"
 	@echo "  PapyConnect & n8n Stack (gronas) :"
-	@echo "    make papiconnect-sync      Copy local app and compose to NAS via root SCP"
+	@echo "    make papiconnect-sync      Copy local app, compose and workflows to NAS via root SCP"
 	@echo "    make papiconnect-up        Sync files and start containers (up -d)"
 	@echo "    make papiconnect-down      Stop containers (down)"
 	@echo "    make papiconnect-redeploy  Full redeploy (down + up)"
 	@echo "    make papiconnect-recreate  Hot recreate containers with compose"
 	@echo "    make papiconnect-logs      Stream remote docker compose logs"
 	@echo "    make papiconnect-status    Show remote docker compose ps"
+	@echo "    make papiconnect-n8n-push  Push local workflows to n8n container on gronas"
+	@echo "    make papiconnect-n8n-backup Backup workflows from n8n container on gronas"
 	@echo "  ─────────────────────────────────────────────────────────"
 	@echo "  Urls :"
 	@echo "    PapyConnect Radar :        http://gronas:8000"
@@ -139,6 +142,7 @@ papiconnect-sync:
 	@echo "[papiconnect] Copying files via SCP (legacy -O mode for Synology)..."
 	scp -O -r ./papiconnect/app $(SERVER_ROOT):$(REMOTE_DIR)/
 	scp -O ./papiconnect/docker-compose.yml $(SERVER_ROOT):$(REMOTE_DIR)/
+	scp -O -r ./n8n $(SERVER_ROOT):$(REMOTE_DIR)/
 	@echo "[papiconnect] Sync complete."
 
 # Démarrage
@@ -164,3 +168,12 @@ papiconnect-status:
 # Redéploiement complet (Clean restart)
 papiconnect-redeploy: papiconnect-down papiconnect-up
 	@echo "[papiconnect] Redeployment complete — http://gronas:8000"
+
+# Outils de synchronisation de workflows n8n
+papiconnect-n8n-push:
+	@echo "[n8n] Pushing local workflows to gronas:5678..."
+	python3 toolkit/sync_n8n.py --push-all
+
+papiconnect-n8n-backup:
+	@echo "[n8n] Backing up workflows from gronas:5678..."
+	python3 toolkit/sync_n8n.py --backup-all
