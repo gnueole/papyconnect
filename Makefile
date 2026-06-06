@@ -1,3 +1,9 @@
+-include .env
+
+GRONAS_IP ?= gronas
+PAPYCONNECT_PORT ?= 8000
+N8N_PORT ?= 5678
+
 # Variables
 DOTNET = /home/eole/.dotnet/dotnet
 CSPROJ = PapyConnectPlugin/PapyConnectPlugin/PapyConnectPlugin.csproj
@@ -7,7 +13,7 @@ TARGET_DIR = $(PLUGINS_DIR)/PapyConnect
 DOWNLOADS_DIR = /mnt/c/Users/$(WINDOWS_USER)/Downloads
 
 # Server automation for papiconnect (Using root as requested)
-SERVER_ROOT = root@gronas
+SERVER_ROOT = root@$(GRONAS_IP)
 REMOTE_DIR = /volume1/docker/papiconnect
 
 DOTNET_EXISTS = $(shell [ -f $(DOTNET) ] && echo yes || echo no)
@@ -15,7 +21,7 @@ DOTNET_EXISTS = $(shell [ -f $(DOTNET) ] && echo yes || echo no)
 .PHONY: all build deploy restart clean status prepare check-dotnet publish help \
         papiconnect-sync papiconnect-up papiconnect-down \
         papiconnect-logs papiconnect-status papiconnect-recreate papiconnect-redeploy \
-        papiconnect-n8n-push papiconnect-n8n-backup
+        papiconnect-n8n-push papiconnect-n8n-backup check
 
 # Default target: build, deploy and restart service
 all: build deploy restart
@@ -137,7 +143,7 @@ DOCKER = /usr/local/bin/docker
 # Recréation forcée à chaud (sans coupure lourde)
 papiconnect-recreate: papiconnect-sync
 	@echo "[papiconnect] Recreating container cleanly..."
-	@ssh $(SERVER_ROOT) "cd $(REMOTE_DIR) && $(DOCKER) compose up -d --force-recreate"
+	@ssh $(SERVER_ROOT) "cd $(REMOTE_DIR) && $(DOCKER) compose up -d --build --force-recreate"
 
 papiconnect-sync:
 	@echo "[papiconnect] Creating target directory as root..."
@@ -145,6 +151,8 @@ papiconnect-sync:
 	@echo "[papiconnect] Copying files via SCP (legacy -O mode for Synology)..."
 	scp -O -r ./papiconnect/app $(SERVER_ROOT):$(REMOTE_DIR)/
 	scp -O ./papiconnect/docker-compose.yml $(SERVER_ROOT):$(REMOTE_DIR)/
+	scp -O ./papiconnect/Dockerfile $(SERVER_ROOT):$(REMOTE_DIR)/
+	scp -O ./papiconnect/requirements.txt $(SERVER_ROOT):$(REMOTE_DIR)/
 	scp -O -r ./n8n $(SERVER_ROOT):$(REMOTE_DIR)/
 	@echo "[papiconnect] Sync complete."
 
@@ -180,3 +188,11 @@ papiconnect-n8n-push:
 papiconnect-n8n-backup:
 	@echo "[n8n] Backing up workflows from gronas:5678..."
 	python3 toolkit/sync_n8n.py --backup-all
+
+# Execute status checks
+check:
+	@echo "=== Checking PapyConnect API (Direct) ==="
+	curl -s http://$(GRONAS_IP):$(PAPYCONNECT_PORT)/api/actions
+	@echo "\n\n=== Checking n8n API (via Webhook) ==="
+	curl -s http://$(GRONAS_IP):$(N8N_PORT)/webhook/get-exposed-actions
+	@echo ""
