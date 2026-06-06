@@ -166,6 +166,9 @@ CATALOGUE_CONSTRUCTEURS = {
     }
 }
 
+# Alias pour supporter la détection mDNS générique du type "tv" comme "sony_bravia_tv"
+CATALOGUE_CONSTRUCTEURS["tv"] = CATALOGUE_CONSTRUCTEURS["sony_bravia_tv"]
+
 # L'inventaire fournit les variables d'environnement propres à chaque salon
 KNOWN_DEVICES: dict[str, dict] = {
     "192.168.1.193": {
