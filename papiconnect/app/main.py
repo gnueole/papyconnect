@@ -157,6 +157,7 @@ KNOWN_DEVICES: dict[str, dict] = {
     }
 }
 
+# EXPOSED_ACTIONS: Chargé dynamiquement via _load_actions() depuis ACTIONS_PATH (./data/actions.json)
 # Durée d'écoute mDNS (secondes) — 3 s est un bon compromis vitesse/fiabilité
 MDNS_SCAN_DURATION = 3.0
 
