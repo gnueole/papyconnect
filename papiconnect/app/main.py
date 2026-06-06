@@ -39,11 +39,11 @@ CATALOGUE_CONSTRUCTEURS = {
     "amplifier": {
         "icon": "amplifier",
         "tuto": """
-            <h3>🔊 Configuration Amplificateur Denon / Marantz</h3>
-            <p>Le pilotage s'effectue en TCP/Telnet brut sur le port 23.</p>
-            <ul>
-                <li><b>Impératif :</b> Passe l'option <i>Network Control</i> sur "Always On" dans les menus de l'ampli pour éviter un boot de 30s.</li>
-                <li>La commande utilise le protocole standard Denon AVR pour basculer les sources instantanément.</li>
+            <h3>🔊 Configuration Ampli Denon / Marantz (Telnet)</h3>
+            <p>Le pilotage s'effectue via des commandes brutes sur le port 23.</p>
+            <ul style="text-align: left; margin-top: 8px;">
+                <li><b>Impératif :</b> Passez l'option <i>Network Control</i> sur <b>Always On</b> dans les menus de l'ampli (Configuration ➔ Réseau). Cela évite le boot de 30 secondes en veille.</li>
+                <li>La commande <code style="color: #ff9800;">SINET</code> force l'allumage sur l'entrée réseau/Spotify Connect.</li>
             </ul>
         """,
         "actions": {
@@ -62,10 +62,13 @@ CATALOGUE_CONSTRUCTEURS = {
     "sony_bravia_tv": {
         "icon": "tv",
         "tuto": """
-            <h3>📺 Configuration TV Sony Bravia</h3>
-            <p>Le pilotage s'effectue en HTTP POST.</p>
-            <ul>
-                <li><b>Impératif :</b> Activez la clé pré-partagée (PSK) sur "0000" dans les paramètres réseau de votre TV.</li>
+            <h3>📺 Configuration Sony Bravia (Pre-Shared Key)</h3>
+            <p>Pour piloter la TV sans gestion complexe de tokens :</p>
+            <ul style="text-align: left; margin-top: 8px;">
+                <li>Allez dans <b>Réglages ➔ Réseau ➔ Accès Réseau</b>.</li>
+                <li>Activez l'option <b>Clé pré-partagée (PSK)</b>.</li>
+                <li>Définissez la clé sur : <code style="color: #ff9800; background: #222; padding: 2px 6px; border-radius: 4px;">0000</code></li>
+                <li>Allez dans <b>Paramètres IP Control</b> et activez <i>Simple IP Control</i>.</li>
             </ul>
         """,
         "actions": {

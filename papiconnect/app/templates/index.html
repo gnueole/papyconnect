@@ -234,16 +234,14 @@
               <div class="flex-1 min-w-0 pr-4">
                 <div class="flex items-center gap-1.5">
                   <p class="font-semibold truncate" x-text="d.name || 'Appareil inconnu'"></p>
-                  <!-- Bouton Info/Tuto -->
+                  <!-- Bouton Info/Tuto (ⓘ) -->
                   <template x-if="d.catalog && d.catalog.tuto">
                     <button
-                      @click="activeTuto = d.catalog.tuto"
-                      class="text-gray-500 hover:text-gold transition-colors focus:outline-none"
+                      @click="openTuto(d.catalog.tuto)"
+                      class="text-gray-500 hover:text-gold transition-colors focus:outline-none text-sm font-semibold ml-1"
                       title="Configuration & Tutoriel"
                     >
-                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 1 1 0 20A10 10 0 0 1 12 2z"/>
-                      </svg>
+                      ⓘ
                     </button>
                   </template>
                 </div>
@@ -299,30 +297,25 @@
 
   </main>
 
-  <!-- Modal Tutoriel -->
+  <!-- Modal Tutoriel (Vanilla JS) -->
   <div
-    x-show="activeTuto"
-    class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm"
-    x-transition
-    @keydown.escape.window="activeTuto = null"
+    id="tuto-modal"
+    class="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
     style="display: none;"
+    onclick="if(event.target === this) closeTuto();"
   >
-    <!-- Background overlay click to close -->
-    <div class="fixed inset-0" @click="activeTuto = null"></div>
-
-    <div class="bg-panel border border-rim rounded-2xl max-w-lg w-full p-6 relative animate-fadeUp z-10">
+    <div class="bg-[#1e2530] border border-[#2a3545] rounded-2xl max-w-lg w-full p-6 relative animate-fadeUp">
+      <!-- Bouton de fermeture (×) -->
       <button
-        @click="activeTuto = null"
-        class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors focus:outline-none"
+        onclick="closeTuto()"
+        class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors focus:outline-none text-2xl font-semibold leading-none"
         title="Fermer"
       >
-        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
+        &times;
       </button>
       
-      <!-- Tutorial Content -->
-      <div class="prose prose-invert max-w-none text-gray-300 [&>h3]:text-gold [&>h3]:font-bold [&>h3]:text-lg [&>h3]:mb-3 [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:space-y-1.5 [&>p]:mb-4" x-html="activeTuto"></div>
+      <!-- Contenu du Tutoriel -->
+      <div id="tuto-content" class="prose prose-invert max-w-none text-gray-300 [&>h3]:text-gold [&>h3]:font-bold [&>h3]:text-lg [&>h3]:mb-3 [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:space-y-1.5 [&>p]:mb-4"></div>
     </div>
   </div>
 
@@ -334,13 +327,30 @@
 
   <!-- ══════════════ ALPINE.JS LOGIC ══════════════ -->
   <script>
+    // Fonctions globales pour le tutoriel Vanilla JS
+    function openTuto(tutoHtml) {
+      document.getElementById('tuto-content').innerHTML = tutoHtml;
+      document.getElementById('tuto-modal').style.display = 'flex';
+    }
+
+    // Fermeture avec la touche Échap
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeTuto();
+      }
+    });
+
+    function closeTuto() {
+      document.getElementById('tuto-modal').style.display = 'none';
+      document.getElementById('tuto-content').innerHTML = '';
+    }
+
     function app() {
       return {
         devices:  [],
         loading:  true,
         scanning: false,
         toast:    '',
-        activeTuto: null,
         _toastTimer: null,
 
         get onlineCount() {
