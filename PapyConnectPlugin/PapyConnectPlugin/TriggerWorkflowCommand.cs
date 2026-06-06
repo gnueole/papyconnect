@@ -139,13 +139,24 @@ namespace Loupedeck.PapyConnectPlugin
     public class PapyConnectActionsCommand : PluginDynamicCommand
     {
         public PapyConnectActionsCommand()
-            : base("PapyConnect Actions", "Dynamic actions triggered via n8n", "PapyConnect")
+            : base()
         {
             // Initial parameter loading
             this.RefreshParameters();
 
             // Asynchronously fetch latest actions from n8n
             _ = this.FetchLatestActionsAsync();
+        }
+
+        protected override string GetCommandDisplayName(string actionParameter, PluginImageSize imageSize)
+        {
+            if (string.IsNullOrEmpty(actionParameter))
+            {
+                return "PapyConnect Action";
+            }
+
+            var trigger = N8NTriggerConfig.Find(actionParameter);
+            return trigger != null ? trigger.Name : "Action";
         }
 
         private void RefreshParameters()
