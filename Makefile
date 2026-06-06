@@ -54,12 +54,13 @@ help:
 
 # Check if dotnet exists before running commands
 check-dotnet:
-	@ifeq ($(DOTNET_EXISTS),no)
-		@echo "Error: dotnet was not found at $(DOTNET)."
-		@echo "To install .NET 8.0 SDK automatically, run: make prepare"
-		@echo "Or download it manually from: https://dotnet.microsoft.com/download"
-		@exit 1
-	@endif
+ifeq ($(DOTNET_EXISTS),no)
+	@echo "Error: dotnet was not found at $(DOTNET)."
+	@echo "To install .NET 8.0 SDK automatically, run: make prepare"
+	@echo "Or download it manually from: https://dotnet.microsoft.com/download"
+	@exit 1
+endif
+
 
 # Print current configuration status
 status:
@@ -114,17 +115,18 @@ publish: build
 
 # Prepare the build environment by installing .NET 8.0 SDK automatically
 prepare:
-	@ifeq ($(DOTNET_EXISTS),yes)
-		@echo ".NET SDK is already installed at $(DOTNET)."
-	@else
-		@echo "Downloading .NET installation script..."
-		wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-		chmod +x dotnet-install.sh
-		@echo "Installing .NET 8.0 SDK to /home/eole/.dotnet..."
-		./dotnet-install.sh --channel 8.0 --install-dir /home/eole/.dotnet
-		rm dotnet-install.sh
-		@echo ".NET SDK installed successfully."
-	@endif
+ifeq ($(DOTNET_EXISTS),yes)
+	@echo ".NET SDK is already installed at $(DOTNET)."
+else
+	@echo "Downloading .NET installation script..."
+	wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+	chmod +x dotnet-install.sh
+	@echo "Installing .NET 8.0 SDK to /home/eole/.dotnet..."
+	./dotnet-install.sh --channel 8.0 --install-dir /home/eole/.dotnet
+	rm dotnet-install.sh
+	@echo ".NET SDK installed successfully."
+endif
+
 
 # -------------------------------------------------
 # PapyConnect — Remote deployment (gronas NAS via ROOT SSH)

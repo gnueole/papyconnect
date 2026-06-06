@@ -7,7 +7,7 @@ This workspace organizes your personal n8n automation workflows and provides a d
 ```mermaid
 graph TD
     A[Logitech MX Creative Keypad] -->|1. Presses Trigger Button| B[EoleN8NPlugin C#]
-    B -->|2. HTTP POST Webhook| C[n8n Instance / n8n.eole.me]
+    B -->|2. HTTP POST Webhook| C[n8n Instance / gronas:5678]
     C -->|3. Parallel Actions| D[Sony Bravia TV API]
     C -->|3. Parallel Actions| E[LIFX Cloud API]
 ```
@@ -46,17 +46,18 @@ You can add, edit, or remove triggers simply by modifying the JSON configuration
   {
     "id": "movie_mode",
     "name": "Movie Mode",
-    "url": "https://n8n.eole.me/webhook/movie-mode",
+    "url": "http://gronas:5678/webhook/movie-mode",
     "color": "#8200FF"
   },
   {
-    "id": "lights_off",
-    "name": "All Off",
-    "url": "https://n8n.eole.me/webhook/lights-off",
-    "color": "#FF3B30"
+    "id": "netflix",
+    "name": "Netflix",
+    "url": "http://gronas:5678/webhook/movie-mode?app=netflix",
+    "color": "#E50914"
   }
 ]
 ```
+
 * **id**: Unique key identifier.
 * **name**: Label displayed on your MX Creative Console key.
 * **url**: n8n webhook URL to trigger.
