@@ -1,0 +1,27 @@
+{
+  "manifest_version": 2,
+  "id": "me.eole.papyconnect",
+  "name": "PapyConnect Console",
+  "version": "1.0.0",
+  "description": "Exécute des actions virtuelles via n8n",
+  "author": "Éole Lab",
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "actions": [
+    {
+      "id": "trigger_papy_action",
+      "name": "Action Virtuelle",
+      "type": "custom",
+      "dynamic": true
+    }
+  ],
+  "settings": {
+    "n8n_gateway_url": {
+      "type": "string",
+      "label": "Adresse Passerelle n8n",
+      "default": "http://gronas:5678",
+      "description": "L'URL racine de votre instance n8n locale."
+    }
+  }
+}
