@@ -377,7 +377,7 @@ async def _full_scan() -> None:
 app = FastAPI(
     title="PapyConnect",
     description="Dynamic IoT Service Registry for n8n workflows",
-    version="1.2.0",
+    version="1.3.0",
 )
 
 _TEMPLATES_DIR = Path(__file__).parent / "templates"
