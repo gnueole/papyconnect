@@ -4,22 +4,12 @@
 
 ![PapyConnect Dashboard](images/main.png)
 
-## 💡 The Value Proposition & Technical Rationale
+PapyConnect is a zero-friction, visually stunning home lab multimedia automation hub designed specifically for parents and senior family members. The installation is performed once by a tech-savvy child on their parent's home NAS, and from that point onward, the parent is 100% autonomous. They can create, edit, or customize their Options+ smart keypad triggers using a gorgeous, simplified 3-step dashboard—no code, no configuration file editing, and no technical assistance required.
 
-### 1. Simple & Visually Stunning for "Papy"
-Typical home lab automation tools are cluttered and overwhelming. PapyConnect focuses on maximum simplicity:
-* **The 3-Step Wizard**: Creating a custom shortcut action is reduced to: 1. Choose the device, 2. Choose the command, 3. Choose the icon.
-* **Premium Micro-interactions**: The interface uses responsive visual feedback (glowing online pulses, micro-animations, glassmorphic layout) so it feels alive and intuitive.
+Under the hood, triggering an action from the Logitech console is done via a simple, standard **HTTP POST** webhook call. This agnostic design makes the entire stack highly flexible: you could easily swap the Logitech keypad for an Elgato **Stream Deck**, an **HTTPRequest** shortcut app on Android, iOS widgets, or any other smart device capable of dispatching a web request. 
 
-### 2. Complete Autonomy After Setup
-The system is built so the administrator installs it on the NAS once. Afterwards, the father is completely independent:
-* **Automatic Discovery**: New devices (Sony TVs, speakers, amplifiers) are found automatically on the local network via background mDNS scans.
-* **Self-Service Actions Management**: The parent can bind, unbind, delete, or rename actions on their Loupedeck/Logitech console entirely through the UI without ever editing config files or opening terminal connections.
+To keep the system open and future-proof, PapyConnect is entirely **agnostic to vendor ecosystems**. Supported appliances (like Sony Bravia TVs, Bouygues Bboxes, or Denon Amplifiers) are discovered automatically via background mDNS scans. Brand capabilities are represented polymorphically so that nothing is hardcoded; when an action is selected, PapyConnect compiles the execution details as a dynamic "recipe" payload that the n8n automation gateway executes.
 
-### 3. Agnostic Architecture — No Hardcoding
-PapyConnect does not lock the home lab into proprietary ecosystems or hardcoded schemas:
-* **Polymorphic Device Registry**: Interaction endpoints and payloads are resolved dynamically based on vendor capabilities, allowing brand-agnostic expansion.
-* **Payload-as-a-Recipe**: The API outputs command instructions as standard JSON recipes. n8n executes the recipes dynamically, meaning new models or application paths can be registered and operated instantly without updating backend source code.
 
 
 
@@ -140,11 +130,14 @@ PapyConnect runs as a FastAPI container stack on your Synology NAS `gronas`.
 #### Papy-Friendly 3-Step Wizard
 PapyConnect is designed to be simple enough for senior family members. The configuration wizard walks the user through:
 1. **Choose Device**: Select from discovered or manual devices.
-   ![Step 1 - Choose Device](images/step01.png)
 2. **Choose Action**: Map dynamic actions like "Launch Netflix" or "Power Off".
-   ![Step 2 - Choose Action](images/step02.png)
 3. **Choose Icon**: Select the borderless transparent button icon.
-   ![Step 3 - Choose Icon](images/step03.png)
+
+<p align="center">
+  <img src="images/step01.png" width="30%" alt="Step 1 - Choose Device" />
+  <img src="images/step02.png" width="30%" alt="Step 2 - Choose Action" />
+  <img src="images/step03.png" width="30%" alt="Step 3 - Choose Icon" />
+</p>
 
 #### Device Management & Apps
 Clicking any active device displays its custom vendor details, network latency, and applications loaded from its discovery endpoint.
