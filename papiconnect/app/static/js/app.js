@@ -35,7 +35,7 @@ function app() {
     },
     _toastTimer: null,
 
-    filterKnownVendors: false,
+    filterKnownVendors: true,
 
     wizard: {
       step: 1,
