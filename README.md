@@ -1,11 +1,11 @@
 # PapyConnect Home Lab Integration Stack
 
 > **The Pitch**: A zero-friction, visually stunning home multimedia automation hub designed specifically for parents and senior family members. The installation is performed once by a tech-savvy child on their parent's home NAS, and from that point onward, the parent is 100% autonomous. They can create, edit, or customize their Options+ smart keypad triggers using a gorgeous, simplified 3-step dashboard—no code, no configuration file editing, and no technical assistance required.
-<br>
-<br>
-![PapyConnect Dashboard](images/main.png)
-<br>
-<br>
+
+<p align="center">
+  <img src="images/main.png" alt="PapyConnect Dashboard" width="100%" />
+</p>
+
 
 PapyConnect is a zero-friction, visually stunning home lab multimedia automation hub designed specifically for parents and senior family members. The installation is performed once by a tech-savvy child on their parent's home NAS, and from that point onward, the parent is 100% autonomous. They can create, edit, or customize their Options+ smart keypad triggers using a gorgeous, simplified 3-step dashboard—no code, no configuration file editing, and no technical assistance required.
 
