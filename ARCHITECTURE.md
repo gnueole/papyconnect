@@ -22,6 +22,29 @@ graph LR
 
 ---
 
+## 🛠️ Stack Technical Choices
+
+Each technology in the stack was selected to maximize deployment simplicity, maintain a low memory footprint, and provide robust local network communication capabilities:
+
+### A. Backend: FastAPI (Python 3.12)
+* **Native Asynchrony (`asyncio`)**: Crucial for coordinating the active subnet ping loop and the passive mDNS scanner thread without blocking the main web server handling Options+ request controllers.
+* **Auto-generated API Spec**: Provides a built-in Swagger/OpenAPI dashboard (`/docs`), making it trivial to inspect schemas when mapping new vendor APIs or syncing endpoints with n8n HTTP nodes.
+* **Pydantic Validation**: Guarantees that request payloads from the wizard dashboard are structurally validated before parsing or writing to `registry.json`.
+
+### B. Frontend: Tailwind CSS & Alpine.js
+* **Zero-Build Architecture**: By importing Alpine.js and Tailwind CSS, PapyConnect avoids complex compilation pipelines (like Node.js, Webpack, or Vite). The entire frontend is self-contained and editable directly in the static `app/templates/` folder.
+* **Alpine.js Reactive State**: Offers lightweight reactivity for modals, configuration wizards, and state polling with a negligible memory footprint compared to heavy SPA frameworks like React or Angular.
+
+### C. Containerization: Docker Compose & Host Network Mode
+* **`network_mode: host`**: Mandatory to bypass container bridge network isolation. By running on the host network directly, the background scanner can capture local LAN multicast UDP traffic (SSDP / mDNS) required for passive Chromecast, Spotify, and Sony TV detection.
+* **Multi-container Orchestration**: Standardizes the launch, port bindings, and storage mounts of n8n and PapyConnect on synology NAS or Raspberry Pi systems using a single `docker compose up -d` command.
+
+### D. Automation: n8n Gateway
+* **Visual Workflows**: Empowers home lab users to design complex, multi-device routines visually instead of writing brittle scripts.
+* **Protocol Adaptability**: n8n natively handles diverse node integration protocols (SSH, TCP Socket, HTTP, MQTT, WebSockets) allowing PapyConnect to stay lightweight and focused on device registry tracking.
+
+---
+
 ## 🗂️ 1. Device, Vendor, and Action Data Structures
 
 PapyConnect models the smart home using three key concepts: **Vendors** (classes), **Devices** (registry), and **Actions** (shortcuts).
