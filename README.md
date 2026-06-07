@@ -2,6 +2,9 @@
 
 This workspace organizes the PapyConnect dynamic IoT service registry (FastAPI) and the dynamic Logitech Options+ triggers. It contains both a dynamic C# plugin (**PapyConnect C# Plugin**) and a JavaScript/JSON Extension blueprint for Options+.
 
+![PapyConnect Dashboard](images/main.png)
+
+
 ---
 
 ## 🚀 System Architecture
@@ -110,6 +113,28 @@ PapyConnect runs as a FastAPI container stack on your Synology NAS `gronas`.
   ```
 - **API URL**: `http://gronas:8000/docs`
 - **Dashboard URL**: `http://gronas:8000/` (features the 3-step Papy-friendly actions creation wizard).
+
+### 📸 Interface Showcase
+
+#### Main Dashboard Overview
+![Main Dashboard Overview](images/main.png)
+
+#### Papy-Friendly 3-Step Wizard
+PapyConnect is designed to be simple enough for senior family members. The configuration wizard walks the user through:
+1. **Choose Device**: Select from discovered or manual devices.
+   ![Step 1 - Choose Device](images/step01.png)
+2. **Choose Action**: Map dynamic actions like "Launch Netflix" or "Power Off".
+   ![Step 2 - Choose Action](images/step02.png)
+3. **Choose Icon**: Select the borderless transparent button icon.
+   ![Step 3 - Choose Icon](images/step03.png)
+
+#### Device Management & Apps
+Clicking any active device displays its custom vendor details, network latency, and applications loaded from its discovery endpoint.
+![Device Info Modal](images/device-info.png)
+
+#### Brand Capabilities Reference Library
+Displays technical specifications, default ports, protocols, and discovery APIs for all registered manufacturers.
+![Supported Brands Reference](images/vendor-list.png)
 
 ---
 
