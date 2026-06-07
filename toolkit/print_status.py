@@ -124,21 +124,76 @@ def main():
 
     # Proceed to list all devices
     url = f"http://{host}:{port}/api/devices"
-    print(f"\n\033[1;33m🌐 PapyConnect Scan Status ({host}:{port})\033[0m")
-    print("\033[90m==================================================\033[0m")
 
     try:
         req = urllib.request.Request(url)
         with urllib.request.urlopen(req, timeout=5.0) as response:
             devices = json.loads(response.read().decode('utf-8'))
     except Exception as e:
+        print(f"\n\033[1;33m🌐 PapyConnect Scan Status ({host}:{port})\033[0m")
+        print("\033[90m==================================================\033[0m")
         print(f"\033[1;31mError connecting to PapyConnect API at {url}: {e}\033[0m")
+        print("\033[90m==================================================\033[0m")
         sys.exit(1)
 
     if not devices:
+        print(f"\n\033[1;33m🌐 PapyConnect Scan Status ({host}:{port})\033[0m")
+        print("\033[90m==================================================\033[0m")
         print("No scanned devices found.")
         print("\033[90m==================================================\033[0m")
         return
+
+    # Check for --byapp or byapp grouping argument
+    if "byapp" in remaining_args or "--byapp" in remaining_args:
+        # Group devices by available applications
+        app_to_devices = {}
+        for dev in devices:
+            for app in dev.get("available_apps", []):
+                # Clean up any HTML entities (like &amp;) in names
+                clean_app = app.replace("&amp;", "&")
+                if clean_app not in app_to_devices:
+                    app_to_devices[clean_app] = []
+                app_to_devices[clean_app].append(dev)
+                
+        # Sort apps alphabetically
+        sorted_apps = sorted(app_to_devices.keys())
+        
+        print(f"\n\033[1;33m🌐 PapyConnect Scan Status - Grouped by Application ({host}:{port})\033[0m")
+        print("\033[90m==================================================\033[0m")
+        
+        for i, app in enumerate(sorted_apps):
+            is_last_app = (i == len(sorted_apps) - 1)
+            prefix_app = "└── " if is_last_app else "├── "
+            
+            print(f"{prefix_app}\033[1;32m{app}\033[0m")
+            
+            devs = app_to_devices[app]
+            # Sort devices by status (online first) then by name
+            devs = sorted(devs, key=lambda d: (d.get("status") != "online", d.get("name", "").lower()))
+            
+            for j, dev in enumerate(devs):
+                is_last_dev = (j == len(devs) - 1)
+                prefix_indent = "    " if is_last_app else "│   "
+                prefix_dev = "└── " if is_last_dev else "├── "
+                
+                name = dev.get("name", "Unknown Device")
+                ip = dev.get("ip", "unknown IP")
+                status = dev.get("status", "unknown")
+                vendor = dev.get("vendor", "Generic")
+                
+                if status == "online":
+                    status_str = "\033[92monline\033[0m"
+                else:
+                    status_str = f"\033[91m{status}\033[0m"
+                    
+                print(f"{prefix_indent}{prefix_dev}\033[1;36m{name}\033[0m (\033[35m{ip}\033[0m) [{status_str}] [\033[33m{vendor}\033[0m]")
+                
+        print("\033[90m==================================================\033[0m")
+        return
+
+    # Standard print: Grouped by Device (default)
+    print(f"\n\033[1;33m🌐 PapyConnect Scan Status ({host}:{port})\033[0m")
+    print("\033[90m==================================================\033[0m")
 
     # Sort devices by status (online first) then by name
     devices = sorted(devices, key=lambda d: (d.get("status") != "online", d.get("name", "").lower()))
@@ -167,7 +222,9 @@ def main():
             prefix_indent = "    " if is_last_dev else "│   "
             prefix_app = "└── " if is_last_app else "├── "
             
-            print(f"{prefix_indent}{prefix_app}\033[32m{app}\033[0m")
+            # Clean up any HTML entities (like &amp;) in names
+            clean_app = app.replace("&amp;", "&")
+            print(f"{prefix_indent}{prefix_app}\033[32m{clean_app}\033[0m")
             
     print("\033[90m==================================================\033[0m")
 
