@@ -25,6 +25,19 @@
                 <span class="text-xs font-bold mt-2.5">YouTube</span>
               </button>
             </div>
+
+            <p class="text-xs text-gray-400 mt-4 mb-2">Or control device state:</p>
+            <div class="grid grid-cols-2 gap-3">
+              <button @click="selectService('power_on')" class="flex flex-col items-center justify-center p-4 rounded-xl bg-rim/20 hover:bg-emerald-950/20 border border-rim hover:border-emerald-600/50 transition-all duration-150 active:scale-95 group">
+                <span class="p-2.5 rounded-lg bg-emerald-900/10 text-emerald-400 group-hover:bg-emerald-900/20" x-html="icon('power_on')"></span>
+                <span class="text-xs font-bold mt-2.5">Power On</span>
+              </button>
+
+              <button @click="selectService('power_off')" class="flex flex-col items-center justify-center p-4 rounded-xl bg-rim/20 hover:bg-red-950/20 border border-rim hover:border-red-600/50 transition-all duration-150 active:scale-95 group">
+                <span class="p-2.5 rounded-lg bg-red-900/10 text-red-500 group-hover:bg-red-900/20" x-html="icon('power_off')"></span>
+                <span class="text-xs font-bold mt-2.5">Power Off</span>
+              </button>
+            </div>
           </div>
 
           <!-- Step 2: Select Location -->

@@ -117,6 +117,12 @@ DEVICE_CATALOGS = {
             <p>Control is executed via UDP SmartGlass protocol or resolved via n8n.</p>
         """,
         "actions": {
+            "power_on": {
+                "protocol": "STATIC"
+            },
+            "power_off": {
+                "protocol": "STATIC"
+            },
             "launch_netflix": {
                 "protocol": "STATIC"
             },

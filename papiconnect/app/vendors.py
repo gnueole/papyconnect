@@ -215,6 +215,12 @@ class XboxVendor(Vendor):
             "Static Apps List": {
                 "protocol": "STATIC",
                 "apps": ["Netflix", "YouTube"]
+            },
+            "Power On": {
+                "protocol": "STATIC"
+            },
+            "Power Off": {
+                "protocol": "STATIC"
             }
         }
 

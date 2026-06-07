@@ -294,7 +294,13 @@
         },
 
         serviceLabel(service) {
-          return { netflix: 'Netflix', spotify: 'Spotify', youtube: 'YouTube' }[service] || service;
+          return {
+            netflix: 'Netflix',
+            spotify: 'Spotify',
+            youtube: 'YouTube',
+            power_on: 'Power On',
+            power_off: 'Power Off'
+          }[service] || service;
         },
 
         filteredWizardDevices() {
@@ -304,6 +310,10 @@
             return this.devices.filter(d => d.type === 'sony_bravia_tv' || d.type === 'tv' || d.type === 'google_home' || d.type === 'bbox' || d.type === 'xbox' || d.type === 'playstation');
           } else if (this.wizard.service === 'spotify') {
             return this.devices.filter(d => d.type === 'amplifier' || d.type === 'denon_amplifier' || d.type === 'sony_bravia_tv' || d.type === 'tv' || d.type === 'google_home' || d.type === 'playstation');
+          } else if (this.wizard.service === 'power_on') {
+            return this.devices.filter(d => d.catalog && d.catalog.actions && d.catalog.actions.power_on);
+          } else if (this.wizard.service === 'power_off') {
+            return this.devices.filter(d => d.catalog && d.catalog.actions && d.catalog.actions.power_off);
           }
           return [];
         },
@@ -319,7 +329,11 @@
 
         async submitWizard() {
           if (!this.wizard.device || !this.wizard.title) return;
-          const targetApp = this.wizard.service === 'spotify' ? 'launch_spotify' : 'launch_' + this.wizard.service;
+          const targetApp = this.wizard.service === 'spotify'
+            ? 'launch_spotify'
+            : (this.wizard.service.startsWith('power_')
+               ? this.wizard.service
+               : 'launch_' + this.wizard.service);
 
           const service = this.wizard.service;
           const deviceName = this.wizard.device.name;
@@ -457,6 +471,12 @@
             lighting: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 9h-1m14.071-4.071l-.707.707M6.636 17.364l-.707.707m12.728 0l-.707-.707M6.636 6.636l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
                        </svg>`,
+            power_on: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+                         <path stroke-linecap="round" stroke-linejoin="round" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9" />
+                       </svg>`,
+            power_off: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9" />
+                        </svg>`,
             unknown: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
                         <circle cx="12" cy="12" r="9"/>
                         <path stroke-linecap="round" d="M9 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/>
@@ -487,6 +507,8 @@
             netflix:           'bg-red-950/30    text-red-400 border border-red-500/20',
             spotify:           'bg-emerald-950/30 text-emerald-400 border border-emerald-500/20',
             youtube:           'bg-red-950/30    text-red-400 border border-red-500/20',
+            power_on:          'bg-emerald-950/30 text-emerald-400 border border-emerald-500/20',
+            power_off:         'bg-red-950/30     text-red-400     border border-red-500/20',
             game:              'bg-indigo-950/30  text-indigo-400  border border-indigo-500/20',
             speaker:           'bg-orange-950/30  text-orange-400  border border-orange-500/20',
             lighting:          'bg-amber-900/30   text-amber-300   border border-amber-500/20',
