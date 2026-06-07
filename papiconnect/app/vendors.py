@@ -214,7 +214,7 @@ class XboxVendor(Vendor):
         return {
             "Static Apps List": {
                 "protocol": "STATIC",
-                "apps": ["Netflix", "YouTube"]
+                "apps": ["Netflix", "YouTube", "Spotify", "Plex", "Minecraft", "FIFA", "Halo Infinite", "Forza Horizon 5"]
             },
             "Power On": {
                 "protocol": "STATIC"
@@ -598,7 +598,7 @@ VENDORS_REGISTRY = {
         "vendor": "xbox",
         "get_apps_request": {
             "method": "STATIC",
-            "apps": ["Netflix", "YouTube"]
+            "apps": ["Netflix", "YouTube", "Spotify", "Plex", "Minecraft", "FIFA", "Halo Infinite", "Forza Horizon 5"]
         }
     },
     "playstation": {

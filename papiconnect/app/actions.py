@@ -282,7 +282,13 @@ def _parse_vendor_apps(vendor_name: str, data) -> list[dict]:
     elif vendor_name == "xbox":
         return [
             {"title": "Netflix", "uri": "launch_netflix"},
-            {"title": "YouTube", "uri": "launch_youtube"}
+            {"title": "YouTube", "uri": "launch_youtube"},
+            {"title": "Spotify", "uri": "launch_spotify"},
+            {"title": "Plex", "uri": "launch_plex"},
+            {"title": "Minecraft", "uri": "launch_minecraft"},
+            {"title": "FIFA", "uri": "launch_fifa"},
+            {"title": "Halo Infinite", "uri": "launch_halo_infinite"},
+            {"title": "Forza Horizon 5", "uri": "launch_forza_horizon_5"}
         ]
         
     elif vendor_name == "playstation":
