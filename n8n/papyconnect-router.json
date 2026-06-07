@@ -63,7 +63,16 @@
         "url": "={{ $json.url }}",
         "sendHeaders": true,
         "headerParameters": {
-          "parameters": []
+          "parameters": [
+            {
+              "name": "X-Auth-PSK",
+              "value": "={{ $json.headers && $json.headers['X-Auth-PSK'] ? $json.headers['X-Auth-PSK'] : '' }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "={{ $json.headers && $json.headers['Content-Type'] ? $json.headers['Content-Type'] : 'application/json' }}"
+            }
+          ]
         },
         "sendBody": true,
         "specifyBody": "json",

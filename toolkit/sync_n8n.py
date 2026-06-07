@@ -24,7 +24,7 @@ def generate_env(force=False):
         "# Production n8n Configuration\n"
         "N8N_API_KEY=\n"
         "N8N_WORKFLOW_ID=\n"
-        "N8N_BASE_URL=https://n8n.eole.me\n\n"
+        "N8N_BASE_URL=http://gronas:5678\n\n"
         "# Local Development n8n Configuration (WSL / Overrides)\n"
         "DEV_N8N_API_KEY=\n"
         "DEV_N8N_WORKFLOW_ID=\n"
@@ -43,7 +43,19 @@ def generate_env(force=False):
 def ensure_env(require_workflow_id=True, use_dev=False, api_key_override=None, workflow_id_override=None, base_url_override=None):
     global API_KEY, WORKFLOW_ID, BASE_URL, N8N_URL
     env_path = os.path.join(os.path.dirname(__file__), ".env")
+    root_env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
     
+    root_config = {}
+    if os.path.exists(root_env_path) and os.path.getsize(root_env_path) > 0:
+        with open(root_env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, val = line.split("=", 1)
+                val = val.strip().strip('"').strip("'")
+                root_config[key.strip()] = val
+
     config = {}
     if os.path.exists(env_path) and os.path.getsize(env_path) > 0:
         with open(env_path, "r", encoding="utf-8") as f:
@@ -54,11 +66,17 @@ def ensure_env(require_workflow_id=True, use_dev=False, api_key_override=None, w
                 key, val = line.split("=", 1)
                 val = val.strip().strip('"').strip("'")
                 config[key.strip()] = val
-    elif not use_dev:
+    elif not use_dev and not root_config:
         print(f"Error: .env file is missing or empty at {env_path}")
         print("Please run this script with the --init-env option to generate a template.")
         sys.exit(1)
         
+    fallback_base_url = "http://gronas:5678"
+    if "GRONAS_IP" in root_config:
+        ip = root_config["GRONAS_IP"]
+        port = root_config.get("N8N_PORT", "5678")
+        fallback_base_url = f"http://{ip}:{port}"
+
     if use_dev:
         API_KEY = api_key_override or config.get("DEV_N8N_API_KEY")
         WORKFLOW_ID = workflow_id_override or config.get("DEV_N8N_WORKFLOW_ID")
@@ -66,7 +84,7 @@ def ensure_env(require_workflow_id=True, use_dev=False, api_key_override=None, w
     else:
         API_KEY = api_key_override or config.get("N8N_API_KEY")
         WORKFLOW_ID = workflow_id_override or config.get("N8N_WORKFLOW_ID")
-        BASE_URL = base_url_override or config.get("N8N_BASE_URL", "https://n8n.eole.me")
+        BASE_URL = base_url_override or config.get("N8N_BASE_URL") or fallback_base_url
         
     BASE_URL = BASE_URL.rstrip("/")
     

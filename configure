@@ -70,15 +70,51 @@ STORAGE_USER={storage_user}
     try:
         with open(".env", "w", encoding="utf-8") as f:
             f.write(env_content)
+        
+        # Also update/generate toolkit/.env
+        import os
+        toolkit_env_path = os.path.join("toolkit", ".env")
+        config = {}
+        if os.path.exists(toolkit_env_path):
+            with open(toolkit_env_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith("#") or "=" not in line:
+                        continue
+                    key, val = line.split("=", 1)
+                    config[key.strip()] = val.strip().strip('"').strip("'")
+        
+        config["N8N_BASE_URL"] = f"http://{gronas_ip}:{n8n_port}"
+        config.setdefault("N8N_API_KEY", "")
+        config.setdefault("N8N_WORKFLOW_ID", "")
+        config.setdefault("DEV_N8N_API_KEY", "")
+        config.setdefault("DEV_N8N_WORKFLOW_ID", "")
+        config.setdefault("DEV_N8N_BASE_URL", "http://localhost:5678")
+
+        lines = [
+            "# Production n8n Configuration",
+            f"N8N_API_KEY={config['N8N_API_KEY']}",
+            f"N8N_WORKFLOW_ID={config['N8N_WORKFLOW_ID']}",
+            f"N8N_BASE_URL={config['N8N_BASE_URL']}",
+            "",
+            "# Local Development n8n Configuration (WSL / Overrides)",
+            f"DEV_N8N_API_KEY={config['DEV_N8N_API_KEY']}",
+            f"DEV_N8N_WORKFLOW_ID={config['DEV_N8N_WORKFLOW_ID']}",
+            f"DEV_N8N_BASE_URL={config['DEV_N8N_BASE_URL']}"
+        ]
+        with open(toolkit_env_path, "w", encoding="utf-8") as f:
+            f.write("\n".join(lines) + "\n")
+
         print("\n=========================================")
         print(" Configuration generated successfully!")
         print("=========================================")
         print("The '.env' file has been created at the project root.")
+        print("The 'toolkit/.env' file has been updated/created.")
         print("\nTo compile and deploy the stack:")
         print("  docker compose -f papiconnect/docker-compose.yml up -d")
         print("=========================================\n")
     except Exception as e:
-        print(f"\nERROR writing .env file: {e}")
+        print(f"\nERROR writing configuration files: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":
