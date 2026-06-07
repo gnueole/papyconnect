@@ -128,11 +128,14 @@ PapyConnect runs as a FastAPI container stack on a dedicated home server (such a
   # View all scanned network devices and their applications
   make status
 
+  # View scanned devices grouped and ordered by application name
+  make status byapp
+
   # Register a new device via CLI (supports partial .IP using auto-subnet prefix lookup)
   make status add xbox=.53
   make status add sony=192.168.1.88
   ```
-  *(Fetches all scanned network devices and their available applications/games from the backend API, printing them in a clean terminal tree view. If the `add name=ip` option is provided, it automatically detects the brand, resolves the subnet prefix, registers the device in the backend database, and displays the updated tree view).*
+  *(Fetches scanned network devices and applications. If `byapp` is specified, it groups and prints devices ordered by available application/game names. If `add name=ip` is specified, it registers the device on the backend before printing).*
 - **API URL**: `http://YOUR_MEDIA_SERVER:8000/docs`
 - **Dashboard URL**: `http://YOUR_MEDIA_SERVER:8000/` (features the 3-step Papy-friendly actions creation wizard).
 
