@@ -91,3 +91,38 @@ body::after {
   scrollbar-width: thin;
   scrollbar-color: #2a2f45 #0f1117;
 }
+
+/* Custom utility rules to replace inline styles */
+.shadow-scan-btn {
+  box-shadow: 0 0 18px rgba(233, 166, 35, 0.25);
+}
+
+.wizard-section {
+  min-height: 450px;
+}
+
+.shadow-wizard-btn {
+  box-shadow: 0 0 20px rgba(233, 166, 35, 0.2);
+}
+
+.svg-arte-text {
+  font-style: italic;
+  letter-spacing: -0.5px;
+}
+
+.svg-letter-spacing-narrow {
+  letter-spacing: -0.5px;
+}
+
+/* Alpine.js x-cloak support to hide elements before rendering */
+[x-cloak] {
+  display: none !important;
+}
+
+.fireworks-hidden {
+  display: none !important;
+}
+
+.tuto-modal-hidden {
+  display: none !important;
+}

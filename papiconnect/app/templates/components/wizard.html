@@ -1,5 +1,5 @@
 <!-- WIZARD (Left Panel) -->
-<section class="lg:col-span-5 bg-panel border border-rim rounded-2xl p-6 flex flex-col justify-between" style="min-height: 450px;">
+<section class="lg:col-span-5 bg-panel border border-rim rounded-2xl p-6 flex flex-col justify-between wizard-section">
         <div>
           <div class="flex items-center justify-between pb-4 border-b border-rim mb-5">
             <h3 class="font-extrabold text-sm uppercase tracking-wider text-gold">Create Action</h3>
@@ -102,7 +102,7 @@
 
         <!-- Validation Button (Step 3 only) -->
         <div class="mt-6 pt-4 border-t border-rim/60" x-show="wizard.step === 3">
-          <button @click="submitWizard()" class="bg-gold hover:bg-ember text-black font-bold py-3 px-6 rounded-xl w-full text-center transition-all duration-150 active:scale-95" style="box-shadow: 0 0 20px rgba(233,166,35,.2)">
+          <button @click="submitWizard()" class="bg-gold hover:bg-ember text-black font-bold py-3 px-6 rounded-xl w-full text-center transition-all duration-150 active:scale-95 shadow-wizard-btn">
             Add to Dashboard
           </button>
         </div>

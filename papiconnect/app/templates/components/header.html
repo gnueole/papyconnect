@@ -50,10 +50,9 @@
           @click="scan()"
           :disabled="scanning"
           class="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-black
-                 bg-gold hover:bg-ember active:scale-95
+                 bg-gold hover:bg-ember active:scale-95 shadow-scan-btn
                  disabled:opacity-50 disabled:cursor-not-allowed
                  transition-all duration-150 shrink-0"
-          style="box-shadow: 0 0 18px rgba(233,166,35,.25)"
         >
           <span x-show="scanning"  class="spin" aria-hidden="true"></span>
           <span x-show="!scanning">

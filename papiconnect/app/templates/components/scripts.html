@@ -13,7 +13,7 @@
     // Global functions for the Vanilla JS tutorial modal
     function openTuto(tutoHtml) {
       document.getElementById('tuto-content').innerHTML = tutoHtml;
-      document.getElementById('tuto-modal').style.display = 'flex';
+      document.getElementById('tuto-modal').classList.remove('tuto-modal-hidden');
     }
 
     // Close on Escape key press
@@ -24,7 +24,7 @@
     });
 
     function closeTuto() {
-      document.getElementById('tuto-modal').style.display = 'none';
+      document.getElementById('tuto-modal').classList.add('tuto-modal-hidden');
       document.getElementById('tuto-content').innerHTML = '';
     }
 

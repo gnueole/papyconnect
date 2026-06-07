@@ -20,7 +20,7 @@
     x-transition:leave-start="opacity-100 scale-100"
     x-transition:leave-end="opacity-0 scale-95"
     @click.self="vendorsModal.open = false"
-    style="display: none;"
+    x-cloak
   >
     <div class="bg-[#131722]/95 border border-gold/30 rounded-2xl max-w-4xl w-full p-8 relative shadow-2xl flex flex-col md:flex-row gap-6 max-h-[85vh] overflow-hidden backdrop-blur-lg text-left">
       <button

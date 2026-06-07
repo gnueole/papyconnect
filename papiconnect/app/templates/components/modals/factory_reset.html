@@ -18,7 +18,7 @@
     x-transition:leave-start="opacity-100 scale-100"
     x-transition:leave-end="opacity-0 scale-95"
     @click.self="factoryResetModal.open = false"
-    style="display: none;"
+    x-cloak
   >
     <div class="bg-[#1f1315]/95 border border-red-500/30 rounded-2xl max-w-md w-full p-8 relative shadow-2xl text-center backdrop-blur-lg">
       <button

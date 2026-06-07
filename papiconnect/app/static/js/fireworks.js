@@ -10,7 +10,7 @@ let fireworksExplosions = [];
 function startFireworks() {
   fireworksCanvas = document.getElementById('fireworksCanvas');
   if (!fireworksCanvas) return;
-  fireworksCanvas.style.display = 'block';
+  fireworksCanvas.classList.remove('fireworks-hidden');
   fireworksCtx = fireworksCanvas.getContext('2d');
   
   resizeFireworksCanvas();
@@ -33,7 +33,7 @@ function stopFireworks() {
     fireworksAnimId = null;
   }
   if (fireworksCanvas) {
-    fireworksCanvas.style.display = 'none';
+    fireworksCanvas.classList.add('fireworks-hidden');
   }
   window.removeEventListener('resize', resizeFireworksCanvas);
 }
