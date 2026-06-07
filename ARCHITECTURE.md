@@ -171,3 +171,8 @@ When this endpoint is called, PapyConnect fetches the mapped device and its asso
 ### B. Why return a recipe instead of executing directly?
 1. **Security Isolation**: The PapyConnect backend doesn't need external WAN exposure or outbound access tokens. n8n acts as the secure executing gateway agent.
 2. **Protocol Adaptability**: n8n can process HTTP, TCP sockets, SSH, or MQTT commands using its standard nodes based on the parsed recipe schema, keeping the python registry clean and free of physical socket execution overhead.
+
+### C. Interactive Swagger UI & OpenAPI Specification
+FastAPI automatically generates a complete OpenAPI 3.0 specification from our routing endpoints and Pydantic models. This schema is rendered as an interactive dashboard at `/docs`:
+* **Zero-dependency Developer Sandbox**: Allows developers or home lab administrators to quickly test routing actions (such as manually executing device actions, testing pings, or pulling brand discovery structures) directly in the browser without drafting scripts or terminal commands.
+* **n8n Payload Synchronization**: The auto-generated structure makes it easy to copy-paste accurate JSON payloads and parameters directly into n8n HTTP Request nodes during workflow construction.
