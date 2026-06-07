@@ -22,8 +22,8 @@ To keep the system open and future-proof, PapyConnect is entirely **agnostic to 
 
 ```mermaid
 graph TD
-    A["Tactile Trigger<br>(Logitech, Stream Deck, HTTPRequest App)"] -->|1. HTTP POST Webhook| C["n8n Gateway<br>(gronas:5678)"]
-    C -->|2. Query Execution Contract| D["PapyConnect Backend<br>(gronas:8000)"]
+    A["Tactile Trigger<br>(Logitech, Stream Deck, HTTPRequest App)"] -->|1. HTTP POST Webhook| C["n8n Gateway<br>(YOUR_MEDIA_SERVER:5678)"]
+    C -->|2. Query Execution Contract| D["PapyConnect Backend<br>(YOUR_MEDIA_SERVER:8000)"]
     D -->|3. Returns HTTP/TCP Recipe Details| C
     C -->|4a. Execute HTTP POST| E[Sony Bravia TV API]
     C -->|4b. Execute raw TCP Telnet| F[Denon/Marantz Telnet]
@@ -43,7 +43,7 @@ The plugin reads the n8n Gateway URL from a configuration file under a dedicated
 Example:
 ```json
 {
-  "N8nGatewayUrl": "http://gronas:5678"
+  "N8nGatewayUrl": "http://YOUR_MEDIA_SERVER:5678"
 }
 ```
 
@@ -56,13 +56,13 @@ Example of cached triggers file:
   {
     "id": "netflix_salon",
     "name": "Netflix Salon",
-    "url": "http://gronas:5678/webhook/papyconnect-action?id=netflix_salon",
+    "url": "http://YOUR_MEDIA_SERVER:5678/webhook/papyconnect-action?id=netflix_salon",
     "color": "#E50914"
   },
   {
     "id": "spotify_salon",
     "name": "Spotify Salon",
-    "url": "http://gronas:5678/webhook/papyconnect-action?id=spotify_salon",
+    "url": "http://YOUR_MEDIA_SERVER:5678/webhook/papyconnect-action?id=spotify_salon",
     "color": "#1DB954"
   }
 ]
@@ -113,16 +113,16 @@ You can manage, backup, and push n8n workflows using the Python toolkit:
 
 ---
 
-## 📺 PapyConnect Backend Service (Synology NAS)
+## 📺 PapyConnect Backend Service (Hosting Server)
 
-PapyConnect runs as a FastAPI container stack on your Synology NAS `gronas`.
+PapyConnect runs as a FastAPI container stack on a dedicated home server (such as a local Linux PC, a Raspberry Pi [not tested], or a Synology NAS [tested & verified]).
 
 - **Redeploy / Recreate Container**:
   ```bash
   make papiconnect-recreate
   ```
-- **API URL**: `http://gronas:8000/docs`
-- **Dashboard URL**: `http://gronas:8000/` (features the 3-step Papy-friendly actions creation wizard).
+- **API URL**: `http://YOUR_MEDIA_SERVER:8000/docs`
+- **Dashboard URL**: `http://YOUR_MEDIA_SERVER:8000/` (features the 3-step Papy-friendly actions creation wizard).
 
 ### 📸 Interface Showcase
 
@@ -166,7 +166,7 @@ Every constructeur belongs to a catalog sheet mapping how PapyConnect should exe
 ### 2. The `/api/vendors/{vendor_name}/discover-schema` Endpoint
 Exposes the query sheet directly to the n8n automation gateway, allowing it to retrieve request templates and perform network calls dynamically:
 ```bash
-curl -s http://gronas:8000/api/vendors/google_home/discover-schema
+curl -s http://YOUR_MEDIA_SERVER:8000/api/vendors/google_home/discover-schema
 ```
 
 ### 3. Device Available Apps (`available_apps`)
