@@ -26,6 +26,7 @@ sys.path.append(str(Path(__file__).parent))
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel
@@ -66,11 +67,14 @@ from actions import (
 app = FastAPI(
     title="PapyConnect",
     description="Dynamic IoT Service Registry for n8n workflows",
-    version="1.3.0",
+    version="1.4.0",
 )
 
 _TEMPLATES_DIR = Path(__file__).parent / "templates"
 templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
+
+_STATIC_DIR = Path(__file__).parent / "static"
+app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
 
 
 @app.exception_handler(HTTPException)
@@ -100,24 +104,8 @@ async def _startup() -> None:
         log.info("Registry file initialized: %s", REGISTRY_PATH.resolve())
         
     if not ACTIONS_PATH.exists():
-        default_actions = [
-            {
-                "id": "netflix_salon",
-                "title": "Netflix (Salon)",
-                "icon": "netflix",
-                "device_ip": "192.168.1.100",
-                "target_app": "launch_netflix"
-            },
-            {
-                "id": "spotify_salon",
-                "title": "Spotify (Salon)",
-                "icon": "spotify",
-                "device_ip": "192.168.1.193",
-                "target_app": "launch_spotify"
-            }
-        ]
-        _save_actions(default_actions)
-        log.info("Default actions initialized: %s", ACTIONS_PATH.resolve())
+        _save_actions([])
+        log.info("Actions file initialized empty: %s", ACTIONS_PATH.resolve())
     log.info("PapyConnect service started successfully on http://0.0.0.0:8000")
 
 

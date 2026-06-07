@@ -5,25 +5,34 @@
           <span class="text-xs text-gray-500 font-semibold" x-text="actions.length + ' actions'"></span>
         </div>
 
-        <div class="grid gap-4 sm:grid-cols-2 max-h-[420px] overflow-y-auto pr-1">
+        <div 
+          :class="actions.length > 6 ? 'max-h-[500px] overflow-y-auto pr-1' : 'max-h-none overflow-visible'"
+          class="grid gap-4 sm:grid-cols-2"
+        >
           <template x-for="a in actions" :key="a.id">
-            <div class="relative group p-4 rounded-xl bg-rim/15 border border-rim hover:border-gold/30 transition-all duration-150">
-              
-              <!-- Delete action button -->
-              <button @click="removeAction(a.id)" class="absolute top-3 right-3 text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity" title="Remove action">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-              </button>
+            <button 
+              @click="triggerAction(a, $event)"
+              :class="a.state === 'active' ? activeCardClass(a.icon) : 'border-rim hover:border-gold/30 bg-rim/15 hover:scale-[1.01]'"
+              class="relative group p-3 rounded-xl border text-left transition-all duration-200 cursor-pointer select-none active:scale-95 overflow-hidden flex items-center justify-between w-full outline-none focus-visible:ring-2 focus-visible:ring-gold/40"
+            >
+              <!-- Ripple effect container -->
+              <div class="ripple-container"></div>
 
-              <div class="flex items-center gap-3">
-                <div :class="iconBg(a.icon)" class="w-10 h-10 rounded-lg flex items-center justify-center" x-html="icon(a.icon)"></div>
+              <div class="flex items-center gap-2.5 pointer-events-none">
+                <div :class="iconBg(a.icon)" class="w-9 h-9 rounded-lg flex items-center justify-center" x-html="icon(a.icon)"></div>
                 <div>
                   <h4 class="text-xs font-bold text-gray-200" x-text="a.title"></h4>
                   <p class="text-[9px] font-mono text-gray-500 mt-0.5" x-text="a.id"></p>
                 </div>
               </div>
-            </div>
+
+              <!-- Delete action button (span wrapper to avoid nested button tags) -->
+              <span @click.stop="removeAction(a.id)" class="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity p-2 -mr-2 cursor-pointer z-10" title="Remove action">
+                <svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </span>
+            </button>
           </template>
 
           <template x-if="actions.length === 0">

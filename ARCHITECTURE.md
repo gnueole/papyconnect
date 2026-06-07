@@ -175,4 +175,43 @@ When this endpoint is called, PapyConnect fetches the mapped device and its asso
 ### C. Interactive Swagger UI & OpenAPI Specification
 FastAPI automatically generates a complete OpenAPI 3.0 specification from our routing endpoints and Pydantic models. This schema is rendered as an interactive dashboard at `/docs`:
 * **Zero-dependency Developer Sandbox**: Allows developers or home lab administrators to quickly test routing actions (such as manually executing device actions, testing pings, or pulling brand discovery structures) directly in the browser without drafting scripts or terminal commands.
-* **n8n Payload Synchronization**: The auto-generated structure makes it easy to copy-paste accurate JSON payloads and parameters directly into n8n HTTP Request nodes during workflow construction.
+*   **n8n Payload Synchronization**: The auto-generated structure makes it easy to copy-paste accurate JSON payloads and parameters directly into n8n HTTP Request nodes during workflow construction.
+
+---
+
+## 🧱 5. Frontend & HTML Template Architecture
+
+The frontend dashboard is structured using a decoupled modular include architecture. This keeps templates highly cohesive, prevents configuration duplication, and ensures maintainability.
+
+### A. Template Directory Structure
+All UI components are organized within `/app/templates/`:
+
+*   **[index.html](file:///home/eole/projects/papyconnect/papiconnect/app/templates/index.html)**: The root wrapper template. It outlines the HTML skeleton and imports all standard headers, widgets, overlays, and scripts.
+*   **[components/head.html](file:///home/eole/projects/papyconnect/papiconnect/app/templates/components/head.html)**: Configures Tailwind CSS extensions, custom colors, metadata headers, and links to the external static stylesheet `/static/css/dashboard.css`.
+*   **[components/header.html](file:///home/eole/projects/papyconnect/papiconnect/app/templates/components/header.html)**: Renders the glowing top navigation bar and dashboard statistics (e.g. online devices count).
+*   **[components/toast.html](file:///home/eole/projects/papyconnect/papiconnect/app/templates/components/toast.html)**: A floating alert notification widget reactive to user actions.
+*   **[components/wizard.html](file:///home/eole/projects/papyconnect/papiconnect/app/templates/components/wizard.html)**: Holds the visual configuration assistant (Alpine.js-powered steps) to bind new virtual shortcuts.
+*   **[components/actions.html](file:///home/eole/projects/papyconnect/papiconnect/app/templates/components/actions.html)**: Renders the active keypad grid containing user-mapped virtual actions with interactive click ripples.
+*   **[components/registry.html](file:///home/eole/projects/papyconnect/papiconnect/app/templates/components/registry.html)**: Displays the LAN device registry table, showing active scan results and offering configuration/test action links.
+*   **[components/modals.html](file:///home/eole/projects/papyconnect/papiconnect/app/templates/components/modals.html)**: The entry point/hub for overlays, delegating rendering to specific sub-modals.
+*   **[components/footer.html](file:///home/eole/projects/papyconnect/papiconnect/app/templates/components/footer.html)**: Renders copyright notices and dashboard developer modes.
+*   **[components/scripts.html](file:///home/eole/projects/papyconnect/papiconnect/app/templates/components/scripts.html)**: The script orchestration hub. It defines global utility functions, imports the centralized services metadata dictionary, and links the external scripts.
+*   **[static/js/app.js](file:///home/eole/projects/papyconnect/papiconnect/app/static/js/app.js)**: Contains the full Alpine.js application controller object logic (`app()`) managing asynchronous state synchronization, wizards, and execution routes.
+*   **[static/js/fireworks.js](file:///home/eole/projects/papyconnect/papiconnect/app/static/js/fireworks.js)**: Holds the canvas fireworks particle engine logic to run success overlays.
+*   **[components/services_metadata.html](file:///home/eole/projects/papyconnect/papiconnect/app/templates/components/services_metadata.html)**: The decoupled database for brand/app definitions. It maps icon SVG path strings, primary color values, theme styles, active states, and slug aliases.
+
+### B. Modular Modals Architecture
+To avoid massive, unreadable HTML files, `components/modals.html` imports specific dialog layouts located under `components/modals/`:
+1.  **[device_details.html](file:///home/eole/projects/papyconnect/papiconnect/app/templates/components/modals/device_details.html)**: Custom brand tutorials and interactive action testing.
+2.  **[tuto.html](file:///home/eole/projects/papyconnect/papiconnect/app/templates/components/modals/tuto.html)**: Context-sensitive integration guides and walkthrough texts.
+3.  **[fireworks.html](file:///home/eole/projects/papyconnect/papiconnect/app/templates/components/modals/fireworks.html)**: Canvas overlay slot for particle effects.
+4.  **[about.html](file:///home/eole/projects/papyconnect/papiconnect/app/templates/components/modals/about.html)**: Credits and repository hyperlink button.
+5.  **[factory_reset.html](file:///home/eole/projects/papyconnect/papiconnect/app/templates/components/modals/factory_reset.html)**: Danger confirmation check dialog.
+6.  **[vendors.html](file:///home/eole/projects/papyconnect/papiconnect/app/templates/components/modals/vendors.html)**: Interactive brand specification browser displaying API structures.
+7.  **[manual_add.html](file:///home/eole/projects/papyconnect/papiconnect/app/templates/components/modals/manual_add.html)**: Ghost device registration form.
+
+### C. Static Styling & Script Factorization
+To enforce standard engineering practices:
+*   All custom CSS styles (e.g. noise grains, keyframes, scrollbars) are defined in **[app/static/css/dashboard.css](file:///home/eole/projects/papyconnect/papiconnect/app/static/css/dashboard.css)**.
+*   All rich script controllers are extracted to **[app/static/js/app.js](file:///home/eole/projects/papyconnect/papiconnect/app/static/js/app.js)** and **[app/static/js/fireworks.js](file:///home/eole/projects/papyconnect/papiconnect/app/static/js/fireworks.js)**.
+*   All static assets are mounted dynamically via FastAPI's `StaticFiles` integration and served under the `/static` route.

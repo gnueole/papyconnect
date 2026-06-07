@@ -35,7 +35,7 @@ async def _enrich_status(devices: list[dict]) -> list[dict]:
 
 
 class _MDNSListener:
-    """Collect cast devices discovered during scan window."""
+    """Collect cast, TV, and speaker devices discovered during scan window."""
 
     def __init__(self):
         self.found: list[dict] = []
@@ -48,38 +48,70 @@ class _MDNSListener:
         raw_name = info.properties.get(b"fn", b"")
         label = raw_name.decode(errors="replace") if raw_name else name.split(".")[0]
         
-        # Determine vendor based on friendly name or model properties
+        # Clean up common prefixes (12-char hex MAC addresses, or "ID@" prefix)
+        import re
+        label = re.sub(r'^[0-9a-fA-F]{12}_?', '', label)
+        label = re.sub(r'^.*?@', '', label)
+        label = label.strip()
+        
+        # Determine vendor and device type based on friendly name or model properties
         model = info.properties.get(b"md", b"").decode(errors="replace") if info.properties.get(b"md") else ""
         friendly = label.lower()
         model_lower = model.lower()
         
         vendor = "Generic"
+        device_type = "google_home"
+        
         if "sony" in friendly or "bravia" in friendly or "sony" in model_lower or "bravia" in model_lower:
             vendor = "sony_bravia_tv"
+            device_type = "tv"
         elif "bbox" in friendly or "bbox" in model_lower:
             vendor = "bbox"
-            
-        device_type = "tv"
-        if vendor == "sony_bravia_tv":
             device_type = "tv"
-        elif vendor == "bbox":
+        elif "denon" in friendly or "denon" in model_lower:
+            vendor = "denon_amplifier"
+            device_type = "amplifier"
+        elif "marantz" in friendly or "marantz" in model_lower:
+            vendor = "marantz_amplifier"
+            device_type = "amplifier"
+        elif "sonos" in friendly or "sonos" in model_lower:
+            vendor = "sonos"
+            device_type = "speaker"
+        elif "yamaha" in friendly or "musiccast" in friendly or "yamaha" in model_lower or "musiccast" in model_lower:
+            vendor = "yamaha_musiccast"
+            device_type = "amplifier"
+        elif "roku" in friendly or "roku" in model_lower:
+            vendor = "roku"
             device_type = "tv"
-        else:
-            vendor = "Generic"
-            device_type = "google_home"
+        elif "hue" in friendly or "hue" in model_lower:
+            vendor = "philips_hue"
+            device_type = "lighting"
+        elif "wiz" in friendly or "wiz" in model_lower:
+            vendor = "philips_wiz"
+            device_type = "lighting"
             
-        log.info("mDNS discovered: %s @ %s (Vendor: %s)", label, ip, vendor)
-        self.found.append({"name": label, "ip": ip, "type": device_type, "vendor": vendor, "source": "mdns"})
+        log.info("mDNS discovered: %s @ %s (Vendor: %s, Type: %s)", label, ip, vendor, device_type)
+        
+        # Avoid duplicates in the discovered list
+        if not any(d["ip"] == ip for d in self.found):
+            self.found.append({
+                "name": label, 
+                "ip": ip, 
+                "type": device_type, 
+                "vendor": vendor, 
+                "source": "mdns"
+            })
 
     def remove_service(self, *_): pass
     def update_service(self, *_): pass
 
 
 async def _scan_mdns() -> list[dict]:
-    """Scan local network for Chromecast/Android TVs."""
+    """Scan local network for Chromecast, Spotify Connect, and Bravia services."""
     listener = _MDNSListener()
     azc = AsyncZeroconf()
-    ServiceBrowser(azc.zeroconf, "_googlecast._tcp.local.", listener)
+    protocols = ["_googlecast._tcp.local.", "_spotify-connect._tcp.local.", "_bravia._tcp.local."]
+    ServiceBrowser(azc.zeroconf, protocols, listener)
     await asyncio.sleep(MDNS_SCAN_DURATION)
     await azc.async_close()
     return listener.found

@@ -1,0 +1,32 @@
+<!-- 
+  PapyConnect — Tutorial Modal Sub-include
+  =============================================================================
+  Purpose: Displays context-sensitive help or guide text (e.g. how to retrieve
+           tokens or configure integrations for specific brands) formatted as HTML.
+  
+  Architectural Glue:
+    - Display toggled by the global `openTuto(tutoHtml)` and `closeTuto()` functions.
+    - Controlled via vanilla JS rather than Alpine.js to allow easy triggering 
+      from raw catalog descriptions and dynamic HTML strings.
+-->
+  <!-- Tutorial Modal (Vanilla JS) -->
+  <div
+    id="tuto-modal"
+    class="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+    style="display: none;"
+    onclick="if(event.target === this) closeTuto();"
+  >
+    <div class="bg-[#1e2530] border border-[#2a3545] rounded-2xl max-w-lg w-full p-6 relative animate-fadeUp">
+      <!-- Close button (×) -->
+      <button
+        onclick="closeTuto()"
+        class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors focus:outline-none text-2xl font-semibold leading-none"
+        title="Close"
+      >
+        &times;
+      </button>
+      
+      <!-- Tutorial Content -->
+      <div id="tuto-content" class="prose prose-invert max-w-none text-gray-300 [&>h3]:text-gold [&>h3]:font-bold [&>h3]:text-lg [&>h3]:mb-3 [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:space-y-1.5 [&>p]:mb-4"></div>
+    </div>
+  </div>

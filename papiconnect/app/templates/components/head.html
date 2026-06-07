@@ -47,40 +47,4 @@
   <!-- Alpine.js (réactivité légère, pas de build) -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-  <style>
-    body { background: #07080d; }
-
-    /* Grain cinéma très subtil */
-    body::after {
-      content: '';
-      position: fixed; inset: 0; pointer-events: none; z-index: 200;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.028'/%3E%3C/svg%3E");
-      opacity: .5;
-    }
-
-    /* Ligne dorée en haut du header */
-    .header-bar {
-      border-bottom: 1px solid rgba(233,166,35,.18);
-      box-shadow: 0 1px 0 rgba(233,166,35,.12), 0 6px 40px rgba(0,0,0,.6);
-    }
-
-    .card {
-      background: #1e2130;
-      border: 1px solid #2a2f45;
-      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
-    }
-    .card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 40px rgba(0,0,0,.65), 0 0 0 1px rgba(233,166,35,.18);
-      border-color: rgba(233,166,35,.25);
-    }
-
-    /* Spinner */
-    .spin {
-      width: 17px; height: 17px; border-radius: 50%;
-      border: 2px solid rgba(255,255,255,.15);
-      border-top-color: #e9a623;
-      animation: _spin .65s linear infinite;
-    }
-    @keyframes _spin { to { transform: rotate(360deg); } }
-  </style>
+  <link rel="stylesheet" href="/static/css/dashboard.css" />

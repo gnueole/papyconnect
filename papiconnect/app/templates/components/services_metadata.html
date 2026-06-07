@@ -1,0 +1,274 @@
+    const SERVICES_METADATA = {
+      netflix: {
+        label: 'Netflix',
+        icon: `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M5.6 2h4.5l3.9 14.8V2h4.4v20h-4.5L10 7.2V22H5.6V2z"/></svg>`,
+        bgClass: 'bg-red-950/30 text-red-400 border border-red-500/20',
+        activeClass: 'border-red-500/50 bg-red-950/15 shadow-lg shadow-red-500/5',
+        glowColor: 'rgba(239, 68, 68, 0.45)'
+      },
+      spotify: {
+        label: 'Spotify',
+        icon: `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424c-.18.295-.565.387-.86.207-2.377-1.454-5.37-1.783-8.892-1.007-.333.075-.664-.135-.74-.467-.075-.333.136-.665.468-.742 3.847-.878 7.144-.508 9.817 1.13.298.18.39.563.207.86zm1.223-2.72c-.226.367-.707.487-1.074.26-2.72-1.672-6.87-2.157-10.076-1.183-.413.125-.85-.107-.978-.52-.128-.415.108-.853.52-.98 3.67-1.114 8.243-.574 11.348 1.335.367.226.487.707.26 1.074zm.106-2.833C14.39 8.667 8.57 8.475 5.2 9.5c-.523.158-1.077-.142-1.235-.665-.158-.523.14-1.078.663-1.237 3.864-1.173 10.29-.95 14.34 1.458.47.28.625.892.347 1.362-.28.47-.892.625-1.362.347z"/></svg>`,
+        bgClass: 'bg-emerald-950/30 text-emerald-400 border border-emerald-500/20',
+        activeClass: 'border-emerald-500/50 bg-emerald-950/15 shadow-lg shadow-emerald-500/5',
+        glowColor: 'rgba(16, 185, 129, 0.45)'
+      },
+      youtube: {
+        label: 'YouTube',
+        icon: `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.528 3.545 12 3.545 12 3.545s-7.528 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.022 0 12 0 12s0 3.978.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.86.508 9.388.508 9.388.508s7.528 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.978 24 12 24 12s0-3.978-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`,
+        bgClass: 'bg-red-950/30 text-red-400 border border-red-500/20',
+        activeClass: 'border-red-500/50 bg-red-950/15 shadow-lg shadow-red-500/5',
+        glowColor: 'rgba(239, 68, 68, 0.45)'
+      },
+      xbox: {
+        label: 'Xbox',
+        icon: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><rect x="2" y="6" width="20" height="12" rx="3"/><path d="M6 12h4M8 10v4M15 11h.01M18 13h.01"/></svg>`,
+        bgClass: 'bg-green-950/30 text-green-400 border border-green-500/20',
+        activeClass: 'border-green-500/50 bg-green-950/15 shadow-lg shadow-green-500/5',
+        glowColor: 'rgba(34, 197, 94, 0.45)'
+      },
+      playstation: {
+        label: 'PlayStation',
+        icon: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><rect x="2" y="6" width="20" height="12" rx="3"/><path d="M6 12h4M8 10v4M15 11h.01M18 13h.01"/></svg>`,
+        bgClass: 'bg-purple-950/30 text-purple-400 border border-purple-500/20',
+        activeClass: 'border-purple-500/50 bg-purple-950/15 shadow-lg shadow-purple-500/5',
+        glowColor: 'rgba(139, 92, 246, 0.45)'
+      },
+      power_on: {
+        label: 'Power On',
+        icon: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9" /></svg>`,
+        bgClass: 'bg-emerald-950/30 text-emerald-400 border border-emerald-500/20',
+        activeClass: 'border-emerald-500/50 bg-emerald-950/15 shadow-lg shadow-emerald-500/5',
+        glowColor: 'rgba(16, 185, 129, 0.45)'
+      },
+      power_off: {
+        label: 'Power Off',
+        icon: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9" /></svg>`,
+        bgClass: 'bg-red-950/30 text-red-400 border border-red-500/20',
+        activeClass: 'border-red-500/50 bg-red-950/15 shadow-lg shadow-red-500/5',
+        glowColor: 'rgba(239, 68, 68, 0.45)'
+      },
+      canal: {
+        label: 'Canal+',
+        icon: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="3"/><path stroke-linecap="round" stroke-linejoin="round" d="M11 9.5a2.5 2.5 0 1 0 0 5" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12h4m-2-2v4" /></svg>`,
+        bgClass: 'bg-zinc-950/20 text-zinc-500 border border-zinc-800/10',
+        activeClass: 'border-zinc-800/30 bg-zinc-950/10 shadow-sm shadow-zinc-900/5',
+        glowColor: 'rgba(161, 161, 170, 0.1)'
+      },
+      apple_tv: {
+        label: 'Apple TV',
+        icon: `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.05 20.28c-.98.95-2.05 1.88-3.08 1.88-1.07 0-1.39-.63-2.6-.63-1.22 0-1.59.61-2.61.65-1.05.04-2.22-.99-3.21-1.95C3.52 18.25 2 13.8 2 9.87c0-3.9 2.54-5.96 5.03-5.96 1.33 0 2.47.79 3.23.79.76 0 2.05-.93 3.63-.78.66.03 2.52.27 3.71 2.01-.1.06-2.21 1.29-2.19 3.86.03 3.06 2.7 4.09 2.73 4.1-.03.07-.43 1.46-1.4 2.87M15.22 3.64c.67-.82 1.13-1.96 1.01-3.09-.98.04-2.17.65-2.87 1.47-.61.71-1.15 1.87-1.01 2.98.99.08 2.19-.53 2.87-1.36z"/></svg>`,
+        bgClass: 'bg-slate-950/20 text-slate-500 border border-slate-800/10',
+        activeClass: 'border-slate-800/30 bg-slate-950/10 shadow-sm shadow-slate-900/5',
+        glowColor: 'rgba(100, 116, 139, 0.1)'
+      },
+      arte: {
+        label: 'Arte',
+        icon: `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><text x="50%" y="58%" dominant-baseline="middle" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="900" style="font-style: italic; letter-spacing: -0.5px;">arte</text></svg>`,
+        bgClass: 'bg-orange-950/35 text-orange-400 border border-orange-500/20',
+        activeClass: 'border-orange-500/50 bg-orange-950/15 shadow-lg shadow-orange-500/5',
+        glowColor: 'rgba(249, 115, 22, 0.45)'
+      },
+      disney_plus: {
+        label: 'Disney+',
+        icon: `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                 <circle cx="12" cy="13.5" r="5.5" />
+                 <circle cx="7" cy="8.5" r="3.2" />
+                 <circle cx="17" cy="8.5" r="3.2" />
+               </svg>`,
+        bgClass: 'bg-blue-950/40 text-blue-400 border border-blue-500/30',
+        activeClass: 'border-blue-500/50 bg-blue-950/15 shadow-lg shadow-blue-500/5',
+        glowColor: 'rgba(0, 99, 229, 0.45)'
+      },
+      twitch: {
+        label: 'Twitch',
+        icon: `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>`,
+        bgClass: 'bg-purple-950/30 text-purple-400 border border-purple-500/20',
+        activeClass: 'border-purple-500/50 bg-purple-950/15 shadow-lg shadow-purple-500/5',
+        glowColor: 'rgba(145, 70, 255, 0.45)'
+      },
+      salto: {
+        label: 'Salto',
+        icon: `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><text x="50%" y="58%" dominant-baseline="middle" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="9" font-weight="900" style="letter-spacing: -0.5px;">salto</text></svg>`,
+        bgClass: 'bg-rose-950/30 text-rose-400 border border-rose-500/20',
+        activeClass: 'border-rose-500/50 bg-rose-950/15 shadow-lg shadow-rose-500/5',
+        glowColor: 'rgba(244, 63, 94, 0.45)'
+      },
+      prime_video: {
+        label: 'Prime Video',
+        icon: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><text x="50%" y="40%" fill="currentColor" dominant-baseline="middle" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="8" font-weight="900" stroke="none">prime</text><path d="M4 14c4.5 3 11.5 3 16 0" stroke-linecap="round"/><path d="M17.5 13.5l2.5 1.5l-1.5-2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+        bgClass: 'bg-cyan-950/30 text-cyan-400 border border-cyan-500/20',
+        activeClass: 'border-cyan-500/50 bg-cyan-950/15 shadow-lg shadow-cyan-500/5',
+        glowColor: 'rgba(0, 168, 225, 0.45)'
+      },
+      vlc: {
+        label: 'VLC',
+        icon: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 20h18M5 20l5.5-14.5a2 2 0 0 1 3 0L19 20" />
+                 <path stroke-linecap="round" d="M10 10h4M8 15h8" />
+               </svg>`,
+        bgClass: 'bg-orange-950/30 text-orange-400 border border-orange-500/20',
+        activeClass: 'border-orange-500/50 bg-orange-950/15 shadow-lg shadow-orange-500/5',
+        glowColor: 'rgba(249, 115, 22, 0.45)'
+      },
+      youtube_music: {
+        label: 'YouTube Music',
+        icon: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                 <circle cx="12" cy="12" r="9" />
+                 <circle cx="12" cy="12" r="5" />
+                 <polygon points="11,9.5 15,12 11,14.5" fill="currentColor" stroke="none" />
+               </svg>`,
+        bgClass: 'bg-red-950/30 text-red-400 border border-red-500/20',
+        activeClass: 'border-red-500/50 bg-red-950/15 shadow-lg shadow-red-500/5',
+        glowColor: 'rgba(239, 68, 68, 0.45)'
+      },
+      france_tv: {
+        label: 'France.tv',
+        icon: `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                 <text x="50%" y="58%" dominant-baseline="middle" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="8" font-weight="900" style="letter-spacing: -0.5px;">fr.tv</text>
+               </svg>`,
+        bgClass: 'bg-blue-950/30 text-blue-400 border border-blue-500/20',
+        activeClass: 'border-blue-500/50 bg-blue-950/15 shadow-lg shadow-blue-500/5',
+        glowColor: 'rgba(59, 130, 246, 0.45)'
+      },
+      hbo_max: {
+        label: 'HBO Max',
+        icon: `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                 <text x="50%" y="58%" dominant-baseline="middle" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="9" font-weight="900" style="letter-spacing: -0.5px;">hbo</text>
+               </svg>`,
+        bgClass: 'bg-purple-950/30 text-purple-400 border border-purple-500/20',
+        activeClass: 'border-purple-500/50 bg-purple-950/15 shadow-lg shadow-purple-500/5',
+        glowColor: 'rgba(139, 92, 246, 0.45)'
+      },
+      mubi: {
+        label: 'Mubi',
+        icon: `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                 <circle cx="6" cy="6" r="2" />
+                 <circle cx="12" cy="6" r="2" />
+                 <circle cx="18" cy="6" r="2" />
+                 <circle cx="6" cy="12" r="2" />
+                 <circle cx="12" cy="12" r="2" />
+                 <circle cx="18" cy="12" r="2" />
+                 <circle cx="6" cy="18" r="2" />
+                 <circle cx="12" cy="18" r="2" />
+                 <circle cx="18" cy="18" r="2" />
+               </svg>`,
+        bgClass: 'bg-slate-900/50 text-slate-300 border border-slate-500/20',
+        activeClass: 'border-slate-500/50 bg-slate-950/15 shadow-lg shadow-slate-500/5',
+        glowColor: 'rgba(148, 163, 184, 0.35)'
+      },
+      tv: {
+        label: 'TV',
+        icon: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><rect x="2" y="3" width="20" height="14" rx="2"/><path stroke-linecap="round" d="M8 21h8M12 17v4"/></svg>`,
+        bgClass: 'bg-blue-900/30 text-blue-300 border border-blue-500/20',
+        activeClass: 'border-blue-500/50 bg-blue-950/15 shadow-lg shadow-blue-500/5',
+        glowColor: 'rgba(59, 130, 246, 0.45)'
+      },
+      amplifier: {
+        label: 'Amplifier',
+        icon: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/><line x1="12" y1="9" x2="12" y2="15"/></svg>`,
+        bgClass: 'bg-purple-900/30 text-purple-300 border border-purple-500/20',
+        activeClass: 'border-purple-500/50 bg-purple-950/15 shadow-lg shadow-purple-500/5',
+        glowColor: 'rgba(168, 85, 247, 0.45)'
+      },
+      yamaha_musiccast: {
+        label: 'Yamaha MusicCast',
+        icon: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/><line x1="12" y1="9" x2="12" y2="15"/></svg>`,
+        bgClass: 'bg-red-950/30 text-red-400 border border-red-500/20',
+        activeClass: 'border-red-500/50 bg-red-950/15 shadow-lg shadow-red-500/5',
+        glowColor: 'rgba(239, 68, 68, 0.45)'
+      },
+      google_home: {
+        label: 'Google Home',
+        icon: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" /></svg>`,
+        bgClass: 'bg-orange-900/30 text-orange-300 border border-orange-500/20',
+        activeClass: 'border-orange-500/50 bg-orange-950/15 shadow-lg shadow-orange-500/5',
+        glowColor: 'rgba(249, 115, 22, 0.45)'
+      },
+      philips_hue: {
+        label: 'Philips Hue',
+        icon: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 9h-1m14.071-4.071l-.707.707M6.636 17.364l-.707.707m12.728 0l-.707-.707M6.636 6.636l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" /></svg>`,
+        bgClass: 'bg-amber-900/30 text-amber-300 border border-amber-500/20',
+        activeClass: 'border-amber-500/50 bg-amber-950/15 shadow-lg shadow-amber-500/5',
+        glowColor: 'rgba(245, 158, 11, 0.45)'
+      },
+      sonos: {
+        label: 'Sonos',
+        icon: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>`,
+        bgClass: 'bg-orange-950/30 text-orange-400 border border-orange-500/20',
+        activeClass: 'border-orange-500/50 bg-orange-950/15 shadow-lg shadow-orange-500/5',
+        glowColor: 'rgba(249, 115, 22, 0.45)'
+      },
+      roku: {
+        label: 'Roku',
+        icon: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><rect x="2" y="3" width="20" height="14" rx="2"/><path stroke-linecap="round" d="M8 21h8M12 17v4"/></svg>`,
+        bgClass: 'bg-violet-950/30 text-violet-400 border border-violet-500/20',
+        activeClass: 'border-violet-500/50 bg-violet-950/15 shadow-lg shadow-violet-500/5',
+        glowColor: 'rgba(139, 92, 246, 0.45)'
+      },
+      philips_wiz: {
+        label: 'Philips WiZ',
+        icon: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 9h-1m14.071-4.071l-.707.707M6.636 17.364l-.707.707m12.728 0l-.707-.707M6.636 6.636l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" /></svg>`,
+        bgClass: 'bg-cyan-950/30 text-cyan-400 border border-cyan-500/20',
+        activeClass: 'border-cyan-500/50 bg-cyan-950/15 shadow-lg shadow-cyan-500/5',
+        glowColor: 'rgba(6, 182, 212, 0.45)'
+      },
+      game: {
+        label: 'Game',
+        icon: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><rect x="2" y="6" width="20" height="12" rx="3"/><path d="M6 12h4M8 10v4M15 11h.01M18 13h.01"/></svg>`,
+        bgClass: 'bg-indigo-950/30 text-indigo-400 border border-indigo-500/20',
+        activeClass: 'border-indigo-500/50 bg-indigo-950/15 shadow-lg shadow-indigo-500/5',
+        glowColor: 'rgba(99, 102, 241, 0.45)'
+      },
+      speaker: {
+        label: 'Speaker',
+        icon: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" /></svg>`,
+        bgClass: 'bg-orange-950/30 text-orange-400 border border-orange-500/20',
+        activeClass: 'border-orange-500/50 bg-orange-950/15 shadow-lg shadow-orange-500/5',
+        glowColor: 'rgba(249, 115, 22, 0.45)'
+      },
+      lighting: {
+        label: 'Lighting',
+        icon: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 9h-1m14.071-4.071l-.707.707M6.636 17.364l-.707.707m12.728 0l-.707-.707M6.636 6.636l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" /></svg>`,
+        bgClass: 'bg-amber-900/30 text-amber-300 border border-amber-500/20',
+        activeClass: 'border-amber-500/50 bg-amber-950/15 shadow-lg shadow-amber-500/5',
+        glowColor: 'rgba(245, 158, 11, 0.45)'
+      },
+      unknown: {
+        label: 'Unknown',
+        icon: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M9 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>`,
+        bgClass: 'bg-rim text-gray-500',
+        activeClass: 'border-gold/50 bg-gold/5 shadow-lg shadow-gold/5',
+        glowColor: 'rgba(233, 166, 35, 0.45)'
+      }
+    };
+
+    const ALIASES = {
+      sony_bravia_tv: 'tv',
+      lg_tv: 'tv',
+      sharp_tv: 'tv',
+      samsung_tv: 'tv',
+      bbox: 'tv',
+      denon_amplifier: 'amplifier',
+      marantz_amplifier: 'amplifier',
+      'canal+': 'canal',
+      canal_plus: 'canal',
+      appletv: 'apple_tv',
+      'disney+': 'disney_plus',
+      disney: 'disney_plus',
+      amazon_prime: 'prime_video',
+      prime: 'prime_video',
+      yt_music: 'youtube_music',
+      ytmusic: 'youtube_music',
+      'youtube-music': 'youtube_music',
+      francetv: 'france_tv',
+      'france.tv': 'france_tv',
+      hbomax: 'hbo_max',
+      hbo: 'hbo_max',
+    };
+
+    for (const [alias, primary] of Object.entries(ALIASES)) {
+      if (SERVICES_METADATA[primary]) {
+        SERVICES_METADATA[alias] = SERVICES_METADATA[primary];
+      }
+    }

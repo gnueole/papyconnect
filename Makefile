@@ -36,7 +36,7 @@ all: build deploy restart
 # Show available make targets
 help:
 	@echo ""
-	@echo "  Eole Lab — Available commands"
+	@echo "  PapyConnect — Available commands"
 	@echo "  ─────────────────────────────────────────────────────────"
 	@echo "  Plugin .NET / Logitech console :"
 	@echo "    make all                   Build + deploy + restart (full cycle)"
@@ -81,7 +81,7 @@ status:
 
 # Print current configuration status
 plugin-status:
-	@echo "=== Eole n8n Plugin Build Configuration ==="
+	@echo "=== PapyConnect n8n Plugin Build Configuration ==="
 	@echo "Dotnet Path:     $(DOTNET)"
 	@echo "Dotnet Exists:   $(DOTNET_EXISTS)"
 	@echo "Project:         $(CSPROJ)"

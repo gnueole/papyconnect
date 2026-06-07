@@ -240,14 +240,15 @@ def _parse_vendor_apps(vendor_name: str, data) -> list[dict]:
             except Exception:
                 pass
         if not apps_list:
-            for app in ["Netflix", "YouTube", "Spotify"]:
+            for app in ["Netflix", "YouTube", "Spotify", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi"]:
                 apps_list.append({"title": app, "uri": f"launch_{_slugify(app)}"})
         return apps_list
         
     elif vendor_name == "google_home":
         return [
             {"title": "Spotify", "uri": "launch_spotify"},
-            {"title": "YouTube", "uri": "launch_youtube"}
+            {"title": "YouTube", "uri": "launch_youtube"},
+            {"title": "YouTube Music", "uri": "launch_youtube_music"}
         ]
         
     elif vendor_name == "xbox":
@@ -255,6 +256,18 @@ def _parse_vendor_apps(vendor_name: str, data) -> list[dict]:
             {"title": "Netflix", "uri": "launch_netflix"},
             {"title": "YouTube", "uri": "launch_youtube"},
             {"title": "Spotify", "uri": "launch_spotify"},
+            {"title": "Amazon Prime", "uri": "launch_prime_video"},
+            {"title": "Canal+", "uri": "launch_canal"},
+            {"title": "Apple TV", "uri": "launch_apple_tv"},
+            {"title": "Arte", "uri": "launch_arte"},
+            {"title": "Disney+", "uri": "launch_disney_plus"},
+            {"title": "Twitch", "uri": "launch_twitch"},
+            {"title": "Salto", "uri": "launch_salto"},
+            {"title": "VLC", "uri": "launch_vlc"},
+            {"title": "YouTube Music", "uri": "launch_youtube_music"},
+            {"title": "France.tv", "uri": "launch_france_tv"},
+            {"title": "HBO Max", "uri": "launch_hbo_max"},
+            {"title": "Mubi", "uri": "launch_mubi"},
             {"title": "Plex", "uri": "launch_plex"},
             {"title": "Minecraft", "uri": "launch_minecraft"},
             {"title": "FIFA", "uri": "launch_fifa"},
@@ -267,6 +280,18 @@ def _parse_vendor_apps(vendor_name: str, data) -> list[dict]:
             {"title": "Netflix", "uri": "launch_netflix"},
             {"title": "YouTube", "uri": "launch_youtube"},
             {"title": "Spotify Connect", "uri": "launch_spotify"},
+            {"title": "Amazon Prime", "uri": "launch_prime_video"},
+            {"title": "Canal+", "uri": "launch_canal"},
+            {"title": "Apple TV", "uri": "launch_apple_tv"},
+            {"title": "Arte", "uri": "launch_arte"},
+            {"title": "Disney+", "uri": "launch_disney_plus"},
+            {"title": "Twitch", "uri": "launch_twitch"},
+            {"title": "Salto", "uri": "launch_salto"},
+            {"title": "VLC", "uri": "launch_vlc"},
+            {"title": "YouTube Music", "uri": "launch_youtube_music"},
+            {"title": "France.tv", "uri": "launch_france_tv"},
+            {"title": "HBO Max", "uri": "launch_hbo_max"},
+            {"title": "Mubi", "uri": "launch_mubi"},
             {"title": "Spider-Man 2", "uri": "launch_spider-man_2"},
             {"title": "God of War Ragnarok", "uri": "launch_god_of_war_ragnarok"},
             {"title": "Gran Turismo 7", "uri": "launch_gran_turismo_7"},
@@ -321,9 +346,9 @@ async def _fetch_device_apps(device: dict, timeout: float = 1.5) -> list[dict]:
         
     if not apps_list:
         if vendor_name == "bbox":
-            return [{"title": app, "uri": f"launch_{_slugify(app)}"} for app in ["Netflix", "YouTube", "Spotify"]]
+            return [{"title": app, "uri": f"launch_{_slugify(app)}"} for app in ["Netflix", "YouTube", "Spotify", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi"]]
         elif vendor_name == "google_home":
-            return [{"title": "Spotify", "uri": "launch_spotify"}, {"title": "YouTube", "uri": "launch_youtube"}]
+            return [{"title": "Spotify", "uri": "launch_spotify"}, {"title": "YouTube", "uri": "launch_youtube"}, {"title": "YouTube Music", "uri": "launch_youtube_music"}]
             
     return apps_list
 

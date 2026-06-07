@@ -1,0 +1,143 @@
+<!-- 
+  PapyConnect — Device Details Modal Sub-include
+  =============================================================================
+  Purpose: Displays detailed information about a selected network device, 
+           including name, IP address, connection status (ping status), 
+           instructions/guides specific to that brand, and exposes a list 
+           of available actions to trigger directly.
+  
+  Architectural Glue:
+    - Renders dynamically via Alpine.js when `deviceDetailsModal.open` is true.
+    - Populated by `selectedDeviceForDetails` state object in `scripts.html`.
+    - Actions are executed via `executeDeviceAction(ip, actionName)` API calls.
+-->
+<div
+    x-show="deviceDetailsModal.open"
+    class="fixed inset-0 z-[140] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+    x-transition:enter="transition ease-out duration-300"
+    x-transition:enter-start="opacity-0 scale-95"
+    x-transition:enter-end="opacity-100 scale-100"
+    x-transition:leave="transition ease-in duration-200"
+    x-transition:leave-start="opacity-100 scale-100"
+    x-transition:leave-end="opacity-0 scale-95"
+    style="display: none;"
+    @click.self="deviceDetailsModal.open = false"
+  >
+    <div class="bg-[#1e2530] border border-[#2a3545] rounded-2xl max-w-lg w-full p-6 relative animate-fadeUp">
+      <!-- Close button -->
+      <button
+        @click="deviceDetailsModal.open = false"
+        class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors focus:outline-none text-2xl font-semibold leading-none"
+        title="Close"
+      >
+        &times;
+      </button>
+
+      <!-- Modal Content -->
+      <template x-if="selectedDeviceForDetails">
+        <div>
+          <!-- Header -->
+          <div class="flex items-center gap-3.5 pb-4 border-b border-rim/60 mb-5">
+            <div :class="iconBg(selectedDeviceForDetails.type)" class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-lg" x-html="icon(selectedDeviceForDetails.type)"></div>
+            <div>
+              <h3 class="text-base font-extrabold text-gold" x-text="selectedDeviceForDetails.name"></h3>
+              <p class="text-xs text-gray-400 mt-0.5">
+                <span class="font-mono" x-text="selectedDeviceForDetails.ip"></span>
+                <span class="mx-1.5 text-gray-600">·</span>
+                <span class="text-[10px] uppercase font-semibold tracking-wider text-gray-500" x-text="selectedDeviceForDetails.type"></span>
+                <template x-if="selectedDeviceForDetails.vendor">
+                  <span>
+                    <span class="mx-1.5 text-gray-600">·</span>
+                    <span class="text-[10px] uppercase font-semibold tracking-wider" :class="selectedDeviceForDetails.vendor === 'Generic' ? 'text-red-400' : 'text-amber-500'" x-text="selectedDeviceForDetails.vendor === 'Generic' ? 'UNKNOWN VENDOR' : selectedDeviceForDetails.vendor"></span>
+                  </span>
+                </template>
+              </p>
+            </div>
+          </div>
+
+          <!-- Info / Status / Unsupported Alert -->
+          <template x-if="selectedDeviceForDetails.vendor === 'Generic'">
+            <div class="mb-6 p-4 bg-red-950/20 border border-red-500/25 rounded-xl text-left text-xs text-red-300">
+              <div class="flex gap-3 items-start">
+                <svg class="w-5 h-5 shrink-0 mt-0.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div>
+                  <p class="font-extrabold mb-1">Deactivated (Unsupported Brand)</p>
+                  <p class="text-[11px] text-gray-400 leading-relaxed">
+                    This device was discovered on the network but its vendor/hardware is unsupported. 
+                    Control options and application list actions are deactivated.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </template>
+          
+          <template x-if="selectedDeviceForDetails.vendor !== 'Generic'">
+            <div class="flex items-center justify-between p-3 rounded-xl bg-rim/10 border border-rim/30 mb-6">
+              <span class="text-xs text-gray-400 font-medium">Connection Status</span>
+              <span class="flex items-center gap-2 text-xs font-semibold" :class="selectedDeviceForDetails.status === 'online' ? 'text-emerald-400' : 'text-red-400'">
+                <span class="w-2 h-2 rounded-full" :class="selectedDeviceForDetails.status === 'online' ? 'bg-emerald-400 animate-sonar' : 'bg-red-500'"></span>
+                <span x-text="selectedDeviceForDetails.status === 'online' ? 'Online' : 'Offline'"></span>
+              </span>
+            </div>
+          </template>
+
+          <!-- Help / Configuration Guide -->
+          <template x-if="selectedDeviceForDetails.catalog && selectedDeviceForDetails.catalog.tuto">
+            <div class="mb-6 p-4 bg-rim/20 border border-rim/50 rounded-xl text-xs text-gray-300 prose prose-invert max-w-none [&>h3]:text-gold [&>h3]:font-bold [&>h3]:text-sm [&>h3]:mb-2 [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:space-y-1 [&>p]:mb-2">
+              <div x-html="selectedDeviceForDetails.catalog.tuto"></div>
+            </div>
+          </template>
+
+          <!-- Applications / Actions List -->
+          <div>
+            <h4 class="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-3.5">Available Applications & Actions</h4>
+            
+            <template x-if="selectedDeviceForDetails.vendor === 'Generic'">
+              <div class="text-center py-8 text-gray-600 text-xs bg-rim/10 rounded-xl border border-rim/20 font-medium">
+                No actions available for unsupported vendor.
+              </div>
+            </template>
+
+            <template x-if="selectedDeviceForDetails.vendor !== 'Generic'">
+              <div class="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+                <template x-if="selectedDeviceForDetails.catalog && selectedDeviceForDetails.catalog.actions">
+                  <div class="grid gap-2.5">
+                    <template x-for="(action, name) in selectedDeviceForDetails.catalog.actions" :key="name">
+                      <div class="flex items-center justify-between p-3 rounded-xl bg-rim/20 border border-rim/50">
+                        <div class="flex items-center gap-3">
+                          <div :class="iconBg(name.replace('launch_', ''))" class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" x-html="icon(name.replace('launch_', ''))"></div>
+                          <div>
+                            <p class="text-xs font-bold text-gray-200" x-text="formatActionName(name)"></p>
+                            <p class="text-[9px] font-mono text-gray-500" x-text="'Protocol: ' + action.protocol + (action.port ? ' (Port ' + action.port + ')' : '')"></p>
+                          </div>
+                        </div>
+                        
+                        <button
+                          @click="executeDeviceAction(selectedDeviceForDetails.ip, name)"
+                          :disabled="selectedDeviceForDetails.status !== 'online'"
+                          class="px-3 py-1.5 rounded-lg text-[10px] uppercase font-bold tracking-wider transition-all duration-150"
+                          :class="selectedDeviceForDetails.status === 'online' 
+                            ? 'bg-gold hover:bg-ember text-black active:scale-95' 
+                            : 'bg-rim text-gray-600 cursor-not-allowed'"
+                        >
+                          Test
+                        </button>
+                      </div>
+                    </template>
+                  </div>
+                </template>
+
+                <template x-if="!selectedDeviceForDetails.catalog || !selectedDeviceForDetails.catalog.actions || Object.keys(selectedDeviceForDetails.catalog.actions).length === 0">
+                  <div class="text-center py-6 text-gray-600 text-xs">
+                    No applications or actions configured in the catalog for this device type.
+                  </div>
+                </template>
+              </div>
+            </template>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>

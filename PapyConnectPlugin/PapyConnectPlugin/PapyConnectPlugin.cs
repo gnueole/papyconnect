@@ -22,7 +22,7 @@ namespace Loupedeck.PapyConnectPlugin
         // This method is called when the plugin is loaded.
         public override void Load()
         {
-            PluginLog.Info("Eole n8n Plugin Loaded successfully!");
+            PluginLog.Info("PapyConnect n8n Plugin Loaded successfully!");
         }
 
         // This method is called when the plugin is unloaded.

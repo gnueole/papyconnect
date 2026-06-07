@@ -138,12 +138,12 @@
     "type": "tv",
     "get_apps_request": {
       "method": "STATIC",
-      "apps": ["Netflix", "YouTube", "Spotify", "Amazon Prime"]
+      "apps": ["Netflix", "YouTube", "Spotify", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi"]
     },
     "api_calls": {
       "Get Application List": {
         "protocol": "STATIC",
-        "apps": ["Netflix", "YouTube", "Spotify", "Amazon Prime"]
+        "apps": ["Netflix", "YouTube", "Spotify", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi"]
       },
       "Power Off": {
         "protocol": "HTTP",
@@ -184,12 +184,12 @@
     "type": "tv",
     "get_apps_request": {
       "method": "STATIC",
-      "apps": ["Netflix", "YouTube"]
+      "apps": ["Netflix", "YouTube", "Spotify", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi"]
     },
     "api_calls": {
       "Get Application List": {
         "protocol": "STATIC",
-        "apps": ["Netflix", "YouTube"]
+        "apps": ["Netflix", "YouTube", "Spotify", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi"]
       },
       "Power On": {
         "protocol": "TCP",
@@ -215,12 +215,12 @@
     "type": "tv",
     "get_apps_request": {
       "method": "STATIC",
-      "apps": ["Netflix", "YouTube", "Spotify", "Disney Plus", "Amazon Prime"]
+      "apps": ["Netflix", "YouTube", "Spotify", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi"]
     },
     "api_calls": {
       "Get Application List": {
         "protocol": "STATIC",
-        "apps": ["Netflix", "YouTube", "Spotify", "Disney Plus", "Amazon Prime"]
+        "apps": ["Netflix", "YouTube", "Spotify", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi"]
       },
       "Get Device Info": {
         "protocol": "HTTP",
@@ -367,12 +367,12 @@
     "type": "tv",
     "get_apps_request": {
       "method": "STATIC",
-      "apps": ["Home", "Netflix", "YouTube", "Hulu"]
+      "apps": ["Home", "Netflix", "YouTube", "Spotify", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi", "Hulu"]
     },
     "api_calls": {
       "Get Application List": {
         "protocol": "STATIC",
-        "apps": ["Home", "Netflix", "YouTube", "Hulu"]
+        "apps": ["Home", "Netflix", "YouTube", "Spotify", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi", "Hulu"]
       },
       "Press Home Key": {
         "protocol": "HTTP",
@@ -481,12 +481,12 @@
     "type": "game",
     "get_apps_request": {
       "method": "STATIC",
-      "apps": ["Netflix", "YouTube", "Spotify", "Plex", "Minecraft", "FIFA", "Halo Infinite", "Forza Horizon 5"]
+      "apps": ["Netflix", "YouTube", "Spotify", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi", "Plex", "Minecraft", "FIFA", "Halo Infinite", "Forza Horizon 5"]
     },
     "api_calls": {
       "Get Application List": {
         "protocol": "STATIC",
-        "apps": ["Netflix", "YouTube", "Spotify", "Plex", "Minecraft", "FIFA", "Halo Infinite", "Forza Horizon 5"]
+        "apps": ["Netflix", "YouTube", "Spotify", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi", "Plex", "Minecraft", "FIFA", "Halo Infinite", "Forza Horizon 5"]
       },
       "Power On": {
         "protocol": "STATIC"
@@ -503,12 +503,12 @@
     "type": "game",
     "get_apps_request": {
       "method": "STATIC",
-      "apps": ["Netflix", "YouTube", "Spotify Connect", "Spider-Man 2", "God of War Ragnarok", "Gran Turismo 7", "Elden Ring"]
+      "apps": ["Netflix", "YouTube", "Spotify Connect", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi", "Spider-Man 2", "God of War Ragnarok", "Gran Turismo 7", "Elden Ring"]
     },
     "api_calls": {
       "Get Application List": {
         "protocol": "STATIC",
-        "apps": ["Netflix", "YouTube", "Spotify Connect", "Spider-Man 2", "God of War Ragnarok", "Gran Turismo 7", "Elden Ring"]
+        "apps": ["Netflix", "YouTube", "Spotify Connect", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi", "Spider-Man 2", "God of War Ragnarok", "Gran Turismo 7", "Elden Ring"]
       }
     }
   },
@@ -528,7 +528,7 @@
     "api_calls": {
       "Get Application List": {
         "protocol": "STATIC",
-        "apps": ["Spotify", "YouTube"]
+        "apps": ["Spotify", "YouTube", "YouTube Music"]
       }
     }
   },

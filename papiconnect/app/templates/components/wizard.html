@@ -1,5 +1,5 @@
 <!-- WIZARD (Left Panel) -->
-<section class="lg:col-span-5 bg-panel border border-rim rounded-2xl p-6 flex flex-col justify-between" style="min-height: 400px;">
+<section class="lg:col-span-5 bg-panel border border-rim rounded-2xl p-6 flex flex-col justify-between" style="min-height: 450px;">
         <div>
           <div class="flex items-center justify-between pb-4 border-b border-rim mb-5">
             <h3 class="font-extrabold text-sm uppercase tracking-wider text-gold">Create Action</h3>
@@ -8,36 +8,32 @@
 
           <!-- Step 1: Choose Application -->
           <div x-show="wizard.step === 1" class="space-y-4 animate-fadeUp">
-            <p class="text-xs text-gray-400 mb-2">Choose the application or service to launch:</p>
-            <div class="grid grid-cols-3 gap-3">
-              <button @click="selectService('netflix')" class="flex flex-col items-center justify-center p-4 rounded-xl bg-rim/20 hover:bg-red-950/20 border border-rim hover:border-red-600/50 transition-all duration-150 active:scale-95 group">
-                <span class="p-2.5 rounded-lg bg-red-900/10 text-red-500 group-hover:bg-red-900/20" x-html="icon('netflix')"></span>
-                <span class="text-xs font-bold mt-2.5">Netflix</span>
-              </button>
+            <template x-if="getPopularServices().length > 0">
+              <div>
+                <p class="text-xs text-gray-400 mb-3">Select a discovered application or command to target:</p>
+                <div class="grid grid-cols-3 gap-3 max-h-[300px] overflow-y-auto pr-1">
+                  <template x-for="s in getPopularServices()" :key="s.key">
+                    <button @click="selectService(s.key)" class="flex flex-col items-center justify-center p-3 rounded-xl bg-rim/20 hover:bg-gold/10 border border-rim hover:border-gold/30 transition-all duration-150 active:scale-95 group relative w-full">
+                      <!-- Popularity counter pill -->
+                      <span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-full bg-rim text-[8px] font-bold text-gray-400" x-text="s.count"></span>
+                      
+                      <span :class="iconBg(s.key)" class="p-2.5 rounded-lg flex items-center justify-center" x-html="icon(s.key)"></span>
+                      <span class="text-[9px] font-bold mt-2 text-center break-words w-full" x-text="s.label"></span>
+                    </button>
+                  </template>
+                </div>
+              </div>
+            </template>
 
-              <button @click="selectService('spotify')" class="flex flex-col items-center justify-center p-4 rounded-xl bg-rim/20 hover:bg-emerald-950/20 border border-rim hover:border-emerald-600/50 transition-all duration-150 active:scale-95 group">
-                <span class="p-2.5 rounded-lg bg-emerald-900/10 text-emerald-400 group-hover:bg-emerald-900/20" x-html="icon('spotify')"></span>
-                <span class="text-xs font-bold mt-2.5">Spotify</span>
-              </button>
-
-              <button @click="selectService('youtube')" class="flex flex-col items-center justify-center p-4 rounded-xl bg-rim/20 hover:bg-red-950/10 border border-rim hover:border-red-500/50 transition-all duration-150 active:scale-95 group">
-                <span class="p-2.5 rounded-lg bg-red-900/10 text-red-400 group-hover:bg-red-900/20" x-html="icon('youtube')"></span>
-                <span class="text-xs font-bold mt-2.5">YouTube</span>
-              </button>
-            </div>
-
-            <p class="text-xs text-gray-400 mt-4 mb-2">Or control device state:</p>
-            <div class="grid grid-cols-2 gap-3">
-              <button @click="selectService('power_on')" class="flex flex-col items-center justify-center p-4 rounded-xl bg-rim/20 hover:bg-emerald-950/20 border border-rim hover:border-emerald-600/50 transition-all duration-150 active:scale-95 group">
-                <span class="p-2.5 rounded-lg bg-emerald-900/10 text-emerald-400 group-hover:bg-emerald-900/20" x-html="icon('power_on')"></span>
-                <span class="text-xs font-bold mt-2.5">Power On</span>
-              </button>
-
-              <button @click="selectService('power_off')" class="flex flex-col items-center justify-center p-4 rounded-xl bg-rim/20 hover:bg-red-950/20 border border-rim hover:border-red-600/50 transition-all duration-150 active:scale-95 group">
-                <span class="p-2.5 rounded-lg bg-red-900/10 text-red-500 group-hover:bg-red-900/20" x-html="icon('power_off')"></span>
-                <span class="text-xs font-bold mt-2.5">Power Off</span>
-              </button>
-            </div>
+            <template x-if="getPopularServices().length === 0">
+              <div class="flex flex-col items-center justify-center py-12 text-center text-gray-500">
+                <svg class="w-12 h-12 mb-3 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <p class="text-xs font-semibold">No services available</p>
+                <p class="text-[10px] mt-1 text-gray-600 max-w-[200px] mx-auto">Perform a network scan above to discover online devices and retrieve their available capabilities.</p>
+              </div>
+            </template>
           </div>
 
           <!-- Step 2: Select Location -->
