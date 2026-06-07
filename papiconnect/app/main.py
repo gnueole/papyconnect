@@ -227,6 +227,86 @@ DEVICE_CATALOGS["bbox"] = {
     "actions": {}
 }
 DEVICE_CATALOGS["denon_amplifier"] = DEVICE_CATALOGS["amplifier"]
+DEVICE_CATALOGS["marantz_amplifier"] = {
+    "icon": "marantz_amplifier",
+    "tuto": """
+        <h3>🔊 Marantz Receiver Configuration (Telnet)</h3>
+        <p>Control is executed via raw TCP commands on port 23.</p>
+        <ul style="text-align: left; margin-top: 8px;">
+            <li><b>Required:</b> Set the <i>Network Control</i> option to <b>Always On</b> in the receiver settings (Setup ➔ Network) to allow remote power on.</li>
+            <li>The command <code style="color: #ff9800;">SINET</code> powers the receiver on and switches to the Network/Spotify Connect input.</li>
+        </ul>
+    """,
+    "actions": {
+        "launch_spotify": {
+            "protocol": "TCP",
+            "port": 23,
+            "payload": "SINET\r"
+        },
+        "power_off": {
+            "protocol": "TCP",
+            "port": 23,
+            "payload": "PWSTANDBY\r"
+        }
+    }
+}
+DEVICE_CATALOGS["lg_tv"] = {
+    "icon": "lg_tv",
+    "tuto": """
+        <h3>📺 LG TV Configuration (WebOS REST)</h3>
+        <p>Control is executed via REST HTTP requests on port 8010.</p>
+    """,
+    "actions": {
+        "power_off": {
+            "protocol": "HTTP",
+            "method": "POST",
+            "port": 8010,
+            "path": "/roap/api/command",
+            "headers": {
+                "Content-Type": "application/xml"
+            },
+            "payload": "<?xml version=\"1.0\" encoding=\"utf-8\"?><command><name>HandleKeyInput</name><value>1</value></command>"
+        }
+    }
+}
+DEVICE_CATALOGS["sharp_tv"] = {
+    "icon": "sharp_tv",
+    "tuto": """
+        <h3>📺 Sharp AQUOS TV Configuration (IP Control)</h3>
+        <p>Control is executed via raw TCP commands on port 10002.</p>
+    """,
+    "actions": {
+        "power_on": {
+            "protocol": "TCP",
+            "port": 10002,
+            "payload": "POWR1   \r"
+        },
+        "power_off": {
+            "protocol": "TCP",
+            "port": 10002,
+            "payload": "POWR0   \r"
+        }
+    }
+}
+DEVICE_CATALOGS["samsung_tv"] = {
+    "icon": "samsung_tv",
+    "tuto": """
+        <h3>📺 Samsung TV Configuration (Tizen REST)</h3>
+        <p>Control is executed via REST HTTP requests on port 8001.</p>
+    """,
+    "actions": {
+        "power_off": {
+            "protocol": "HTTP",
+            "method": "POST",
+            "port": 8001,
+            "path": "/api/v2/channels/samsung.remote.control",
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "payload": "{\"method\":\"ms.remote.control\",\"params\":{\"Cmd\":\"Click\",\"DataOfCmd\":\"KEY_POWER\",\"Option\":\"false\",\"TypeOfRemote\":\"SendRemoteKey\"}}"
+        }
+    }
+}
 
 # Known devices defined with specific environment/location variables
 KNOWN_DEVICES: dict[str, dict] = {}
@@ -462,9 +542,138 @@ class PlaystationVendor(Vendor):
         }
 
 
+class MarantzVendor(Vendor):
+    name: str = "Marantz"
+    version: str = "v1.0 (Telnet TCP)"
+    description: str = "Marantz AV Receivers controlled via raw TCP Telnet protocol commands."
+
+    @classmethod
+    def get_api_calls(cls) -> dict:
+        return {
+            "Power On & Select Spotify/NET Input": {
+                "protocol": "TCP",
+                "port": 23,
+                "payload": "SINET\r"
+            },
+            "Power Off (Standby)": {
+                "protocol": "TCP",
+                "port": 23,
+                "payload": "PWSTANDBY\r"
+            },
+            "Volume Up": {
+                "protocol": "TCP",
+                "port": 23,
+                "payload": "MVUP\r"
+            },
+            "Volume Down": {
+                "protocol": "TCP",
+                "port": 23,
+                "payload": "MVDOWN\r"
+            }
+        }
+
+
+class LgTvVendor(Vendor):
+    name: str = "LG TV"
+    version: str = "v1.0 (WebOS REST)"
+    description: str = "LG Smart TVs running WebOS, controlled via REST HTTP API commands."
+
+    @classmethod
+    def get_api_calls(cls) -> dict:
+        return {
+            "Power Off": {
+                "protocol": "HTTP",
+                "method": "POST",
+                "port": 8010,
+                "path": "/roap/api/command",
+                "headers": {
+                    "Content-Type": "application/xml"
+                },
+                "payload": "<?xml version=\"1.0\" encoding=\"utf-8\"?><command><name>HandleKeyInput</name><value>1</value></command>"
+            },
+            "Launch YouTube": {
+                "protocol": "HTTP",
+                "method": "POST",
+                "port": 8010,
+                "path": "/roap/api/command",
+                "headers": {
+                    "Content-Type": "application/xml"
+                },
+                "payload": "<?xml version=\"1.0\" encoding=\"utf-8\"?><command><name>AppLaunch</name><value>youtube</value></command>"
+            },
+            "Launch Netflix": {
+                "protocol": "HTTP",
+                "method": "POST",
+                "port": 8010,
+                "path": "/roap/api/command",
+                "headers": {
+                    "Content-Type": "application/xml"
+                },
+                "payload": "<?xml version=\"1.0\" encoding=\"utf-8\"?><command><name>AppLaunch</name><value>netflix</value></command>"
+            }
+        }
+
+
+class SharpTvVendor(Vendor):
+    name: str = "Sharp TV"
+    version: str = "v1.0 (AQUOS IP Control)"
+    description: str = "Sharp AQUOS Smart TVs controlled via raw TCP commands on port 10002."
+
+    @classmethod
+    def get_api_calls(cls) -> dict:
+        return {
+            "Power On": {
+                "protocol": "TCP",
+                "port": 10002,
+                "payload": "POWR1   \r"
+            },
+            "Power Off": {
+                "protocol": "TCP",
+                "port": 10002,
+                "payload": "POWR0   \r"
+            },
+            "Input HDMI 1": {
+                "protocol": "TCP",
+                "port": 10002,
+                "payload": "IAVI1   \r"
+            }
+        }
+
+
+class SamsungTvVendor(Vendor):
+    name: str = "Samsung TV"
+    version: str = "v1.0 (Samsung Tizen REST)"
+    description: str = "Samsung Smart TVs running Tizen OS, controlled via REST HTTP commands."
+
+    @classmethod
+    def get_api_calls(cls) -> dict:
+        return {
+            "Get Device Info": {
+                "protocol": "HTTP",
+                "method": "GET",
+                "port": 8001,
+                "path": "/api/v2/"
+            },
+            "Power Off": {
+                "protocol": "HTTP",
+                "method": "POST",
+                "port": 8001,
+                "path": "/api/v2/channels/samsung.remote.control",
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "payload": "{\"method\":\"ms.remote.control\",\"params\":{\"Cmd\":\"Click\",\"DataOfCmd\":\"KEY_POWER\",\"Option\":\"false\",\"TypeOfRemote\":\"SendRemoteKey\"}}"
+            }
+        }
+
+
 VENDORS: dict[str, type[Vendor]] = {
     "Sony": SonyVendor,
     "Denon": DenonVendor,
+    "Marantz": MarantzVendor,
+    "LG TV": LgTvVendor,
+    "Sharp TV": SharpTvVendor,
+    "Samsung TV": SamsungTvVendor,
     "Bbox": BboxVendor,
     "Xbox": XboxVendor,
     "Playstation": PlaystationVendor,
@@ -532,6 +741,34 @@ VENDORS_REGISTRY = {
             "method": "STATIC",
             "apps": ["Spotify"]
         }
+    },
+    "marantz_amplifier": {
+        "vendor": "marantz_amplifier",
+        "get_apps_request": {
+            "method": "STATIC",
+            "apps": ["Spotify", "HEOS"]
+        }
+    },
+    "lg_tv": {
+        "vendor": "lg_tv",
+        "get_apps_request": {
+            "method": "STATIC",
+            "apps": ["Netflix", "YouTube", "Spotify", "Amazon Prime"]
+        }
+    },
+    "sharp_tv": {
+        "vendor": "sharp_tv",
+        "get_apps_request": {
+            "method": "STATIC",
+            "apps": ["Netflix", "YouTube"]
+        }
+    },
+    "samsung_tv": {
+        "vendor": "samsung_tv",
+        "get_apps_request": {
+            "method": "STATIC",
+            "apps": ["Netflix", "YouTube", "Spotify", "Disney Plus", "Amazon Prime"]
+        }
     }
 }
 
@@ -545,6 +782,14 @@ def _get_device_vendor_name(device: dict) -> str:
             return "sony_bravia_tv"
         if "denon" in v_lower:
             return "denon_amplifier"
+        if "marantz" in v_lower:
+            return "marantz_amplifier"
+        if "lg" in v_lower:
+            return "lg_tv"
+        if "sharp" in v_lower:
+            return "sharp_tv"
+        if "samsung" in v_lower:
+            return "samsung_tv"
         if "bbox" in v_lower:
             return "bbox"
         if "google" in v_lower or "cast" in v_lower:
@@ -562,6 +807,14 @@ def _get_device_vendor_name(device: dict) -> str:
         return "sony_bravia_tv"
     if dtype in ["amplifier", "denon_amplifier"]:
         return "denon_amplifier"
+    if dtype == "marantz_amplifier":
+        return "marantz_amplifier"
+    if dtype == "lg_tv":
+        return "lg_tv"
+    if dtype == "sharp_tv":
+        return "sharp_tv"
+    if dtype == "samsung_tv":
+        return "samsung_tv"
     if dtype == "xbox":
         return "xbox"
     if dtype in ["playstation", "ps5", "ps4"]:
@@ -572,8 +825,16 @@ def _get_device_vendor_name(device: dict) -> str:
     name = device.get("name", "").lower()
     if "sony" in name or "bravia" in name:
         return "sony_bravia_tv"
-    if "denon" in name or "marantz" in name:
+    if "denon" in name:
         return "denon_amplifier"
+    if "marantz" in name:
+        return "marantz_amplifier"
+    if "lg" in name:
+        return "lg_tv"
+    if "sharp" in name:
+        return "sharp_tv"
+    if "samsung" in name:
+        return "samsung_tv"
     if "bbox" in name:
         return "bbox"
     if "google" in name or "chromecast" in name or "nest" in name:
@@ -591,6 +852,10 @@ def _get_device_vendor(device: dict) -> type[Vendor]:
     mapping = {
         "sony_bravia_tv": SonyVendor,
         "denon_amplifier": DenonVendor,
+        "marantz_amplifier": MarantzVendor,
+        "lg_tv": LgTvVendor,
+        "sharp_tv": SharpTvVendor,
+        "samsung_tv": SamsungTvVendor,
         "google_home": GenericVendor,
         "bbox": BboxVendor,
         "xbox": XboxVendor,
