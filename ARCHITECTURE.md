@@ -10,8 +10,8 @@ PapyConnect is designed as a decoupled, multi-tiered automation stack. It links 
 
 ```mermaid
 graph LR
-    Logi[Logitech Keypad / C# Plugin] -->|1. Webhook Trigger| n8n[n8n Automation Gateway]
-    n8n -->|2. Query Capabilities| PC[PapyConnect Registry]
+    Trigger[Trigger / Logitech, Stream Deck, Mobile App] -->|1. Webhook HTTP POST| n8n[n8n Automation Gateway]
+    n8n -->|2. Query Capabilities Recipe| PC[PapyConnect Backend]
     n8n -->|3. Dispatch Commands| IoT[IoT Devices / TV, Amp, lighting]
 ```
 

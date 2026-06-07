@@ -19,13 +19,12 @@ To keep the system open and future-proof, PapyConnect is entirely **agnostic to 
 
 ```mermaid
 graph TD
-    A[Logitech MX Creative Keypad] -->|1. Presses LCD Key| B[PapyConnect Plugin / extension]
-    B -->|2. Dynamic HTTP POST Webhook| C[n8n Gateway / gronas:5678]
-    C -->|3. Query Execution Contract| D[PapyConnect / gronas:8000]
-    D -->|4. Returns HTTP/TCP details| C
-    C -->|5a. Execute HTTP POST| E[Sony Bravia TV API]
-    C -->|5b. Execute raw TCP Telnet| F[Denon/Marantz Telnet]
-    C -->|5c. Set Scene parallelly| G[LIFX Cloud API]
+    A["Tactile Trigger<br>(Logitech, Stream Deck, HTTPRequest App)"] -->|1. HTTP POST Webhook| C["n8n Gateway<br>(gronas:5678)"]
+    C -->|2. Query Execution Contract| D["PapyConnect Backend<br>(gronas:8000)"]
+    D -->|3. Returns HTTP/TCP Recipe Details| C
+    C -->|4a. Execute HTTP POST| E[Sony Bravia TV API]
+    C -->|4b. Execute raw TCP Telnet| F[Denon/Marantz Telnet]
+    C -->|4c. Control Scene / App| G[Other Smart Devices / Bbox, Hue]
 ```
 
 ---
