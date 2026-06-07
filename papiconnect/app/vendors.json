@@ -1,0 +1,542 @@
+{
+  "sony_bravia_tv": {
+    "name": "Sony",
+    "version": "v1.0 (Bravia Simple IP)",
+    "description": "Sony Bravia TVs using Pre-Shared Key (PSK) authentication.",
+    "type": "tv",
+    "get_apps_request": {
+      "method": "POST",
+      "url": "http://{device_ip}/sony/appControl",
+      "headers": {
+        "X-Auth-PSK": "0000",
+        "Content-Type": "application/json"
+      },
+      "payload": {
+        "method": "getApplicationList",
+        "version": "1.0",
+        "id": 1,
+        "params": []
+      }
+    },
+    "api_calls": {
+      "Get Application List": {
+        "protocol": "HTTP",
+        "method": "POST",
+        "port": 80,
+        "path": "/sony/appControl",
+        "headers": {
+          "X-Auth-PSK": "0000",
+          "Content-Type": "application/json"
+        },
+        "payload": {
+          "method": "getApplicationList",
+          "version": "1.0",
+          "id": 1,
+          "params": []
+        }
+      },
+      "Launch Application": {
+        "protocol": "HTTP",
+        "method": "POST",
+        "port": 80,
+        "path": "/sony/appControl",
+        "headers": {
+          "X-Auth-PSK": "0000",
+          "Content-Type": "application/json"
+        },
+        "payload": {
+          "method": "setActiveApp",
+          "version": "1.0",
+          "id": 1,
+          "params": [{"uri": "App URI (e.g. com.sony.dtv.com.netflix.ninja...)"}]
+        }
+      }
+    },
+    "launch_action_template": {
+      "protocol": "HTTP",
+      "method": "POST",
+      "port": 80,
+      "path": "/sony/appControl",
+      "headers": {
+        "X-Auth-PSK": "0000",
+        "Content-Type": "application/json"
+      },
+      "payload": {
+        "method": "setActiveApp",
+        "version": "1.0",
+        "id": 1,
+        "params": [{"uri": "{app_uri}"}]
+      }
+    }
+  },
+  "denon_amplifier": {
+    "name": "Denon",
+    "version": "v1.0 (Telnet TCP)",
+    "description": "Denon and Marantz AV Receivers controlled via raw TCP Telnet protocol commands.",
+    "type": "amplifier",
+    "get_apps_request": {
+      "method": "STATIC",
+      "apps": ["Spotify"]
+    },
+    "api_calls": {
+      "Get Application List": {
+        "protocol": "STATIC",
+        "apps": ["Spotify"]
+      },
+      "Power On & Select Spotify/NET Input": {
+        "protocol": "TCP",
+        "port": 23,
+        "payload": "SINET\r"
+      },
+      "Power Off (Standby)": {
+        "protocol": "TCP",
+        "port": 23,
+        "payload": "PWSTANDBY\r"
+      }
+    }
+  },
+  "marantz_amplifier": {
+    "name": "Marantz",
+    "version": "v1.0 (Telnet TCP)",
+    "description": "Marantz AV Receivers controlled via raw TCP Telnet protocol commands.",
+    "type": "amplifier",
+    "get_apps_request": {
+      "method": "STATIC",
+      "apps": ["Spotify", "HEOS"]
+    },
+    "api_calls": {
+      "Get Application List": {
+        "protocol": "STATIC",
+        "apps": ["Spotify", "HEOS"]
+      },
+      "Power On & Select Spotify/NET Input": {
+        "protocol": "TCP",
+        "port": 23,
+        "payload": "SINET\r"
+      },
+      "Power Off (Standby)": {
+        "protocol": "TCP",
+        "port": 23,
+        "payload": "PWSTANDBY\r"
+      },
+      "Volume Up": {
+        "protocol": "TCP",
+        "port": 23,
+        "payload": "MVUP\r"
+      },
+      "Volume Down": {
+        "protocol": "TCP",
+        "port": 23,
+        "payload": "MVDOWN\r"
+      }
+    }
+  },
+  "lg_tv": {
+    "name": "LG TV",
+    "version": "v1.0 (WebOS REST)",
+    "description": "LG Smart TVs running WebOS, controlled via REST HTTP API commands.",
+    "type": "tv",
+    "get_apps_request": {
+      "method": "STATIC",
+      "apps": ["Netflix", "YouTube", "Spotify", "Amazon Prime"]
+    },
+    "api_calls": {
+      "Get Application List": {
+        "protocol": "STATIC",
+        "apps": ["Netflix", "YouTube", "Spotify", "Amazon Prime"]
+      },
+      "Power Off": {
+        "protocol": "HTTP",
+        "method": "POST",
+        "port": 8010,
+        "path": "/roap/api/command",
+        "headers": {
+          "Content-Type": "application/xml"
+        },
+        "payload": "<?xml version=\"1.0\" encoding=\"utf-8\"?><command><name>HandleKeyInput</name><value>1</value></command>"
+      },
+      "Launch YouTube": {
+        "protocol": "HTTP",
+        "method": "POST",
+        "port": 8010,
+        "path": "/roap/api/command",
+        "headers": {
+          "Content-Type": "application/xml"
+        },
+        "payload": "<?xml version=\"1.0\" encoding=\"utf-8\"?><command><name>AppLaunch</name><value>youtube</value></command>"
+      },
+      "Launch Netflix": {
+        "protocol": "HTTP",
+        "method": "POST",
+        "port": 8010,
+        "path": "/roap/api/command",
+        "headers": {
+          "Content-Type": "application/xml"
+        },
+        "payload": "<?xml version=\"1.0\" encoding=\"utf-8\"?><command><name>AppLaunch</name><value>netflix</value></command>"
+      }
+    }
+  },
+  "sharp_tv": {
+    "name": "Sharp TV",
+    "version": "v1.0 (Sharp AQUOS TCP)",
+    "description": "Sharp AQUOS Smart TVs controlled via raw TCP socket commands.",
+    "type": "tv",
+    "get_apps_request": {
+      "method": "STATIC",
+      "apps": ["Netflix", "YouTube"]
+    },
+    "api_calls": {
+      "Get Application List": {
+        "protocol": "STATIC",
+        "apps": ["Netflix", "YouTube"]
+      },
+      "Power On": {
+        "protocol": "TCP",
+        "port": 10002,
+        "payload": "POWR1   \r"
+      },
+      "Power Off": {
+        "protocol": "TCP",
+        "port": 10002,
+        "payload": "POWR0   \r"
+      },
+      "Input HDMI 1": {
+        "protocol": "TCP",
+        "port": 10002,
+        "payload": "IAVI1   \r"
+      }
+    }
+  },
+  "samsung_tv": {
+    "name": "Samsung TV",
+    "version": "v1.0 (Tizen REST)",
+    "description": "Samsung Smart TVs running Tizen, controlled via REST HTTP Remote API.",
+    "type": "tv",
+    "get_apps_request": {
+      "method": "STATIC",
+      "apps": ["Netflix", "YouTube", "Spotify", "Disney Plus", "Amazon Prime"]
+    },
+    "api_calls": {
+      "Get Application List": {
+        "protocol": "STATIC",
+        "apps": ["Netflix", "YouTube", "Spotify", "Disney Plus", "Amazon Prime"]
+      },
+      "Get Device Info": {
+        "protocol": "HTTP",
+        "method": "GET",
+        "port": 8001,
+        "path": "/api/v2/"
+      },
+      "Power Off": {
+        "protocol": "HTTP",
+        "method": "POST",
+        "port": 8001,
+        "path": "/api/v2/channels/samsung.remote.control",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "payload": "{\"method\":\"ms.remote.control\",\"params\":{\"Cmd\":\"Click\",\"DataOfCmd\":\"KEY_POWER\",\"Option\":\"false\",\"TypeOfRemote\":\"SendRemoteKey\"}}"
+      }
+    }
+  },
+  "philips_hue": {
+    "name": "Philips Hue",
+    "version": "v1.0 (Hue REST)",
+    "description": "Philips Hue Smart Lighting Bridge controlling lights via local REST API.",
+    "type": "lighting",
+    "get_apps_request": {
+      "method": "STATIC",
+      "apps": ["Light Zone 1", "Light Zone 2", "All Lights"]
+    },
+    "api_calls": {
+      "Get Application List": {
+        "protocol": "STATIC",
+        "apps": ["Light Zone 1", "Light Zone 2", "All Lights"]
+      },
+      "Power On Light": {
+        "protocol": "HTTP",
+        "method": "PUT",
+        "port": 80,
+        "path": "/api/{username}/lights/{id}/state",
+        "payload": "{\"on\":true}"
+      },
+      "Power Off Light": {
+        "protocol": "HTTP",
+        "method": "PUT",
+        "port": 80,
+        "path": "/api/{username}/lights/{id}/state",
+        "payload": "{\"on\":false}"
+      },
+      "Set Brightness & Color": {
+        "protocol": "HTTP",
+        "method": "PUT",
+        "port": 80,
+        "path": "/api/{username}/lights/{id}/state",
+        "payload": "{\"on\":true,\"bri\":254,\"hue\":10000,\"sat\":254}"
+      }
+    }
+  },
+  "sonos": {
+    "name": "Sonos",
+    "version": "v1.0 (Sonos SOAP)",
+    "description": "Sonos smart speakers and players controlled locally via UPnP/SOAP HTTP requests.",
+    "type": "speaker",
+    "get_apps_request": {
+      "method": "STATIC",
+      "apps": ["Line-In", "Spotify", "TuneIn Radio"]
+    },
+    "api_calls": {
+      "Get Application List": {
+        "protocol": "STATIC",
+        "apps": ["Line-In", "Spotify", "TuneIn Radio"]
+      },
+      "Play": {
+        "protocol": "HTTP",
+        "method": "POST",
+        "port": 1400,
+        "path": "/MediaRenderer/AVTransport/Control",
+        "headers": {
+          "SOAPACTION": "\"urn:schemas-upnp-org:service:AVTransport:1#Play\"",
+          "Content-Type": "text/xml; charset=\"utf-8\""
+        },
+        "payload": "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\"><s:Body><u:Play xmlns:u=\"urn:schemas-upnp-org:service:AVTransport:1\"><InstanceID>0</InstanceID><Speed>1</Speed></u:Play></s:Body></s:Envelope>"
+      },
+      "Pause": {
+        "protocol": "HTTP",
+        "method": "POST",
+        "port": 1400,
+        "path": "/MediaRenderer/AVTransport/Control",
+        "headers": {
+          "SOAPACTION": "\"urn:schemas-upnp-org:service:AVTransport:1#Pause\"",
+          "Content-Type": "text/xml; charset=\"utf-8\""
+        },
+        "payload": "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\"><s:Body><u:Pause xmlns:u=\"urn:schemas-upnp-org:service:AVTransport:1\"><InstanceID>0</InstanceID></u:Pause></s:Body></s:Envelope>"
+      },
+      "Set Volume": {
+        "protocol": "HTTP",
+        "method": "POST",
+        "port": 1400,
+        "path": "/MediaRenderer/RenderingControl/Control",
+        "headers": {
+          "SOAPACTION": "\"urn:schemas-upnp-org:service:RenderingControl:1#SetVolume\"",
+          "Content-Type": "text/xml; charset=\"utf-8\""
+        },
+        "payload": "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\"><s:Body><u:SetVolume xmlns:u=\"urn:schemas-upnp-org:service:RenderingControl:1\"><InstanceID>0</InstanceID><Channel>Master</Channel><DesiredVolume>30</DesiredVolume></u:SetVolume></s:Body></s:Envelope>"
+      }
+    }
+  },
+  "yamaha_musiccast": {
+    "name": "Yamaha MusicCast",
+    "version": "v1.0 (MusicCast REST)",
+    "description": "Yamaha AV Receivers and speakers using local MusicCast REST HTTP JSON API.",
+    "type": "amplifier",
+    "get_apps_request": {
+      "method": "STATIC",
+      "apps": ["HDMI 1", "HDMI 2", "Spotify", "Bluetooth"]
+    },
+    "api_calls": {
+      "Get Application List": {
+        "protocol": "STATIC",
+        "apps": ["HDMI 1", "HDMI 2", "Spotify", "Bluetooth"]
+      },
+      "Power On": {
+        "protocol": "HTTP",
+        "method": "GET",
+        "port": 80,
+        "path": "/api/v1/main/setPower?power=on"
+      },
+      "Power Off": {
+        "protocol": "HTTP",
+        "method": "GET",
+        "port": 80,
+        "path": "/api/v1/main/setPower?power=standby"
+      },
+      "Set Volume": {
+        "protocol": "HTTP",
+        "method": "GET",
+        "port": 80,
+        "path": "/api/v1/main/setVolume?volume=30"
+      }
+    }
+  },
+  "roku": {
+    "name": "Roku",
+    "version": "v1.0 (Roku ECP)",
+    "description": "Roku Streaming players and Roku TVs controlled via External Control Protocol (ECP).",
+    "type": "tv",
+    "get_apps_request": {
+      "method": "STATIC",
+      "apps": ["Home", "Netflix", "YouTube", "Hulu"]
+    },
+    "api_calls": {
+      "Get Application List": {
+        "protocol": "STATIC",
+        "apps": ["Home", "Netflix", "YouTube", "Hulu"]
+      },
+      "Press Home Key": {
+        "protocol": "HTTP",
+        "method": "POST",
+        "port": 8060,
+        "path": "/keypress/Home"
+      },
+      "Launch Netflix": {
+        "protocol": "HTTP",
+        "method": "POST",
+        "port": 8060,
+        "path": "/launch/12"
+      },
+      "Launch YouTube": {
+        "protocol": "HTTP",
+        "method": "POST",
+        "port": 8060,
+        "path": "/launch/837"
+      }
+    }
+  },
+  "philips_wiz": {
+    "name": "Philips WiZ",
+    "version": "v1.0 (WiZ UDP)",
+    "description": "Philips WiZ WiFi smart lights controlled via local UDP JSON packets.",
+    "type": "lighting",
+    "get_apps_request": {
+      "method": "STATIC",
+      "apps": ["Toggle Light", "Daylight Scene", "Night Light Scene"]
+    },
+    "api_calls": {
+      "Get Application List": {
+        "protocol": "STATIC",
+        "apps": ["Toggle Light", "Daylight Scene", "Night Light Scene"]
+      },
+      "Power On": {
+        "protocol": "UDP",
+        "port": 38899,
+        "payload": "{\n          \"method\": \"setPilot\",\n          \"params\": {\n            \"state\": true\n          }\n        }"
+      },
+      "Power Off": {
+        "protocol": "UDP",
+        "port": 38899,
+        "payload": "{\n          \"method\": \"setPilot\",\n          \"params\": {\n            \"state\": false\n          }\n        }"
+      },
+      "Set Color Temp": {
+        "protocol": "UDP",
+        "port": 38899,
+        "payload": "{\n          \"method\": \"setPilot\",\n          \"params\": {\n            \"state\": true,\n            \"temp\": 4000\n          }\n        }"
+      }
+    }
+  },
+  "bbox": {
+    "name": "Bbox",
+    "version": "v1.0 (DIAL HTTP)",
+    "description": "Bouygues Telecom Bbox Android TV devices using the DIAL protocol.",
+    "type": "tv",
+    "get_apps_request": {
+      "method": "GET",
+      "url": "http://{device_ip}:8008/apps",
+      "headers": {
+        "Accept": "application/xml"
+      },
+      "payload": null
+    },
+    "api_calls": {
+      "Get Application List": {
+        "protocol": "HTTP",
+        "method": "GET",
+        "port": 8008,
+        "path": "/apps",
+        "headers": {
+          "Accept": "application/xml"
+        }
+      },
+      "Power On": {
+        "protocol": "HTTP",
+        "method": "POST",
+        "port": 8008,
+        "path": "/apps/HomeScreen"
+      },
+      "Power Off": {
+        "protocol": "HTTP",
+        "method": "GET",
+        "port": 8080,
+        "path": "/remote-control?key=116"
+      },
+      "Launch Application (e.g. YouTube)": {
+        "protocol": "HTTP",
+        "method": "POST",
+        "port": 8008,
+        "path": "/apps/YouTube"
+      }
+    },
+    "launch_action_template": {
+      "protocol": "HTTP",
+      "method": "POST",
+      "port": 8008,
+      "path": "/apps/{app_name}"
+    }
+  },
+  "xbox": {
+    "name": "Xbox",
+    "version": "v1.0 (UDP SmartGlass)",
+    "description": "Microsoft Xbox Series X/S gaming consoles.",
+    "type": "game",
+    "get_apps_request": {
+      "method": "STATIC",
+      "apps": ["Netflix", "YouTube", "Spotify", "Plex", "Minecraft", "FIFA", "Halo Infinite", "Forza Horizon 5"]
+    },
+    "api_calls": {
+      "Get Application List": {
+        "protocol": "STATIC",
+        "apps": ["Netflix", "YouTube", "Spotify", "Plex", "Minecraft", "FIFA", "Halo Infinite", "Forza Horizon 5"]
+      },
+      "Power On": {
+        "protocol": "STATIC"
+      },
+      "Power Off": {
+        "protocol": "STATIC"
+      }
+    }
+  },
+  "playstation": {
+    "name": "Playstation",
+    "version": "v1.0 (PS5 REST)",
+    "description": "Sony PlayStation 5 gaming consoles.",
+    "type": "game",
+    "get_apps_request": {
+      "method": "STATIC",
+      "apps": ["Netflix", "YouTube", "Spotify Connect", "Spider-Man 2", "God of War Ragnarok", "Gran Turismo 7", "Elden Ring"]
+    },
+    "api_calls": {
+      "Get Application List": {
+        "protocol": "STATIC",
+        "apps": ["Netflix", "YouTube", "Spotify Connect", "Spider-Man 2", "God of War Ragnarok", "Gran Turismo 7", "Elden Ring"]
+      }
+    }
+  },
+  "google_home": {
+    "name": "Google Home",
+    "version": "v1.0 (Google Cast)",
+    "description": "Google Home and Nest smart speakers using the Google Cast protocol.",
+    "type": "speaker",
+    "get_apps_request": {
+      "method": "GET",
+      "url": "http://{device_ip}:8008/setup/eureka_info?options=detail",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "payload": null
+    },
+    "api_calls": {
+      "Get Application List": {
+        "protocol": "STATIC",
+        "apps": ["Spotify", "YouTube"]
+      }
+    }
+  },
+  "Generic": {
+    "name": "Generic",
+    "version": "N/A",
+    "description": "Generic unsupported hardware vendor.",
+    "type": "unknown",
+    "api_calls": {}
+  }
+}

@@ -16,20 +16,8 @@ from vendors import (
     VENDORS,
     VENDORS_REGISTRY,
     GenericVendor,
-    SonyVendor,
-    DenonVendor,
-    MarantzVendor,
-    LgTvVendor,
-    SharpTvVendor,
-    SamsungTvVendor,
-    PhilipsHueVendor,
-    SonosVendor,
-    YamahaMusicCastVendor,
-    RokuVendor,
-    PhilipsWizVendor,
-    BboxVendor,
-    XboxVendor,
-    PlaystationVendor
+    VENDORS_BY_KEY,
+    Vendor
 )
 
 # In-memory cache for dynamically discovered actions, keyed by (device_ip, action_name)
@@ -138,27 +126,10 @@ def _get_device_vendor_name(device: dict) -> str:
     return "Generic"
 
 
-def _get_device_vendor(device: dict) -> type:
-    """Retrieve Vendor class for a device."""
+def _get_device_vendor(device: dict) -> Vendor:
+    """Retrieve Vendor instance for a device."""
     vendor_name = _get_device_vendor_name(device)
-    mapping = {
-        "sony_bravia_tv": SonyVendor,
-        "denon_amplifier": DenonVendor,
-        "marantz_amplifier": MarantzVendor,
-        "lg_tv": LgTvVendor,
-        "sharp_tv": SharpTvVendor,
-        "samsung_tv": SamsungTvVendor,
-        "philips_hue": PhilipsHueVendor,
-        "sonos": SonosVendor,
-        "yamaha_musiccast": YamahaMusicCastVendor,
-        "roku": RokuVendor,
-        "philips_wiz": PhilipsWizVendor,
-        "google_home": GenericVendor,
-        "bbox": BboxVendor,
-        "xbox": XboxVendor,
-        "playstation": PlaystationVendor
-    }
-    return mapping.get(vendor_name, GenericVendor)
+    return VENDORS_BY_KEY.get(vendor_name, GenericVendor)
 
 
 def _get_device_actions(device: dict) -> dict:
@@ -295,7 +266,11 @@ def _parse_vendor_apps(vendor_name: str, data) -> list[dict]:
         return [
             {"title": "Netflix", "uri": "launch_netflix"},
             {"title": "YouTube", "uri": "launch_youtube"},
-            {"title": "Spotify Connect", "uri": "launch_spotify"}
+            {"title": "Spotify Connect", "uri": "launch_spotify"},
+            {"title": "Spider-Man 2", "uri": "launch_spider-man_2"},
+            {"title": "God of War Ragnarok", "uri": "launch_god_of_war_ragnarok"},
+            {"title": "Gran Turismo 7", "uri": "launch_gran_turismo_7"},
+            {"title": "Elden Ring", "uri": "launch_elden_ring"}
         ]
         
     return []
