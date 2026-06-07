@@ -147,6 +147,10 @@ PapyConnect is designed to be simple enough for senior family members. The confi
 Clicking any active device displays its custom vendor details, network latency, and applications loaded from its discovery endpoint.
 ![Device Info Modal](images/device-info.png)
 
+#### Manual Device Registration (Ghost Devices)
+Allows registering virtual "ghost devices" (which are hidden from mDNS). The setup popup prefills the local IP subnet prefix automatically to simplify input.
+![Manual Device Add Dialog](images/device-add.png)
+
 #### Brand Capabilities Reference Library
 Displays technical specifications, default ports, protocols, and discovery APIs for all registered manufacturers.
 ![Supported Brands Reference](images/vendor-list.png)
