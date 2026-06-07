@@ -35,6 +35,8 @@ function app() {
     },
     _toastTimer: null,
 
+    filterKnownVendors: false,
+
     wizard: {
       step: 1,
       service: '',
@@ -44,6 +46,13 @@ function app() {
 
     get onlineCount() {
       return this.devices.filter(d => d.status === 'online').length;
+    },
+
+    get filteredDevices() {
+      if (this.filterKnownVendors) {
+        return this.devices.filter(d => d.vendor !== 'Generic');
+      }
+      return this.devices;
     },
 
     async init() { await this.load(); },
