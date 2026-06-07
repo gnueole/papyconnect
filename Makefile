@@ -18,7 +18,7 @@ REMOTE_DIR = /volume1/docker/papiconnect
 
 DOTNET_EXISTS = $(shell [ -f $(DOTNET) ] && echo yes || echo no)
 
-.PHONY: all build deploy restart clean status prepare check-dotnet publish help \
+.PHONY: all build deploy restart clean status plugin-status prepare check-dotnet publish help \
         papiconnect-sync papiconnect-up papiconnect-down \
         papiconnect-logs papiconnect-status papiconnect-recreate papiconnect-redeploy \
         papiconnect-n8n-push papiconnect-n8n-backup check
@@ -39,10 +39,11 @@ help:
 	@echo "    make restart               Restart LogiPluginService AND LogiOptions+ UI"
 	@echo "    make publish               Build + package as .lproj4 in Downloads"
 	@echo "    make clean                 Remove .NET build artifacts"
-	@echo "    make status                Show current build configuration"
+	@echo "    make plugin-status         Show current .NET build configuration"
 	@echo "    make prepare               Install .NET 8.0 SDK if missing"
 	@echo "  ─────────────────────────────────────────────────────────"
 	@echo "  PapyConnect & n8n Stack (gronas) :"
+	@echo "    make status                Show scanned devices tree & available apps (CLI debug)"
 	@echo "    make papiconnect-sync      Copy local app, compose and workflows to NAS via root SCP"
 	@echo "    make papiconnect-up        Sync files and start containers (up -d)"
 	@echo "    make papiconnect-down      Stop containers (down)"
@@ -60,7 +61,7 @@ help:
 
 # Check if dotnet exists before running commands
 check-dotnet:
-ifeq ($(DOTNET_EXISTS),no)
+ifneq ($(DOTNET_EXISTS),yes)
 	@echo "Error: dotnet was not found at $(DOTNET)."
 	@echo "To install .NET 8.0 SDK automatically, run: make prepare"
 	@echo "Or download it manually from: https://dotnet.microsoft.com/download"
@@ -68,8 +69,12 @@ ifeq ($(DOTNET_EXISTS),no)
 endif
 
 
-# Print current configuration status
+# Pretty print tree of scanned devices and available apps
 status:
+	@python3 toolkit/print_status.py $(GRONAS_IP) $(PAPYCONNECT_PORT)
+
+# Print current configuration status
+plugin-status:
 	@echo "=== Eole n8n Plugin Build Configuration ==="
 	@echo "Dotnet Path:     $(DOTNET)"
 	@echo "Dotnet Exists:   $(DOTNET_EXISTS)"

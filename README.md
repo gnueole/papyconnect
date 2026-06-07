@@ -123,6 +123,11 @@ PapyConnect runs as a FastAPI container stack on a dedicated home server (such a
   ```bash
   make papiconnect-recreate
   ```
+- **CLI Debug (Scanned Devices Tree)**:
+  ```bash
+  make status
+  ```
+  *(Fetches all scanned network devices and their available applications/games from the backend API, printing them in a clean terminal tree view for fast troubleshooting without opening the web interface).*
 - **API URL**: `http://YOUR_MEDIA_SERVER:8000/docs`
 - **Dashboard URL**: `http://YOUR_MEDIA_SERVER:8000/` (features the 3-step Papy-friendly actions creation wizard).
 
