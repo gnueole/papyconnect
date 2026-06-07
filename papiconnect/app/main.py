@@ -307,6 +307,121 @@ DEVICE_CATALOGS["samsung_tv"] = {
         }
     }
 }
+DEVICE_CATALOGS["philips_hue"] = {
+    "icon": "philips_hue",
+    "tuto": """
+        <h3>💡 Philips Hue Bridge Configuration (REST)</h3>
+        <p>Control lights via the local Philips Hue Bridge API on port 80.</p>
+    """,
+    "actions": {
+        "power_on": {
+            "protocol": "HTTP",
+            "method": "PUT",
+            "port": 80,
+            "path": "/api/{username}/lights/{id}/state",
+            "payload": "{\"on\":true}"
+        },
+        "power_off": {
+            "protocol": "HTTP",
+            "method": "PUT",
+            "port": 80,
+            "path": "/api/{username}/lights/{id}/state",
+            "payload": "{\"on\":false}"
+        }
+    }
+}
+DEVICE_CATALOGS["sonos"] = {
+    "icon": "sonos",
+    "tuto": """
+        <h3>🎵 Sonos Speaker Configuration (UPnP/SOAP)</h3>
+        <p>Control local audio playback via UPnP port 1400.</p>
+    """,
+    "actions": {
+        "play": {
+            "protocol": "HTTP",
+            "method": "POST",
+            "port": 1400,
+            "path": "/MediaRenderer/AVTransport/Control",
+            "headers": {
+                "SOAPACTION": "\"urn:schemas-upnp-org:service:AVTransport:1#Play\"",
+                "Content-Type": "text/xml; charset=\"utf-8\""
+            },
+            "payload": "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\"><s:Body><u:Play xmlns:u=\"urn:schemas-upnp-org:service:AVTransport:1\"><InstanceID>0</InstanceID><Speed>1</Speed></u:Play></s:Body></s:Envelope>"
+        },
+        "pause": {
+            "protocol": "HTTP",
+            "method": "POST",
+            "port": 1400,
+            "path": "/MediaRenderer/AVTransport/Control",
+            "headers": {
+                "SOAPACTION": "\"urn:schemas-upnp-org:service:AVTransport:1#Pause\"",
+                "Content-Type": "text/xml; charset=\"utf-8\""
+            },
+            "payload": "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\"><s:Body><u:Pause xmlns:u=\"urn:schemas-upnp-org:service:AVTransport:1\"><InstanceID>0</InstanceID></u:Pause></s:Body></s:Envelope>"
+        }
+    }
+}
+DEVICE_CATALOGS["yamaha_musiccast"] = {
+    "icon": "yamaha_musiccast",
+    "tuto": """
+        <h3>🔊 Yamaha MusicCast Configuration (REST)</h3>
+        <p>Control is executed via REST HTTP requests on port 80.</p>
+    """,
+    "actions": {
+        "power_on": {
+            "protocol": "HTTP",
+            "method": "GET",
+            "port": 80,
+            "path": "/api/v1/main/setPower?power=on"
+        },
+        "power_off": {
+            "protocol": "HTTP",
+            "method": "GET",
+            "port": 80,
+            "path": "/api/v1/main/setPower?power=standby"
+        }
+    }
+}
+DEVICE_CATALOGS["roku"] = {
+    "icon": "roku",
+    "tuto": """
+        <h3>📺 Roku External Control Configuration (ECP)</h3>
+        <p>Control Roku stick or TV via HTTP REST commands on port 8060.</p>
+    """,
+    "actions": {
+        "power_off": {
+            "protocol": "HTTP",
+            "method": "POST",
+            "port": 8060,
+            "path": "/keypress/PowerOff"
+        },
+        "home": {
+            "protocol": "HTTP",
+            "method": "POST",
+            "port": 8060,
+            "path": "/keypress/Home"
+        }
+    }
+}
+DEVICE_CATALOGS["philips_wiz"] = {
+    "icon": "philips_wiz",
+    "tuto": """
+        <h3>💡 Philips WiZ Light Configuration (UDP)</h3>
+        <p>Control smart bulbs using raw UDP JSON packets on port 38899.</p>
+    """,
+    "actions": {
+        "power_on": {
+            "protocol": "UDP",
+            "port": 38899,
+            "payload": "{\"method\":\"setPilot\",\"params\":{\"state\":true}}"
+        },
+        "power_off": {
+            "protocol": "UDP",
+            "port": 38899,
+            "payload": "{\"method\":\"setPilot\",\"params\":{\"state\":false}}"
+        }
+    }
+}
 
 # Known devices defined with specific environment/location variables
 KNOWN_DEVICES: dict[str, dict] = {}
@@ -667,6 +782,166 @@ class SamsungTvVendor(Vendor):
         }
 
 
+class PhilipsHueVendor(Vendor):
+    name: str = "Philips Hue"
+    version: str = "v1.0 (Hue REST)"
+    description: str = "Philips Hue Smart Lighting Bridge controlling lights via local REST API."
+
+    @classmethod
+    def get_api_calls(cls) -> dict:
+        return {
+            "Power On Light": {
+                "protocol": "HTTP",
+                "method": "PUT",
+                "port": 80,
+                "path": "/api/{username}/lights/{id}/state",
+                "payload": "{\"on\":true}"
+            },
+            "Power Off Light": {
+                "protocol": "HTTP",
+                "method": "PUT",
+                "port": 80,
+                "path": "/api/{username}/lights/{id}/state",
+                "payload": "{\"on\":false}"
+            },
+            "Set Brightness & Color": {
+                "protocol": "HTTP",
+                "method": "PUT",
+                "port": 80,
+                "path": "/api/{username}/lights/{id}/state",
+                "payload": "{\"on\":true,\"bri\":254,\"hue\":10000,\"sat\":254}"
+            }
+        }
+
+
+class SonosVendor(Vendor):
+    name: str = "Sonos"
+    version: str = "v1.0 (Sonos SOAP)"
+    description: str = "Sonos smart speakers and players controlled locally via UPnP/SOAP HTTP requests."
+
+    @classmethod
+    def get_api_calls(cls) -> dict:
+        return {
+            "Play": {
+                "protocol": "HTTP",
+                "method": "POST",
+                "port": 1400,
+                "path": "/MediaRenderer/AVTransport/Control",
+                "headers": {
+                    "SOAPACTION": "\"urn:schemas-upnp-org:service:AVTransport:1#Play\"",
+                    "Content-Type": "text/xml; charset=\"utf-8\""
+                },
+                "payload": "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\"><s:Body><u:Play xmlns:u=\"urn:schemas-upnp-org:service:AVTransport:1\"><InstanceID>0</InstanceID><Speed>1</Speed></u:Play></s:Body></s:Envelope>"
+            },
+            "Pause": {
+                "protocol": "HTTP",
+                "method": "POST",
+                "port": 1400,
+                "path": "/MediaRenderer/AVTransport/Control",
+                "headers": {
+                    "SOAPACTION": "\"urn:schemas-upnp-org:service:AVTransport:1#Pause\"",
+                    "Content-Type": "text/xml; charset=\"utf-8\""
+                },
+                "payload": "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\"><s:Body><u:Pause xmlns:u=\"urn:schemas-upnp-org:service:AVTransport:1\"><InstanceID>0</InstanceID></u:Pause></s:Body></s:Envelope>"
+            },
+            "Set Volume": {
+                "protocol": "HTTP",
+                "method": "POST",
+                "port": 1400,
+                "path": "/MediaRenderer/RenderingControl/Control",
+                "headers": {
+                    "SOAPACTION": "\"urn:schemas-upnp-org:service:RenderingControl:1#SetVolume\"",
+                    "Content-Type": "text/xml; charset=\"utf-8\""
+                },
+                "payload": "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\"><s:Body><u:SetVolume xmlns:u=\"urn:schemas-upnp-org:service:RenderingControl:1\"><InstanceID>0</InstanceID><Channel>Master</Channel><DesiredVolume>30</DesiredVolume></u:SetVolume></s:Body></s:Envelope>"
+            }
+        }
+
+
+class YamahaMusicCastVendor(Vendor):
+    name: str = "Yamaha MusicCast"
+    version: str = "v1.0 (MusicCast REST)"
+    description: str = "Yamaha AV Receivers and speakers using local MusicCast REST HTTP JSON API."
+
+    @classmethod
+    def get_api_calls(cls) -> dict:
+        return {
+            "Power On": {
+                "protocol": "HTTP",
+                "method": "GET",
+                "port": 80,
+                "path": "/api/v1/main/setPower?power=on"
+            },
+            "Power Off": {
+                "protocol": "HTTP",
+                "method": "GET",
+                "port": 80,
+                "path": "/api/v1/main/setPower?power=standby"
+            },
+            "Set Volume": {
+                "protocol": "HTTP",
+                "method": "GET",
+                "port": 80,
+                "path": "/api/v1/main/setVolume?volume=30"
+            }
+        }
+
+
+class RokuVendor(Vendor):
+    name: str = "Roku"
+    version: str = "v1.0 (Roku ECP)"
+    description: str = "Roku Streaming players and Roku TVs controlled via External Control Protocol (ECP)."
+
+    @classmethod
+    def get_api_calls(cls) -> dict:
+        return {
+            "Press Home Key": {
+                "protocol": "HTTP",
+                "method": "POST",
+                "port": 8060,
+                "path": "/keypress/Home"
+            },
+            "Launch Netflix": {
+                "protocol": "HTTP",
+                "method": "POST",
+                "port": 8060,
+                "path": "/launch/12"
+            },
+            "Launch YouTube": {
+                "protocol": "HTTP",
+                "method": "POST",
+                "port": 8060,
+                "path": "/launch/837"
+            }
+        }
+
+
+class PhilipsWizVendor(Vendor):
+    name: str = "Philips WiZ"
+    version: str = "v1.0 (WiZ UDP)"
+    description: str = "Philips WiZ WiFi smart lights controlled via local UDP JSON packets."
+
+    @classmethod
+    def get_api_calls(cls) -> dict:
+        return {
+            "Power On": {
+                "protocol": "UDP",
+                "port": 38899,
+                "payload": "{\"method\":\"setPilot\",\"params\":{\"state\":true}}"
+            },
+            "Power Off": {
+                "protocol": "UDP",
+                "port": 38899,
+                "payload": "{\"method\":\"setPilot\",\"params\":{\"state\":false}}"
+            },
+            "Set Color Temp": {
+                "protocol": "UDP",
+                "port": 38899,
+                "payload": "{\"method\":\"setPilot\",\"params\":{\"state\":true,\"temp\":4000}}"
+            }
+        }
+
+
 VENDORS: dict[str, type[Vendor]] = {
     "Sony": SonyVendor,
     "Denon": DenonVendor,
@@ -674,6 +949,11 @@ VENDORS: dict[str, type[Vendor]] = {
     "LG TV": LgTvVendor,
     "Sharp TV": SharpTvVendor,
     "Samsung TV": SamsungTvVendor,
+    "Philips Hue": PhilipsHueVendor,
+    "Sonos": SonosVendor,
+    "Yamaha MusicCast": YamahaMusicCastVendor,
+    "Roku": RokuVendor,
+    "Philips WiZ": PhilipsWizVendor,
     "Bbox": BboxVendor,
     "Xbox": XboxVendor,
     "Playstation": PlaystationVendor,
@@ -769,6 +1049,41 @@ VENDORS_REGISTRY = {
             "method": "STATIC",
             "apps": ["Netflix", "YouTube", "Spotify", "Disney Plus", "Amazon Prime"]
         }
+    },
+    "philips_hue": {
+        "vendor": "philips_hue",
+        "get_apps_request": {
+            "method": "STATIC",
+            "apps": ["Light Zone 1", "Light Zone 2", "All Lights"]
+        }
+    },
+    "sonos": {
+        "vendor": "sonos",
+        "get_apps_request": {
+            "method": "STATIC",
+            "apps": ["Line-In", "Spotify", "TuneIn Radio"]
+        }
+    },
+    "yamaha_musiccast": {
+        "vendor": "yamaha_musiccast",
+        "get_apps_request": {
+            "method": "STATIC",
+            "apps": ["HDMI 1", "HDMI 2", "Spotify", "Bluetooth"]
+        }
+    },
+    "roku": {
+        "vendor": "roku",
+        "get_apps_request": {
+            "method": "STATIC",
+            "apps": ["Home", "Netflix", "YouTube", "Hulu"]
+        }
+    },
+    "philips_wiz": {
+        "vendor": "philips_wiz",
+        "get_apps_request": {
+            "method": "STATIC",
+            "apps": ["Toggle Light", "Daylight Scene", "Night Light Scene"]
+        }
     }
 }
 
@@ -790,6 +1105,16 @@ def _get_device_vendor_name(device: dict) -> str:
             return "sharp_tv"
         if "samsung" in v_lower:
             return "samsung_tv"
+        if "hue" in v_lower:
+            return "philips_hue"
+        if "sonos" in v_lower:
+            return "sonos"
+        if "musiccast" in v_lower or "yamaha" in v_lower:
+            return "yamaha_musiccast"
+        if "roku" in v_lower:
+            return "roku"
+        if "wiz" in v_lower:
+            return "philips_wiz"
         if "bbox" in v_lower:
             return "bbox"
         if "google" in v_lower or "cast" in v_lower:
@@ -815,6 +1140,16 @@ def _get_device_vendor_name(device: dict) -> str:
         return "sharp_tv"
     if dtype == "samsung_tv":
         return "samsung_tv"
+    if dtype == "philips_hue":
+        return "philips_hue"
+    if dtype == "sonos":
+        return "sonos"
+    if dtype == "yamaha_musiccast":
+        return "yamaha_musiccast"
+    if dtype == "roku":
+        return "roku"
+    if dtype == "philips_wiz":
+        return "philips_wiz"
     if dtype == "xbox":
         return "xbox"
     if dtype in ["playstation", "ps5", "ps4"]:
@@ -835,6 +1170,16 @@ def _get_device_vendor_name(device: dict) -> str:
         return "sharp_tv"
     if "samsung" in name:
         return "samsung_tv"
+    if "hue" in name:
+        return "philips_hue"
+    if "sonos" in name:
+        return "sonos"
+    if "musiccast" in name or "yamaha" in name:
+        return "yamaha_musiccast"
+    if "roku" in name:
+        return "roku"
+    if "wiz" in name:
+        return "philips_wiz"
     if "bbox" in name:
         return "bbox"
     if "google" in name or "chromecast" in name or "nest" in name:
@@ -856,6 +1201,11 @@ def _get_device_vendor(device: dict) -> type[Vendor]:
         "lg_tv": LgTvVendor,
         "sharp_tv": SharpTvVendor,
         "samsung_tv": SamsungTvVendor,
+        "philips_hue": PhilipsHueVendor,
+        "sonos": SonosVendor,
+        "yamaha_musiccast": YamahaMusicCastVendor,
+        "roku": RokuVendor,
+        "philips_wiz": PhilipsWizVendor,
         "google_home": GenericVendor,
         "bbox": BboxVendor,
         "xbox": XboxVendor,

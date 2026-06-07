@@ -1,0 +1,82 @@
+<!-- IoT REGISTRY (Registry Bottom Pane) -->
+<section class="bg-[#0b0c10] border border-rim/60 rounded-2xl p-6">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="text-xs font-extrabold uppercase tracking-wider text-gray-500">IoT Registry / Discovered Devices</h3>
+        <button @click="load()" class="text-xs text-gray-500 hover:text-gold flex items-center gap-1.5 transition-colors">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" d="M4 4v5h5M20 20v-5h-5M4 9a9 9 0 0 1 15-6.7M20 15a9 9 0 0 1-15 6.7"/>
+          </svg>
+          Refresh
+        </button>
+      </div>
+
+      <!-- Scan in progress warning -->
+      <div x-show="scanning" x-transition class="mb-5 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-400 flex items-center gap-3 animate-fadeUp">
+        <span class="spin shrink-0"></span>
+        <span><b>Scan in progress:</b> Actively searching for devices on the network (mDNS + ping). Please wait for the scan to finish to see and interact with all your devices.</span>
+      </div>
+
+      <!-- Skeleton loader for devices -->
+      <template x-if="loading">
+        <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 animate-pulse">
+          <div class="h-20 bg-rim/20 rounded-xl"></div>
+          <div class="h-20 bg-rim/20 rounded-xl"></div>
+          <div class="h-20 bg-rim/20 rounded-xl"></div>
+        </div>
+      </template>
+
+      <!-- Registered devices list -->
+      <template x-if="!loading">
+        <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+          <template x-for="d in devices" :key="d.ip">
+            <div
+              @click="openDeviceDetails(d)"
+              class="flex items-center justify-between p-3.5 rounded-xl bg-panel/50 border border-rim/50 relative group cursor-pointer hover:bg-panel/80 hover:border-gold/30 transition-all duration-200"
+              :class="d.vendor === 'Generic' ? 'opacity-40 grayscale border-dashed hover:opacity-60 bg-panel/30' : ''"
+            >
+              
+              <!-- Remove from registry -->
+              <button @click.stop="remove(d.ip)" class="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 text-gray-600 hover:text-red-400 transition-opacity" title="Remove from registry">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+
+              <div class="flex items-center gap-3">
+                <div :class="iconBg(d.type)" class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" x-html="icon(d.type)"></div>
+                <div>
+                  <div class="flex items-center gap-1">
+                    <p class="text-xs font-bold text-gray-300" x-text="d.name"></p>
+                    <template x-if="d.catalog && d.catalog.tuto">
+                      <button @click.stop="openTuto(d.catalog.tuto)" class="text-gray-500 hover:text-gold text-xs font-semibold">ⓘ</button>
+                    </template>
+                  </div>
+                  <p class="text-[10px] font-mono text-gray-500 mt-0.5">
+                    <span x-text="d.ip"></span>
+                    <template x-if="d.vendor">
+                      <span> · <span class="font-semibold" :class="d.vendor === 'Generic' ? 'text-gray-500' : 'text-amber-500'" x-text="d.vendor === 'Generic' ? 'Unknown' : d.vendor"></span></span>
+                    </template>
+                  </p>
+                </div>
+              </div>
+
+              <!-- Status or Unsupported Badge -->
+              <template x-if="d.vendor === 'Generic'">
+                <span class="text-[8px] uppercase font-extrabold tracking-wider text-gray-500 bg-rim/35 px-1.5 py-0.5 rounded border border-rim/50 mr-2 shrink-0">Deactivated</span>
+              </template>
+              <template x-if="d.vendor !== 'Generic'">
+                <span class="w-2 h-2 rounded-full mr-2 shrink-0" :class="d.status === 'online' ? 'bg-emerald-400 animate-sonar' : 'bg-red-500'"></span>
+              </template>
+            </div>
+          </template>
+
+          <template x-if="devices.length === 0">
+            <div class="col-span-full py-8 text-center text-xs text-gray-600">
+              No devices registered. Run a scan above to discover network devices.
+            </div>
+          </template>
+        </div>
+      </template>
+    </section>
+
+  </main>

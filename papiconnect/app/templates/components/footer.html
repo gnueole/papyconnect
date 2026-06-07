@@ -1,0 +1,11 @@
+<footer class="text-center text-xs text-gray-700 pb-10 mt-12 flex flex-col sm:flex-row items-center justify-center gap-3">
+    <span>PapyConnect v1.3 &mdash; Éole's Home Lab</span>
+    <span class="hidden sm:inline text-gray-800">·</span>
+    <a href="/docs" class="hover:text-gold transition-colors underline">Swagger API Docs</a>
+    <span class="hidden sm:inline text-gray-800">·</span>
+    <button @click="openVendors()" class="hover:text-gold transition-colors underline bg-transparent border-0 cursor-pointer">Vendors Specs</button>
+    <span class="hidden sm:inline text-gray-800">·</span>
+    <button @click="openAbout()" class="hover:text-gold transition-colors underline bg-transparent border-0 cursor-pointer">About</button>
+    <span class="hidden sm:inline text-gray-800">·</span>
+    <button @click="confirmFactoryReset()" class="hover:text-red-400 transition-colors text-red-600/80 underline bg-transparent border-0 cursor-pointer">Factory Reset</button>
+  </footer>

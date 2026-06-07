@@ -1,0 +1,100 @@
+<!-- WIZARD (Left Panel) -->
+<section class="lg:col-span-5 bg-panel border border-rim rounded-2xl p-6 flex flex-col justify-between" style="min-height: 400px;">
+        <div>
+          <div class="flex items-center justify-between pb-4 border-b border-rim mb-5">
+            <h3 class="font-extrabold text-sm uppercase tracking-wider text-gold">Create Action</h3>
+            <span class="text-xs text-gray-500 font-semibold" x-text="'Step ' + wizard.step + '/3'"></span>
+          </div>
+
+          <!-- Step 1: Choose Application -->
+          <div x-show="wizard.step === 1" class="space-y-4 animate-fadeUp">
+            <p class="text-xs text-gray-400 mb-2">Choose the application or service to launch:</p>
+            <div class="grid grid-cols-3 gap-3">
+              <button @click="selectService('netflix')" class="flex flex-col items-center justify-center p-4 rounded-xl bg-rim/20 hover:bg-red-950/20 border border-rim hover:border-red-600/50 transition-all duration-150 active:scale-95 group">
+                <span class="p-2.5 rounded-lg bg-red-900/10 text-red-500 group-hover:bg-red-900/20" x-html="icon('netflix')"></span>
+                <span class="text-xs font-bold mt-2.5">Netflix</span>
+              </button>
+
+              <button @click="selectService('spotify')" class="flex flex-col items-center justify-center p-4 rounded-xl bg-rim/20 hover:bg-emerald-950/20 border border-rim hover:border-emerald-600/50 transition-all duration-150 active:scale-95 group">
+                <span class="p-2.5 rounded-lg bg-emerald-900/10 text-emerald-400 group-hover:bg-emerald-900/20" x-html="icon('spotify')"></span>
+                <span class="text-xs font-bold mt-2.5">Spotify</span>
+              </button>
+
+              <button @click="selectService('youtube')" class="flex flex-col items-center justify-center p-4 rounded-xl bg-rim/20 hover:bg-red-950/10 border border-rim hover:border-red-500/50 transition-all duration-150 active:scale-95 group">
+                <span class="p-2.5 rounded-lg bg-red-900/10 text-red-400 group-hover:bg-red-900/20" x-html="icon('youtube')"></span>
+                <span class="text-xs font-bold mt-2.5">YouTube</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 2: Select Location -->
+          <div x-show="wizard.step === 2" class="space-y-4 animate-fadeUp">
+            <div class="flex items-center gap-2 mb-2">
+              <button @click="wizard.step = 1" class="text-gray-500 hover:text-white text-xs flex items-center gap-1">
+                ← Back
+              </button>
+            </div>
+            <p class="text-xs text-gray-400">Select the target room or device:</p>
+            
+            <div class="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+              <template x-for="d in filteredWizardDevices()" :key="d.ip">
+                <button @click="selectDevice(d)" class="w-full flex items-center justify-between p-3.5 rounded-xl bg-rim/20 hover:bg-gold/10 border border-rim hover:border-gold/30 transition-all duration-150 text-left active:scale-[0.99]">
+                  <div class="flex items-center gap-3">
+                    <span :class="iconBg(d.type)" class="p-2 rounded-lg" x-html="icon(d.type)"></span>
+                    <div>
+                      <p class="text-xs font-bold" x-text="d.name"></p>
+                      <p class="text-[10px] font-mono text-gray-500" x-text="d.ip"></p>
+                    </div>
+                  </div>
+                  <span class="text-[10px] uppercase font-semibold tracking-wider text-gold">Choose →</span>
+                </button>
+              </template>
+
+              <template x-if="filteredWizardDevices().length === 0">
+                <div class="text-center py-6 text-gray-600 text-xs">
+                  No compatible devices online. Register a device or start a scan above.
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- Step 3: Configure Shortcut Name -->
+          <div x-show="wizard.step === 3" class="space-y-4 animate-fadeUp">
+            <div class="flex items-center gap-2 mb-2">
+              <button @click="wizard.step = 2" class="text-gray-500 hover:text-white text-xs flex items-center gap-1">
+                ← Back
+              </button>
+            </div>
+            <p class="text-xs text-gray-400">Configure the shortcut name:</p>
+
+            <div class="space-y-3">
+              <div>
+                <label class="block text-[10px] uppercase font-bold tracking-wider text-gray-500 mb-1">Shortcut Name</label>
+                <input type="text" x-model="wizard.title" class="bg-rim border border-rim rounded-xl px-4 py-2.5 w-full text-white text-sm focus:border-gold outline-none" />
+                
+                <div class="mt-2.5 space-y-2" x-show="wizard.device">
+                  <span class="block text-[9px] uppercase font-bold tracking-wider text-gray-500">Insert Quick Name:</span>
+                  <div class="flex flex-wrap gap-1.5">
+                    <!-- Device name button -->
+                    <button type="button" @click="wizard.title = getUniqueTitle(serviceLabel(wizard.service) + ' (' + wizard.device.name + ')')" class="px-2.5 py-1 rounded-lg bg-rim/30 hover:bg-gold/20 border border-rim text-[10px] text-gray-400 hover:text-white transition-colors">
+                      Device: <span class="text-gold font-semibold" x-text="wizard.device.name"></span>
+                    </button>
+                    <!-- Rooms list buttons -->
+                    <template x-for="r in ['Living Room', 'Bedroom', 'Bathroom', 'Kitchen']" :key="r">
+                      <button type="button" @click="wizard.title = getUniqueTitle(serviceLabel(wizard.service) + ' (' + r + ')')" class="px-2.5 py-1 rounded-lg bg-rim/30 hover:bg-gold/20 border border-rim text-[10px] text-gray-400 hover:text-white transition-colors" x-text="r">
+                      </button>
+                    </template>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Validation Button (Step 3 only) -->
+        <div class="mt-6 pt-4 border-t border-rim/60" x-show="wizard.step === 3">
+          <button @click="submitWizard()" class="bg-gold hover:bg-ember text-black font-bold py-3 px-6 rounded-xl w-full text-center transition-all duration-150 active:scale-95" style="box-shadow: 0 0 20px rgba(233,166,35,.2)">
+            Add to Dashboard
+          </button>
+        </div>
+      </section>
