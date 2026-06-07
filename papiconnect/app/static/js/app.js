@@ -112,6 +112,88 @@ function app() {
       }
     },
 
+    async toggleApp(ip, appName) {
+      const device = this.devices.find(d => d.ip === ip);
+      if (!device) return;
+      
+      const actionKey = `launch_${appName.toLowerCase().replace(/[\s-]/g, '_')}`;
+      const action = device.catalog && device.catalog.actions && device.catalog.actions[actionKey];
+      if (!action) return;
+      
+      const nextDeactivated = !action.deactivated;
+      
+      let originalAppName = appName;
+      if (device.available_apps) {
+        const found = device.available_apps.find(app => app.toLowerCase().replace(/[\s-]/g, '_') === appName.toLowerCase().replace(/[\s-]/g, '_'));
+        if (found) originalAppName = found;
+      }
+      if (device.disabled_apps && originalAppName === appName) {
+        const found = device.disabled_apps.find(app => app.toLowerCase().replace(/[\s-]/g, '_') === appName.toLowerCase().replace(/[\s-]/g, '_'));
+        if (found) originalAppName = found;
+      }
+      
+      try {
+        const query = new URLSearchParams({
+          app_title: originalAppName,
+          deactivated: nextDeactivated
+        });
+        const r = await fetch(`/api/devices/${ip}/toggle-app?${query.toString()}`, {
+          method: 'POST'
+        });
+        if (!r.ok) throw new Error();
+        
+        action.deactivated = nextDeactivated;
+        
+        if (!device.disabled_apps) {
+          device.disabled_apps = [];
+        }
+        
+        if (nextDeactivated) {
+          if (!device.disabled_apps.includes(originalAppName)) {
+            device.disabled_apps.push(originalAppName);
+          }
+          device.available_apps = device.available_apps.filter(app => app.toLowerCase().replace(/[\s-]/g, '_') !== appName.toLowerCase().replace(/[\s-]/g, '_'));
+        } else {
+          device.disabled_apps = device.disabled_apps.filter(app => app.toLowerCase().replace(/[\s-]/g, '_') !== appName.toLowerCase().replace(/[\s-]/g, '_'));
+          if (!device.available_apps.includes(originalAppName)) {
+            device.available_apps.push(originalAppName);
+          }
+        }
+        
+        this.devices = [...this.devices];
+        this.notify(`${originalAppName} is now ${nextDeactivated ? 'deactivated' : 'activated'} for this device.`);
+      } catch (err) {
+        this.notify('Failed to update application status.');
+      }
+    },
+
+    async toggleVendor(key) {
+      const vendor = this.vendorsModal.list.find(v => v.key === key);
+      if (!vendor) return;
+      
+      const nextDeactivated = !vendor.deactivated;
+      
+      try {
+        const query = new URLSearchParams({
+          deactivated: nextDeactivated
+        });
+        const r = await fetch(`/api/vendors/${key}/toggle?${query.toString()}`, {
+          method: 'POST'
+        });
+        if (!r.ok) throw new Error();
+        
+        vendor.deactivated = nextDeactivated;
+        
+        // Notify user
+        this.notify(`${vendor.name} integration is now ${nextDeactivated ? 'deactivated' : 'activated'}.`);
+        
+        // Reload all devices so status updates immediately
+        await this.load();
+      } catch (err) {
+        this.notify('Failed to update vendor integration status.');
+      }
+    },
+
     async scan() {
       if (this.scanning) return;
       this.scanning = true;
@@ -295,6 +377,11 @@ function app() {
       const counts = {};
       
       this.devices.forEach(d => {
+        // Skip devices that are generic or globally deactivated
+        if (d.vendor === 'Generic' || d.vendor_deactivated) {
+          return;
+        }
+
         // Count state actions if supported in catalog
         if (d.catalog && d.catalog.actions) {
           if (d.catalog.actions.power_on) {
@@ -309,7 +396,10 @@ function app() {
         if (d.available_apps && Array.isArray(d.available_apps)) {
           d.available_apps.forEach(app => {
             if (app) {
-              const normalized = app.toLowerCase().replace(/[\s-]/g, '_');
+              let normalized = app.toLowerCase().replace(/[\s-]/g, '_');
+              if (window.ALIASES && window.ALIASES[normalized]) {
+                normalized = window.ALIASES[normalized];
+              }
               counts[normalized] = (counts[normalized] || 0) + 1;
             }
           });
@@ -339,16 +429,20 @@ function app() {
       if (!service) return [];
 
       if (service === 'power_on') {
-        return this.devices.filter(d => d.catalog && d.catalog.actions && d.catalog.actions.power_on);
+        return this.devices.filter(d => d.catalog && d.catalog.actions && d.catalog.actions.power_on && d.vendor !== 'Generic' && !d.vendor_deactivated);
       } else if (service === 'power_off') {
-        return this.devices.filter(d => d.catalog && d.catalog.actions && d.catalog.actions.power_off);
+        return this.devices.filter(d => d.catalog && d.catalog.actions && d.catalog.actions.power_off && d.vendor !== 'Generic' && !d.vendor_deactivated);
       } else {
         // Filter devices that contain this application
         return this.devices.filter(d => {
+          if (d.vendor === 'Generic' || d.vendor_deactivated) return false;
           if (!d.available_apps || !Array.isArray(d.available_apps)) return false;
           return d.available_apps.some(app => {
             if (!app) return false;
-            const norm = app.toLowerCase().replace(/[\s-]/g, '_');
+            let norm = app.toLowerCase().replace(/[\s-]/g, '_');
+            if (window.ALIASES && window.ALIASES[norm]) {
+              norm = window.ALIASES[norm];
+            }
             return norm === service;
           });
         });

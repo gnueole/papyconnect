@@ -60,7 +60,10 @@ class _MDNSListener:
         model_lower = model.lower()
         
         vendor = "Generic"
-        device_type = "google_home"
+        device_type = "unknown"
+        if "_googlecast._tcp.local." in type_:
+            vendor = "Google Home"
+            device_type = "google_home"
         
         if "sony" in friendly or "bravia" in friendly or "sony" in model_lower or "bravia" in model_lower:
             vendor = "sony_bravia_tv"
@@ -93,7 +96,13 @@ class _MDNSListener:
         log.info("mDNS discovered: %s @ %s (Vendor: %s, Type: %s)", label, ip, vendor, device_type)
         
         # Avoid duplicates in the discovered list
-        if not any(d["ip"] == ip for d in self.found):
+        existing = next((d for d in self.found if d["ip"] == ip), None)
+        if existing:
+            if existing["vendor"] == "Generic" and vendor != "Generic":
+                existing["name"] = label
+                existing["type"] = device_type
+                existing["vendor"] = vendor
+        else:
             self.found.append({
                 "name": label, 
                 "ip": ip, 

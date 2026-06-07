@@ -6,6 +6,7 @@ from datetime import datetime
 from config import (
     REGISTRY_PATH,
     ACTIONS_PATH,
+    DISABLED_VENDORS_PATH,
     log,
     _is_ip_in_local_subnet,
     _slugify,
@@ -151,9 +152,12 @@ def _get_device_actions(device: dict) -> dict:
 
 def _load_registry() -> list[dict]:
     """Load registry devices from disk. Returns empty list on absence/errors."""
+    if not REGISTRY_PATH.exists():
+        return []
     try:
-        if REGISTRY_PATH.exists() and REGISTRY_PATH.stat().st_size > 2:
-            return json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
+        content = REGISTRY_PATH.read_text(encoding="utf-8").strip()
+        if content:
+            return json.loads(content)
     except (json.JSONDecodeError, OSError) as exc:
         log.warning("Registry file unreadable - resetting: %s", exc)
     return []
@@ -169,9 +173,12 @@ def _save_registry(devices: list[dict]) -> None:
 
 def _load_actions() -> list[dict]:
     """Load configured virtual actions from disk, migrating from previous schemas if needed."""
+    if not ACTIONS_PATH.exists():
+        return []
     try:
-        if ACTIONS_PATH.exists() and ACTIONS_PATH.stat().st_size > 2:
-            data = json.loads(ACTIONS_PATH.read_text(encoding="utf-8"))
+        content = ACTIONS_PATH.read_text(encoding="utf-8").strip()
+        if content:
+            data = json.loads(content)
             if isinstance(data, list):
                 return data
             elif isinstance(data, dict):
@@ -201,6 +208,27 @@ def _save_actions(actions: list[dict]) -> None:
     tmp.replace(ACTIONS_PATH)
 
 
+def _load_disabled_vendors() -> list[str]:
+    """Load globally disabled/deactivated hardware vendors from disk."""
+    if not DISABLED_VENDORS_PATH.exists():
+        return ["google_home"]  # google_home is deactivated by default
+    try:
+        content = DISABLED_VENDORS_PATH.read_text(encoding="utf-8").strip()
+        if content:
+            return json.loads(content)
+    except Exception as exc:
+        log.warning("Disabled vendors file unreadable - resetting: %s", exc)
+    return ["google_home"]  # google_home is deactivated by default
+
+
+def _save_disabled_vendors(disabled_vendors: list[str]) -> None:
+    """Atomic write of disabled vendors list to disabled_vendors.json."""
+    DISABLED_VENDORS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    tmp = DISABLED_VENDORS_PATH.with_suffix(".tmp")
+    tmp.write_text(json.dumps(disabled_vendors, indent=2, ensure_ascii=False), encoding="utf-8")
+    tmp.replace(DISABLED_VENDORS_PATH)
+
+
 def _merge_devices(devices: list[dict], new_device: dict) -> list[dict]:
     """Merge newly discovered device into registry without overwriting configured custom fields."""
     ip = new_device.get("ip")
@@ -210,13 +238,20 @@ def _merge_devices(devices: list[dict], new_device: dict) -> list[dict]:
         
     for existing in devices:
         if existing.get("ip") == ip:
-            existing.setdefault("name", new_device.get("name", "Unknown"))
-            existing["type"] = new_device.get("type", existing.get("type", "unknown"))
-            existing["vendor"] = new_device.get("vendor", existing.get("vendor", _get_device_vendor_name(existing)))
+            if existing.get("vendor") == "Generic" and new_device.get("vendor") != "Generic":
+                existing["name"] = new_device.get("name", existing.get("name"))
+                existing["vendor"] = new_device.get("vendor")
+                existing["type"] = new_device.get("type", existing.get("type"))
+            else:
+                existing.setdefault("name", new_device.get("name", "Unknown"))
+                existing["type"] = new_device.get("type", existing.get("type", "unknown"))
+                existing["vendor"] = new_device.get("vendor", existing.get("vendor", _get_device_vendor_name(existing)))
             existing["variables"] = new_device.get("variables", existing.get("variables", {}))
+            existing.setdefault("disabled_apps", [])
             existing["last_seen"] = datetime.utcnow().isoformat()
             return devices
     new_device.setdefault("last_seen", datetime.utcnow().isoformat())
+    new_device.setdefault("disabled_apps", [])
     new_device["vendor"] = new_device.get("vendor", _get_device_vendor_name(new_device))
     devices.append(new_device)
     return devices
@@ -240,7 +275,7 @@ def _parse_vendor_apps(vendor_name: str, data) -> list[dict]:
             except Exception:
                 pass
         if not apps_list:
-            for app in ["Netflix", "YouTube", "Spotify", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi"]:
+            for app in ["Netflix", "YouTube", "Spotify", "Prime Video", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi"]:
                 apps_list.append({"title": app, "uri": f"launch_{_slugify(app)}"})
         return apps_list
         
@@ -256,7 +291,7 @@ def _parse_vendor_apps(vendor_name: str, data) -> list[dict]:
             {"title": "Netflix", "uri": "launch_netflix"},
             {"title": "YouTube", "uri": "launch_youtube"},
             {"title": "Spotify", "uri": "launch_spotify"},
-            {"title": "Amazon Prime", "uri": "launch_prime_video"},
+            {"title": "Prime Video", "uri": "launch_prime_video"},
             {"title": "Canal+", "uri": "launch_canal"},
             {"title": "Apple TV", "uri": "launch_apple_tv"},
             {"title": "Arte", "uri": "launch_arte"},
@@ -280,7 +315,7 @@ def _parse_vendor_apps(vendor_name: str, data) -> list[dict]:
             {"title": "Netflix", "uri": "launch_netflix"},
             {"title": "YouTube", "uri": "launch_youtube"},
             {"title": "Spotify Connect", "uri": "launch_spotify"},
-            {"title": "Amazon Prime", "uri": "launch_prime_video"},
+            {"title": "Prime Video", "uri": "launch_prime_video"},
             {"title": "Canal+", "uri": "launch_canal"},
             {"title": "Apple TV", "uri": "launch_apple_tv"},
             {"title": "Arte", "uri": "launch_arte"},
@@ -346,9 +381,16 @@ async def _fetch_device_apps(device: dict, timeout: float = 1.5) -> list[dict]:
         
     if not apps_list:
         if vendor_name == "bbox":
-            return [{"title": app, "uri": f"launch_{_slugify(app)}"} for app in ["Netflix", "YouTube", "Spotify", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi"]]
+            apps_list = [{"title": app, "uri": f"launch_{_slugify(app)}"} for app in ["Netflix", "YouTube", "Spotify", "Prime Video", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi"]]
         elif vendor_name == "google_home":
-            return [{"title": "Spotify", "uri": "launch_spotify"}, {"title": "YouTube", "uri": "launch_youtube"}, {"title": "YouTube Music", "uri": "launch_youtube_music"}]
+            apps_list = [{"title": "Spotify", "uri": "launch_spotify"}, {"title": "YouTube", "uri": "launch_youtube"}, {"title": "YouTube Music", "uri": "launch_youtube_music"}]
+            
+    # Normalize Amazon Prime / Prime Video titles to "Prime Video"
+    for app in apps_list:
+        if isinstance(app, dict) and app.get("title") in ["Amazon Prime", "Prime Video"]:
+            app["title"] = "Prime Video"
+            if app.get("uri", "").startswith("launch_"):
+                app["uri"] = "launch_prime_video"
             
     return apps_list
 

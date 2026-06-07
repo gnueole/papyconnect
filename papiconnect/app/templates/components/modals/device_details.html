@@ -72,8 +72,25 @@
               </div>
             </div>
           </template>
+
+          <template x-if="selectedDeviceForDetails.vendor !== 'Generic' && selectedDeviceForDetails.vendor_deactivated">
+            <div class="mb-6 p-4 bg-red-950/20 border border-red-500/25 rounded-xl text-left text-xs text-red-300">
+              <div class="flex gap-3 items-start">
+                <svg class="w-5 h-5 shrink-0 mt-0.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div>
+                  <p class="font-extrabold mb-1">Brand Integration Deactivated</p>
+                  <p class="text-[11px] text-gray-400 leading-relaxed">
+                    The vendor integration (<span x-text="selectedDeviceForDetails.vendor"></span>) is deactivated globally. 
+                    Control actions and applications are deactivated.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </template>
           
-          <template x-if="selectedDeviceForDetails.vendor !== 'Generic'">
+          <template x-if="selectedDeviceForDetails.vendor !== 'Generic' && !selectedDeviceForDetails.vendor_deactivated">
             <div class="flex items-center justify-between p-3 rounded-xl bg-rim/10 border border-rim/30 mb-6">
               <span class="text-xs text-gray-400 font-medium">Connection Status</span>
               <span class="flex items-center gap-2 text-xs font-semibold" :class="selectedDeviceForDetails.status === 'online' ? 'text-emerald-400' : 'text-red-400'">
@@ -82,25 +99,25 @@
               </span>
             </div>
           </template>
-
-          <!-- Help / Configuration Guide -->
-          <template x-if="selectedDeviceForDetails.catalog && selectedDeviceForDetails.catalog.tuto">
+ 
+           <!-- Help / Configuration Guide -->
+          <template x-if="selectedDeviceForDetails.catalog && selectedDeviceForDetails.catalog.tuto && !selectedDeviceForDetails.vendor_deactivated">
             <div class="mb-6 p-4 bg-rim/20 border border-rim/50 rounded-xl text-xs text-gray-300 prose prose-invert max-w-none [&>h3]:text-gold [&>h3]:font-bold [&>h3]:text-sm [&>h3]:mb-2 [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:space-y-1 [&>p]:mb-2">
               <div x-html="selectedDeviceForDetails.catalog.tuto"></div>
             </div>
           </template>
-
-          <!-- Applications / Actions List -->
+ 
+           <!-- Applications / Actions List -->
           <div>
             <h4 class="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-3.5">Available Applications & Actions</h4>
             
-            <template x-if="selectedDeviceForDetails.vendor === 'Generic'">
+            <template x-if="selectedDeviceForDetails.vendor === 'Generic' || selectedDeviceForDetails.vendor_deactivated">
               <div class="text-center py-8 text-gray-600 text-xs bg-rim/10 rounded-xl border border-rim/20 font-medium">
-                No actions available for unsupported vendor.
+                No actions available for deactivated vendor.
               </div>
             </template>
-
-            <template x-if="selectedDeviceForDetails.vendor !== 'Generic'">
+ 
+            <template x-if="selectedDeviceForDetails.vendor !== 'Generic' && !selectedDeviceForDetails.vendor_deactivated">
               <div class="space-y-2.5 max-h-60 overflow-y-auto pr-1">
                 <template x-if="selectedDeviceForDetails.catalog && selectedDeviceForDetails.catalog.actions">
                   <div class="grid gap-2.5">
@@ -114,16 +131,30 @@
                           </div>
                         </div>
                         
-                        <button
-                          @click="executeDeviceAction(selectedDeviceForDetails.ip, name)"
-                          :disabled="selectedDeviceForDetails.status !== 'online'"
-                          class="px-3 py-1.5 rounded-lg text-[10px] uppercase font-bold tracking-wider transition-all duration-150"
-                          :class="selectedDeviceForDetails.status === 'online' 
-                            ? 'bg-gold hover:bg-ember text-black active:scale-95' 
-                            : 'bg-rim text-gray-600 cursor-not-allowed'"
-                        >
-                          Test
-                        </button>
+                        <div class="flex items-center gap-2">
+                          <template x-if="name.startsWith('launch_')">
+                            <button
+                              @click="toggleApp(selectedDeviceForDetails.ip, name.replace('launch_', ''))"
+                              class="px-2 py-1 rounded-lg text-[9px] uppercase font-semibold border transition-all active:scale-95 cursor-pointer"
+                              :class="action.deactivated 
+                                ? 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20' 
+                                : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'"
+                              x-text="action.deactivated ? 'Deactivated' : 'Active'"
+                            >
+                            </button>
+                          </template>
+                          
+                          <button
+                            @click="executeDeviceAction(selectedDeviceForDetails.ip, name)"
+                            :disabled="selectedDeviceForDetails.status !== 'online' || action.deactivated"
+                            class="px-3 py-1.5 rounded-lg text-[10px] uppercase font-bold tracking-wider transition-all duration-150"
+                            :class="(selectedDeviceForDetails.status === 'online' && !action.deactivated)
+                              ? 'bg-gold hover:bg-ember text-black active:scale-95 cursor-pointer' 
+                              : 'bg-rim text-gray-600 cursor-not-allowed'"
+                          >
+                            Test
+                          </button>
+                        </div>
                       </div>
                     </template>
                   </div>

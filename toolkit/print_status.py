@@ -1,19 +1,39 @@
 #!/usr/bin/env python3
 import sys
 import urllib.request
+import urllib.parse
 import json
 
 def main():
-    # Retrieve host and port from arguments or fallback
-    args = sys.argv[1:]
-    host = "gronas"
-    port = "8000"
+    import os
+    from pathlib import Path
     
-    if len(args) >= 2:
+    # Try to load .env relative to script or in CWD
+    env_vars = {}
+    for p in [Path(__file__).parent.parent / ".env", Path(".env")]:
+        if p.exists():
+            try:
+                for line in p.read_text(encoding="utf-8").splitlines():
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        k, v = line.split("=", 1)
+                        env_vars[k.strip()] = v.strip()
+            except Exception:
+                pass
+            break
+
+    default_host = env_vars.get("GRONAS_IP") or os.environ.get("GRONAS_IP") or "gronas"
+    default_port = env_vars.get("PAPYCONNECT_PORT") or os.environ.get("PAPYCONNECT_PORT") or "8000"
+
+    args = sys.argv[1:]
+    
+    if len(args) >= 2 and not any(x in args[0] for x in ["=", "add", "byapp"]):
         host = args[0]
         port = args[1]
         remaining_args = args[2:]
     else:
+        host = default_host
+        port = default_port
         remaining_args = args
 
     # Check for add or --add argument
@@ -42,51 +62,27 @@ def main():
                 vendor = "Generic"
                 dev_type = "unknown"
                 
-                if "sony" in name_lower or "bravia" in name_lower:
-                    vendor = "Sony"
-                    dev_type = "tv"
-                elif "denon" in name_lower:
-                    vendor = "Denon"
-                    dev_type = "amplifier"
-                elif "marantz" in name_lower:
-                    vendor = "Marantz"
-                    dev_type = "amplifier"
-                elif "lg" in name_lower:
-                    vendor = "LG TV"
-                    dev_type = "tv"
-                elif "sharp" in name_lower:
-                    vendor = "Sharp TV"
-                    dev_type = "tv"
-                elif "samsung" in name_lower:
-                    vendor = "Samsung TV"
-                    dev_type = "tv"
-                elif "hue" in name_lower:
-                    vendor = "Philips Hue"
-                    dev_type = "lighting"
-                elif "sonos" in name_lower:
-                    vendor = "Sonos"
-                    dev_type = "speaker"
-                elif "musiccast" in name_lower or "yamaha" in name_lower:
-                    vendor = "Yamaha MusicCast"
-                    dev_type = "amplifier"
-                elif "roku" in name_lower:
-                    vendor = "Roku"
-                    dev_type = "tv"
-                elif "wiz" in name_lower:
-                    vendor = "Philips WiZ"
-                    dev_type = "lighting"
-                elif "bbox" in name_lower:
-                    vendor = "Bouygues Bbox"
-                    dev_type = "tv"
-                elif "google" in name_lower or "nest" in name_lower or "chromecast" in name_lower:
-                    vendor = "Google Home"
-                    dev_type = "speaker"
-                elif "xbox" in name_lower:
-                    vendor = "Xbox"
-                    dev_type = "game"
-                elif "playstation" in name_lower or "ps5" in name_lower or "ps4" in name_lower:
-                    vendor = "Playstation"
-                    dev_type = "game"
+                # Fetch vendors from API to match name dynamically
+                vendors = []
+                try:
+                    vendors_url = f"http://{host}:{port}/api/vendors"
+                    req = urllib.request.Request(vendors_url)
+                    with urllib.request.urlopen(req, timeout=3.0) as resp:
+                        vendors = json.loads(resp.read().decode('utf-8'))
+                except Exception:
+                    pass
+                
+                # Match vendor and type from device name
+                name_lower = dev_name.lower()
+                vendor = "Generic"
+                dev_type = "unknown"
+                
+                for v in vendors:
+                    keywords = v.get("keywords", [])
+                    if any(kw.lower() in name_lower for kw in keywords):
+                        vendor = v.get("name")
+                        dev_type = v.get("type", "unknown")
+                        break
 
                 # Send POST to add device
                 add_url = f"http://{host}:{port}/api/devices"
@@ -120,6 +116,39 @@ def main():
                 sys.exit(1)
         else:
             print("\033[91mError: add parameter must specify 'name=ip'\033[0m")
+            sys.exit(1)
+
+    # Check for vendor or --vendor argument to toggle activation globally
+    if "vendor" in remaining_args or "--vendor" in remaining_args:
+        vendor_idx = remaining_args.index("vendor") if "vendor" in remaining_args else remaining_args.index("--vendor")
+        if vendor_idx + 1 < len(remaining_args):
+            pair = remaining_args[vendor_idx + 1]
+            if "=" in pair:
+                vendor_key, status_val = pair.split("=", 1)
+                deactivated = status_val.lower() not in ["active", "activated", "true", "1"]
+                
+                toggle_url = f"http://{host}:{port}/api/vendors/{vendor_key}/toggle"
+                try:
+                    query = urllib.parse.urlencode({"deactivated": str(deactivated).lower()})
+                    req = urllib.request.Request(
+                        f"{toggle_url}?{query}",
+                        method="POST"
+                    )
+                    with urllib.request.urlopen(req, timeout=5.0) as resp:
+                        res = json.loads(resp.read().decode('utf-8'))
+                        if res.get("ok"):
+                            status_label = "deactivated" if deactivated else "activated"
+                            print(f"\033[92mSuccessfully set vendor integration {vendor_key} to {status_label}\033[0m")
+                        else:
+                            print(f"\033[91mFailed to toggle vendor: {res}\033[0m")
+                except Exception as e:
+                    print(f"\033[91mError toggling vendor via API: {e}\033[0m")
+                    sys.exit(1)
+            else:
+                print("\033[91mError: vendor parameter must be in format 'key=active/inactive' (e.g. google_home=active)\033[0m")
+                sys.exit(1)
+        else:
+            print("\033[91mError: vendor parameter must specify 'key=active/inactive'\033[0m")
             sys.exit(1)
 
     # Proceed to list all devices
@@ -181,7 +210,9 @@ def main():
                 status = dev.get("status", "unknown")
                 vendor = dev.get("vendor", "Generic")
                 
-                if status == "online":
+                if dev.get("vendor_deactivated") or vendor == "Generic":
+                    status_str = "\033[90mdeactivated\033[0m"
+                elif status == "online":
                     status_str = "\033[92monline\033[0m"
                 else:
                     status_str = f"\033[91m{status}\033[0m"
@@ -208,7 +239,9 @@ def main():
         vendor = dev.get("vendor", "Generic")
         
         # Color coding status
-        if status == "online":
+        if dev.get("vendor_deactivated") or vendor == "Generic":
+            status_str = "\033[90mdeactivated\033[0m"
+        elif status == "online":
             status_str = "\033[92monline\033[0m"
         else:
             status_str = f"\033[91m{status}\033[0m"

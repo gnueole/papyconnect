@@ -13,6 +13,7 @@ class Vendor:
         self.api_calls = data.get("api_calls", {})
         self.get_apps_request = data.get("get_apps_request")
         self.launch_action_template = data.get("launch_action_template")
+        self.keywords = data.get("keywords", [])
 
     def get_api_calls(self) -> dict:
         return self.api_calls

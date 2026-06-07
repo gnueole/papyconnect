@@ -75,9 +75,7 @@ ifneq ($(DOTNET_EXISTS),yes)
 endif
 
 
-# Pretty print tree of scanned devices and available apps
-scan:
-	@python3 toolkit/print_status.py $(GRONAS_IP) $(PAPYCONNECT_PORT) $(RUN_ARGS) $(MAKEOVERRIDES)
+
 
 # Print current configuration status
 plugin-status:
@@ -151,6 +149,12 @@ endif
 # -------------------------------------------------
 DOCKER = /usr/local/bin/docker
 
+status: scan
+
+# Pretty print tree of scanned devices and available apps
+scan:
+	@python3 toolkit/print_status.py $(GRONAS_IP) $(PAPYCONNECT_PORT) $(RUN_ARGS) $(MAKEOVERRIDES)
+
 # Build image locally and package it
 papiconnect-build-image:
 	@echo "[papiconnect] Building Docker image locally..."
@@ -167,7 +171,7 @@ papiconnect-sync: papiconnect-build-image
 	scp -O ./papiconnect/docker-compose.yml $(SERVER_ROOT):$(REMOTE_DIR)/
 	scp -O -r ./n8n $(SERVER_ROOT):$(REMOTE_DIR)/
 	@echo "[papiconnect] Loading Docker image on the NAS..."
-	@ssh $(SERVER_ROOT) "docker load < $(REMOTE_DIR)/papiconnect.tar.gz && rm -f $(REMOTE_DIR)/papiconnect.tar.gz"
+	@ssh $(SERVER_ROOT) "$(DOCKER) load < $(REMOTE_DIR)/papiconnect.tar.gz && rm -f $(REMOTE_DIR)/papiconnect.tar.gz"
 	@rm -f papiconnect.tar.gz
 	@echo "[papiconnect] Sync and image load complete."
 

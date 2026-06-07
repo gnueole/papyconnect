@@ -53,7 +53,7 @@
             <div
               @click="openDeviceDetails(d)"
               class="flex items-center justify-between p-3.5 rounded-xl bg-panel/50 border border-rim/50 relative group cursor-pointer hover:bg-panel/80 hover:border-gold/30 transition-all duration-200"
-              :class="d.vendor === 'Generic' ? 'opacity-40 grayscale border-dashed hover:opacity-60 bg-panel/30' : ''"
+              :class="(d.vendor === 'Generic' || d.vendor_deactivated) ? 'opacity-40 grayscale border-dashed hover:opacity-60 bg-panel/30' : ''"
             >
               
               <!-- Remove from registry -->
@@ -75,17 +75,17 @@
                   <p class="text-[10px] font-mono text-gray-500 mt-0.5">
                     <span x-text="d.ip"></span>
                     <template x-if="d.vendor">
-                      <span> · <span class="font-semibold" :class="d.vendor === 'Generic' ? 'text-gray-500' : 'text-amber-500'" x-text="d.vendor === 'Generic' ? 'Unknown' : d.vendor"></span></span>
+                      <span> · <span class="font-semibold" :class="(d.vendor === 'Generic' || d.vendor_deactivated) ? 'text-gray-500' : 'text-amber-500'" x-text="d.vendor === 'Generic' ? 'Unknown' : d.vendor"></span></span>
                     </template>
                   </p>
                 </div>
               </div>
 
               <!-- Status or Unsupported Badge -->
-              <template x-if="d.vendor === 'Generic'">
+              <template x-if="d.vendor === 'Generic' || d.vendor_deactivated">
                 <span class="text-[8px] uppercase font-extrabold tracking-wider text-gray-500 bg-rim/35 px-1.5 py-0.5 rounded border border-rim/50 mr-2 shrink-0">Deactivated</span>
               </template>
-              <template x-if="d.vendor !== 'Generic'">
+              <template x-if="d.vendor !== 'Generic' && !d.vendor_deactivated">
                 <span class="w-2 h-2 rounded-full mr-2 shrink-0" :class="d.status === 'online' ? 'bg-emerald-400 animate-sonar' : 'bg-red-500'"></span>
               </template>
             </div>

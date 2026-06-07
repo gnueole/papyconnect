@@ -7,6 +7,7 @@ from pathlib import Path
 # Config files
 REGISTRY_PATH = Path("./data/registry.json")
 ACTIONS_PATH = Path("./data/actions.json")
+DISABLED_VENDORS_PATH = Path("./data/disabled_vendors.json")
 MDNS_SCAN_DURATION = 3.0
 
 # Logging config

@@ -35,6 +35,7 @@ from pydantic import BaseModel
 from config import (
     REGISTRY_PATH,
     ACTIONS_PATH,
+    DISABLED_VENDORS_PATH,
     MDNS_SCAN_DURATION,
     log,
     KNOWN_DEVICES,
@@ -50,6 +51,8 @@ from actions import (
     _save_registry,
     _load_actions,
     _save_actions,
+    _load_disabled_vendors,
+    _save_disabled_vendors,
     _merge_devices,
     _get_device_vendor,
     _get_device_vendor_name,
@@ -106,6 +109,10 @@ async def _startup() -> None:
     if not ACTIONS_PATH.exists():
         _save_actions([])
         log.info("Actions file initialized empty: %s", ACTIONS_PATH.resolve())
+        
+    if not DISABLED_VENDORS_PATH.exists():
+        _save_disabled_vendors(["google_home"])
+        log.info("Disabled vendors file initialized: %s", DISABLED_VENDORS_PATH.resolve())
     log.info("PapyConnect service started successfully on http://0.0.0.0:8000")
 
 
@@ -122,23 +129,37 @@ async def dashboard(request: Request):
 async def get_devices():
     """Retrieve all devices from local registry, checking status in real time."""
     devices = await _enrich_status(_load_registry())
+    disabled_vendors = _load_disabled_vendors()
     
     async def process_device(device):
         dtype = device.get("type")
+        device.setdefault("disabled_apps", [])
+        
+        vendor_name = _get_device_vendor_name(device)
+        vendor_deactivated = vendor_name in disabled_vendors
+        device["vendor_deactivated"] = vendor_deactivated
         
         # Initialize default empty apps list
         device["available_apps"] = []
         
         # Fetch available apps from vendor_registry discover-schema
-        vendor_name = _get_device_vendor_name(device)
         schema = VENDORS_REGISTRY.get(vendor_name, {}).get("get_apps_request", {})
-        apps = []
-        if schema:
+        all_apps = []
+        if schema and device.get("vendor") != "Generic" and not vendor_deactivated:
             is_static = schema.get("method") == "STATIC"
             is_online = device.get("status") == "online"
             if is_static or is_online:
-                apps = await _fetch_device_apps(device)
-                device["available_apps"] = [app["title"] if isinstance(app, dict) else app for app in apps]
+                all_apps = await _fetch_device_apps(device)
+        
+        # Filter active apps for available_apps
+        disabled = device.get("disabled_apps", [])
+        disabled_slugs = {_slugify(d) for d in disabled}
+        active_apps = []
+        for app in all_apps:
+            title = app["title"] if isinstance(app, dict) else app
+            if _slugify(title) not in disabled_slugs:
+                active_apps.append(app)
+        device["available_apps"] = [app["title"] if isinstance(app, dict) else app for app in active_apps]
         
         catalog_key = _get_device_vendor_name(device)
         if catalog_key not in DEVICE_CATALOGS:
@@ -148,11 +169,16 @@ async def get_devices():
             catalog = copy.deepcopy(DEVICE_CATALOGS[catalog_key])
             device["catalog"] = catalog
             
+            # Deactivate all catalog actions if the vendor integration is deactivated
+            if vendor_deactivated:
+                for act in catalog.get("actions", {}).values():
+                    act["deactivated"] = True
+            
             # Merge dynamic launch actions if the device is online and vendor supports execution
-            if apps:
+            if all_apps:
                 vendor_cls = _get_device_vendor(device)
                 device_dynamic = {}
-                for app in apps:
+                for app in all_apps:
                     if isinstance(app, dict):
                         app_title = app.get("title")
                         app_uri = app.get("uri")
@@ -161,6 +187,8 @@ async def get_devices():
                             action_key = f"launch_{slug}"
                             action_payload = vendor_cls.get_launch_action_payload(app_uri)
                             if action_payload:
+                                if _slugify(app_title) in disabled_slugs:
+                                    action_payload["deactivated"] = True
                                 catalog["actions"][action_key] = action_payload
                                 device_dynamic[action_key] = action_payload
                 
@@ -177,6 +205,7 @@ class DeviceIn(BaseModel):
     type: str = "unknown"
     vendor: str = "Generic"
     variables: dict = {}
+    disabled_apps: list[str] = []
 
 
 @app.post("/api/devices", status_code=201, summary="Manually register an IoT device")
@@ -208,19 +237,67 @@ async def delete_device(ip: str):
     return {"ok": True, "removed": ip}
 
 
+@app.post("/api/devices/{ip}/toggle-app", summary="Toggle application deactivation status")
+async def toggle_app_deactivation(ip: str, app_title: str, deactivated: bool):
+    """Disable or enable an application for a specific device, saving persistent settings."""
+    devices = _load_registry()
+    found = False
+    disabled = []
+    for device in devices:
+        if device.get("ip") == ip:
+            disabled = device.setdefault("disabled_apps", [])
+            slug = _slugify(app_title)
+            existing_match = next((d for d in disabled if _slugify(d) == slug), None)
+            
+            if deactivated:
+                if not existing_match:
+                    disabled.append(app_title)
+            else:
+                if existing_match:
+                    disabled.remove(existing_match)
+            found = True
+            break
+            
+    if not found:
+        raise HTTPException(status_code=404, detail="Device not found")
+        
+    _save_registry(devices)
+    log.info("Application '%s' toggled (deactivated=%s) on device %s", app_title, deactivated, ip)
+    return {"ok": True, "disabled_apps": disabled}
+
+
 @app.get("/api/vendors", summary="List all supported hardware vendors and API specs")
 async def get_vendors():
     """Retrieve metadata and API contract specifications for all supported hardware vendors."""
+    disabled_vendors = _load_disabled_vendors()
     return [
         {
+            "key": v.key,
             "name": v.name,
             "version": v.version,
             "description": v.description,
             "type": v.type,
+            "keywords": v.keywords,
+            "deactivated": v.key in disabled_vendors,
             "api_calls": v.get_api_calls()
         }
         for name, v in VENDORS.items() if name != "Generic"
     ]
+
+
+@app.post("/api/vendors/{key}/toggle", summary="Toggle vendor activation status")
+async def toggle_vendor(key: str, deactivated: bool):
+    """Enable or disable a vendor integration globally."""
+    disabled_vendors = _load_disabled_vendors()
+    if deactivated:
+        if key not in disabled_vendors:
+            disabled_vendors.append(key)
+    else:
+        if key in disabled_vendors:
+            disabled_vendors.remove(key)
+    _save_disabled_vendors(disabled_vendors)
+    log.info("Vendor '%s' toggled (deactivated=%s)", key, deactivated)
+    return {"ok": True, "disabled_vendors": disabled_vendors}
 
 
 @app.get("/api/network-prefix", summary="Retrieve local subnet prefix suggestion")
@@ -291,6 +368,12 @@ async def run_device_action(ip: str, action_name: str):
     if not device:
         log.warning("Execution failed: Device IP %s not found in database", ip)
         raise HTTPException(status_code=404, detail=f"Device with IP {ip} not found.")
+        
+    vendor_name = _get_device_vendor_name(device)
+    disabled_vendors = _load_disabled_vendors()
+    if vendor_name in disabled_vendors:
+        log.warning("Execution failed: Vendor '%s' is deactivated for device IP %s", vendor_name, ip)
+        raise HTTPException(status_code=400, detail="Vendor integration is deactivated.")
         
     dtype = device.get("type")
     catalog_key = _get_device_vendor_name(device)
@@ -505,6 +588,12 @@ async def execute_action(action_id: str):
     if not device:
         log.warning("Execution failed: Target device IP %s not found in registry", ip)
         raise HTTPException(status_code=404, detail=f"Target device with IP {ip} not found.")
+        
+    vendor_name = _get_device_vendor_name(device)
+    disabled_vendors = _load_disabled_vendors()
+    if vendor_name in disabled_vendors:
+        log.warning("Execution failed: Vendor '%s' is deactivated globally for action execution", vendor_name)
+        raise HTTPException(status_code=400, detail="Vendor integration is deactivated.")
         
     dtype = device.get("type")
     catalog_key = _get_device_vendor_name(device)

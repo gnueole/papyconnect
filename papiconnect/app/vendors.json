@@ -48,7 +48,11 @@
           "method": "setActiveApp",
           "version": "1.0",
           "id": 1,
-          "params": [{"uri": "App URI (e.g. com.sony.dtv.com.netflix.ninja...)"}]
+          "params": [
+            {
+              "uri": "App URI (e.g. com.sony.dtv.com.netflix.ninja...)"
+            }
+          ]
         }
       }
     },
@@ -65,9 +69,17 @@
         "method": "setActiveApp",
         "version": "1.0",
         "id": 1,
-        "params": [{"uri": "{app_uri}"}]
+        "params": [
+          {
+            "uri": "{app_uri}"
+          }
+        ]
       }
-    }
+    },
+    "keywords": [
+      "sony",
+      "bravia"
+    ]
   },
   "denon_amplifier": {
     "name": "Denon",
@@ -76,12 +88,16 @@
     "type": "amplifier",
     "get_apps_request": {
       "method": "STATIC",
-      "apps": ["Spotify"]
+      "apps": [
+        "Spotify"
+      ]
     },
     "api_calls": {
       "Get Application List": {
         "protocol": "STATIC",
-        "apps": ["Spotify"]
+        "apps": [
+          "Spotify"
+        ]
       },
       "Power On & Select Spotify/NET Input": {
         "protocol": "TCP",
@@ -93,7 +109,10 @@
         "port": 23,
         "payload": "PWSTANDBY\r"
       }
-    }
+    },
+    "keywords": [
+      "denon"
+    ]
   },
   "marantz_amplifier": {
     "name": "Marantz",
@@ -102,12 +121,18 @@
     "type": "amplifier",
     "get_apps_request": {
       "method": "STATIC",
-      "apps": ["Spotify", "HEOS"]
+      "apps": [
+        "Spotify",
+        "HEOS"
+      ]
     },
     "api_calls": {
       "Get Application List": {
         "protocol": "STATIC",
-        "apps": ["Spotify", "HEOS"]
+        "apps": [
+          "Spotify",
+          "HEOS"
+        ]
       },
       "Power On & Select Spotify/NET Input": {
         "protocol": "TCP",
@@ -129,7 +154,10 @@
         "port": 23,
         "payload": "MVDOWN\r"
       }
-    }
+    },
+    "keywords": [
+      "marantz"
+    ]
   },
   "lg_tv": {
     "name": "LG TV",
@@ -138,12 +166,44 @@
     "type": "tv",
     "get_apps_request": {
       "method": "STATIC",
-      "apps": ["Netflix", "YouTube", "Spotify", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi"]
+      "apps": [
+        "Netflix",
+        "YouTube",
+        "Spotify",
+        "Prime Video",
+        "Canal+",
+        "Apple TV",
+        "Arte",
+        "Disney+",
+        "Twitch",
+        "Salto",
+        "VLC",
+        "YouTube Music",
+        "France.tv",
+        "HBO Max",
+        "Mubi"
+      ]
     },
     "api_calls": {
       "Get Application List": {
         "protocol": "STATIC",
-        "apps": ["Netflix", "YouTube", "Spotify", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi"]
+        "apps": [
+          "Netflix",
+          "YouTube",
+          "Spotify",
+          "Prime Video",
+          "Canal+",
+          "Apple TV",
+          "Arte",
+          "Disney+",
+          "Twitch",
+          "Salto",
+          "VLC",
+          "YouTube Music",
+          "France.tv",
+          "HBO Max",
+          "Mubi"
+        ]
       },
       "Power Off": {
         "protocol": "HTTP",
@@ -175,7 +235,10 @@
         },
         "payload": "<?xml version=\"1.0\" encoding=\"utf-8\"?><command><name>AppLaunch</name><value>netflix</value></command>"
       }
-    }
+    },
+    "keywords": [
+      "lg"
+    ]
   },
   "sharp_tv": {
     "name": "Sharp TV",
@@ -184,12 +247,44 @@
     "type": "tv",
     "get_apps_request": {
       "method": "STATIC",
-      "apps": ["Netflix", "YouTube", "Spotify", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi"]
+      "apps": [
+        "Netflix",
+        "YouTube",
+        "Spotify",
+        "Prime Video",
+        "Canal+",
+        "Apple TV",
+        "Arte",
+        "Disney+",
+        "Twitch",
+        "Salto",
+        "VLC",
+        "YouTube Music",
+        "France.tv",
+        "HBO Max",
+        "Mubi"
+      ]
     },
     "api_calls": {
       "Get Application List": {
         "protocol": "STATIC",
-        "apps": ["Netflix", "YouTube", "Spotify", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi"]
+        "apps": [
+          "Netflix",
+          "YouTube",
+          "Spotify",
+          "Prime Video",
+          "Canal+",
+          "Apple TV",
+          "Arte",
+          "Disney+",
+          "Twitch",
+          "Salto",
+          "VLC",
+          "YouTube Music",
+          "France.tv",
+          "HBO Max",
+          "Mubi"
+        ]
       },
       "Power On": {
         "protocol": "TCP",
@@ -206,7 +301,10 @@
         "port": 10002,
         "payload": "IAVI1   \r"
       }
-    }
+    },
+    "keywords": [
+      "sharp"
+    ]
   },
   "samsung_tv": {
     "name": "Samsung TV",
@@ -215,12 +313,44 @@
     "type": "tv",
     "get_apps_request": {
       "method": "STATIC",
-      "apps": ["Netflix", "YouTube", "Spotify", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi"]
+      "apps": [
+        "Netflix",
+        "YouTube",
+        "Spotify",
+        "Prime Video",
+        "Canal+",
+        "Apple TV",
+        "Arte",
+        "Disney+",
+        "Twitch",
+        "Salto",
+        "VLC",
+        "YouTube Music",
+        "France.tv",
+        "HBO Max",
+        "Mubi"
+      ]
     },
     "api_calls": {
       "Get Application List": {
         "protocol": "STATIC",
-        "apps": ["Netflix", "YouTube", "Spotify", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi"]
+        "apps": [
+          "Netflix",
+          "YouTube",
+          "Spotify",
+          "Prime Video",
+          "Canal+",
+          "Apple TV",
+          "Arte",
+          "Disney+",
+          "Twitch",
+          "Salto",
+          "VLC",
+          "YouTube Music",
+          "France.tv",
+          "HBO Max",
+          "Mubi"
+        ]
       },
       "Get Device Info": {
         "protocol": "HTTP",
@@ -238,7 +368,10 @@
         },
         "payload": "{\"method\":\"ms.remote.control\",\"params\":{\"Cmd\":\"Click\",\"DataOfCmd\":\"KEY_POWER\",\"Option\":\"false\",\"TypeOfRemote\":\"SendRemoteKey\"}}"
       }
-    }
+    },
+    "keywords": [
+      "samsung"
+    ]
   },
   "philips_hue": {
     "name": "Philips Hue",
@@ -247,12 +380,20 @@
     "type": "lighting",
     "get_apps_request": {
       "method": "STATIC",
-      "apps": ["Light Zone 1", "Light Zone 2", "All Lights"]
+      "apps": [
+        "Light Zone 1",
+        "Light Zone 2",
+        "All Lights"
+      ]
     },
     "api_calls": {
       "Get Application List": {
         "protocol": "STATIC",
-        "apps": ["Light Zone 1", "Light Zone 2", "All Lights"]
+        "apps": [
+          "Light Zone 1",
+          "Light Zone 2",
+          "All Lights"
+        ]
       },
       "Power On Light": {
         "protocol": "HTTP",
@@ -275,7 +416,10 @@
         "path": "/api/{username}/lights/{id}/state",
         "payload": "{\"on\":true,\"bri\":254,\"hue\":10000,\"sat\":254}"
       }
-    }
+    },
+    "keywords": [
+      "hue"
+    ]
   },
   "sonos": {
     "name": "Sonos",
@@ -284,12 +428,20 @@
     "type": "speaker",
     "get_apps_request": {
       "method": "STATIC",
-      "apps": ["Line-In", "Spotify", "TuneIn Radio"]
+      "apps": [
+        "Line-In",
+        "Spotify",
+        "TuneIn Radio"
+      ]
     },
     "api_calls": {
       "Get Application List": {
         "protocol": "STATIC",
-        "apps": ["Line-In", "Spotify", "TuneIn Radio"]
+        "apps": [
+          "Line-In",
+          "Spotify",
+          "TuneIn Radio"
+        ]
       },
       "Play": {
         "protocol": "HTTP",
@@ -324,7 +476,10 @@
         },
         "payload": "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\"><s:Body><u:SetVolume xmlns:u=\"urn:schemas-upnp-org:service:RenderingControl:1\"><InstanceID>0</InstanceID><Channel>Master</Channel><DesiredVolume>30</DesiredVolume></u:SetVolume></s:Body></s:Envelope>"
       }
-    }
+    },
+    "keywords": [
+      "sonos"
+    ]
   },
   "yamaha_musiccast": {
     "name": "Yamaha MusicCast",
@@ -333,12 +488,22 @@
     "type": "amplifier",
     "get_apps_request": {
       "method": "STATIC",
-      "apps": ["HDMI 1", "HDMI 2", "Spotify", "Bluetooth"]
+      "apps": [
+        "HDMI 1",
+        "HDMI 2",
+        "Spotify",
+        "Bluetooth"
+      ]
     },
     "api_calls": {
       "Get Application List": {
         "protocol": "STATIC",
-        "apps": ["HDMI 1", "HDMI 2", "Spotify", "Bluetooth"]
+        "apps": [
+          "HDMI 1",
+          "HDMI 2",
+          "Spotify",
+          "Bluetooth"
+        ]
       },
       "Power On": {
         "protocol": "HTTP",
@@ -358,7 +523,11 @@
         "port": 80,
         "path": "/api/v1/main/setVolume?volume=30"
       }
-    }
+    },
+    "keywords": [
+      "musiccast",
+      "yamaha"
+    ]
   },
   "roku": {
     "name": "Roku",
@@ -367,12 +536,48 @@
     "type": "tv",
     "get_apps_request": {
       "method": "STATIC",
-      "apps": ["Home", "Netflix", "YouTube", "Spotify", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi", "Hulu"]
+      "apps": [
+        "Home",
+        "Netflix",
+        "YouTube",
+        "Spotify",
+        "Prime Video",
+        "Canal+",
+        "Apple TV",
+        "Arte",
+        "Disney+",
+        "Twitch",
+        "Salto",
+        "VLC",
+        "YouTube Music",
+        "France.tv",
+        "HBO Max",
+        "Mubi",
+        "Hulu"
+      ]
     },
     "api_calls": {
       "Get Application List": {
         "protocol": "STATIC",
-        "apps": ["Home", "Netflix", "YouTube", "Spotify", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi", "Hulu"]
+        "apps": [
+          "Home",
+          "Netflix",
+          "YouTube",
+          "Spotify",
+          "Prime Video",
+          "Canal+",
+          "Apple TV",
+          "Arte",
+          "Disney+",
+          "Twitch",
+          "Salto",
+          "VLC",
+          "YouTube Music",
+          "France.tv",
+          "HBO Max",
+          "Mubi",
+          "Hulu"
+        ]
       },
       "Press Home Key": {
         "protocol": "HTTP",
@@ -392,7 +597,10 @@
         "port": 8060,
         "path": "/launch/837"
       }
-    }
+    },
+    "keywords": [
+      "roku"
+    ]
   },
   "philips_wiz": {
     "name": "Philips WiZ",
@@ -401,12 +609,20 @@
     "type": "lighting",
     "get_apps_request": {
       "method": "STATIC",
-      "apps": ["Toggle Light", "Daylight Scene", "Night Light Scene"]
+      "apps": [
+        "Toggle Light",
+        "Daylight Scene",
+        "Night Light Scene"
+      ]
     },
     "api_calls": {
       "Get Application List": {
         "protocol": "STATIC",
-        "apps": ["Toggle Light", "Daylight Scene", "Night Light Scene"]
+        "apps": [
+          "Toggle Light",
+          "Daylight Scene",
+          "Night Light Scene"
+        ]
       },
       "Power On": {
         "protocol": "UDP",
@@ -423,7 +639,10 @@
         "port": 38899,
         "payload": "{\n          \"method\": \"setPilot\",\n          \"params\": {\n            \"state\": true,\n            \"temp\": 4000\n          }\n        }"
       }
-    }
+    },
+    "keywords": [
+      "wiz"
+    ]
   },
   "bbox": {
     "name": "Bouygues Bbox",
@@ -472,7 +691,10 @@
       "method": "POST",
       "port": 8008,
       "path": "/apps/{app_name}"
-    }
+    },
+    "keywords": [
+      "bbox"
+    ]
   },
   "xbox": {
     "name": "Xbox",
@@ -481,12 +703,54 @@
     "type": "game",
     "get_apps_request": {
       "method": "STATIC",
-      "apps": ["Netflix", "YouTube", "Spotify", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi", "Plex", "Minecraft", "FIFA", "Halo Infinite", "Forza Horizon 5"]
+      "apps": [
+        "Netflix",
+        "YouTube",
+        "Spotify",
+        "Prime Video",
+        "Canal+",
+        "Apple TV",
+        "Arte",
+        "Disney+",
+        "Twitch",
+        "Salto",
+        "VLC",
+        "YouTube Music",
+        "France.tv",
+        "HBO Max",
+        "Mubi",
+        "Plex",
+        "Minecraft",
+        "FIFA",
+        "Halo Infinite",
+        "Forza Horizon 5"
+      ]
     },
     "api_calls": {
       "Get Application List": {
         "protocol": "STATIC",
-        "apps": ["Netflix", "YouTube", "Spotify", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi", "Plex", "Minecraft", "FIFA", "Halo Infinite", "Forza Horizon 5"]
+        "apps": [
+          "Netflix",
+          "YouTube",
+          "Spotify",
+          "Prime Video",
+          "Canal+",
+          "Apple TV",
+          "Arte",
+          "Disney+",
+          "Twitch",
+          "Salto",
+          "VLC",
+          "YouTube Music",
+          "France.tv",
+          "HBO Max",
+          "Mubi",
+          "Plex",
+          "Minecraft",
+          "FIFA",
+          "Halo Infinite",
+          "Forza Horizon 5"
+        ]
       },
       "Power On": {
         "protocol": "STATIC"
@@ -494,7 +758,10 @@
       "Power Off": {
         "protocol": "STATIC"
       }
-    }
+    },
+    "keywords": [
+      "xbox"
+    ]
   },
   "playstation": {
     "name": "Playstation",
@@ -503,14 +770,59 @@
     "type": "game",
     "get_apps_request": {
       "method": "STATIC",
-      "apps": ["Netflix", "YouTube", "Spotify Connect", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi", "Spider-Man 2", "God of War Ragnarok", "Gran Turismo 7", "Elden Ring"]
+      "apps": [
+        "Netflix",
+        "YouTube",
+        "Spotify Connect",
+        "Prime Video",
+        "Canal+",
+        "Apple TV",
+        "Arte",
+        "Disney+",
+        "Twitch",
+        "Salto",
+        "VLC",
+        "YouTube Music",
+        "France.tv",
+        "HBO Max",
+        "Mubi",
+        "Spider-Man 2",
+        "God of War Ragnarok",
+        "Gran Turismo 7",
+        "Elden Ring"
+      ]
     },
     "api_calls": {
       "Get Application List": {
         "protocol": "STATIC",
-        "apps": ["Netflix", "YouTube", "Spotify Connect", "Amazon Prime", "Canal+", "Apple TV", "Arte", "Disney+", "Twitch", "Salto", "VLC", "YouTube Music", "France.tv", "HBO Max", "Mubi", "Spider-Man 2", "God of War Ragnarok", "Gran Turismo 7", "Elden Ring"]
+        "apps": [
+          "Netflix",
+          "YouTube",
+          "Spotify Connect",
+          "Prime Video",
+          "Canal+",
+          "Apple TV",
+          "Arte",
+          "Disney+",
+          "Twitch",
+          "Salto",
+          "VLC",
+          "YouTube Music",
+          "France.tv",
+          "HBO Max",
+          "Mubi",
+          "Spider-Man 2",
+          "God of War Ragnarok",
+          "Gran Turismo 7",
+          "Elden Ring"
+        ]
       }
-    }
+    },
+    "keywords": [
+      "playstation",
+      "ps5",
+      "ps4"
+    ]
   },
   "google_home": {
     "name": "Google Home",
@@ -528,9 +840,18 @@
     "api_calls": {
       "Get Application List": {
         "protocol": "STATIC",
-        "apps": ["Spotify", "YouTube", "YouTube Music"]
+        "apps": [
+          "Spotify",
+          "YouTube",
+          "YouTube Music"
+        ]
       }
-    }
+    },
+    "keywords": [
+      "google",
+      "nest",
+      "chromecast"
+    ]
   },
   "Generic": {
     "name": "Generic",
