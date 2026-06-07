@@ -1,8 +1,11 @@
 # PapyConnect Home Lab Integration Stack
 
 > **The Pitch**: A zero-friction, visually stunning home multimedia automation hub designed specifically for parents and senior family members. The installation is performed once by a tech-savvy child on their parent's home NAS, and from that point onward, the parent is 100% autonomous. They can create, edit, or customize their Options+ smart keypad triggers using a gorgeous, simplified 3-step dashboard—no code, no configuration file editing, and no technical assistance required.
-
+<br>
+<br>
 ![PapyConnect Dashboard](images/main.png)
+<br>
+<br>
 
 PapyConnect is a zero-friction, visually stunning home lab multimedia automation hub designed specifically for parents and senior family members. The installation is performed once by a tech-savvy child on their parent's home NAS, and from that point onward, the parent is 100% autonomous. They can create, edit, or customize their Options+ smart keypad triggers using a gorgeous, simplified 3-step dashboard—no code, no configuration file editing, and no technical assistance required.
 
@@ -202,4 +205,28 @@ When a device is refreshed or scanned, the backend resolves its vendor discovery
 | **Roku** | TV | 🟢 Yes | 🟢 Yes | 🟢 HTTP | 🟢 HTTP | **No** (Simulated) |
 | **Apple TV** | TV | 🟢 Yes | 🟢 Yes | 🔴 N/A | 🔴 N/A | **No** |
 | **Xbox** | Game Console| 🔴 No (Static) | 🟢 Yes | 🟢 Static | 🔴 N/A | **No** |
+
+---
+
+## 🐳 Docker Installation on Synology NAS
+
+To host the PapyConnect and n8n stack on your Synology NAS, ensure Docker is installed and SSH access is enabled:
+
+1. **Install Container Manager**:
+   * Open the Synology **DSM (DiskStation Manager)** web dashboard.
+   * Go to **Package Center**, search for **Container Manager** (or **Docker** on older DSM versions), and click **Install**.
+2. **Enable SSH Access**:
+   * Open **Control Panel** -> **Terminal & SNMP**.
+   * Check **Enable SSH service** (default port is 22). This is required for the automated deployment scripts (`make papiconnect-sync`) to copy and sync files from your local computer to the NAS.
+
+---
+
+## 🔗 Annex & Reference Links
+
+* **Logitech Options+**: [Download Options+](https://www.logitech.com/software/options.html)
+* **n8n Automation**: [n8n Self-Hosting Documentation](https://docs.n8n.io/hosting/)
+* **FastAPI Framework**: [FastAPI Documentation](https://fastapi.tiangolo.com/)
+* **Loupedeck SDK**: [Loupedeck C# Plugin Developers Guide](https://developer.loupedeck.com/)
+* **Python Zeroconf (mDNS)**: [Zeroconf Repository](https://github.com/jstasiak/python-zeroconf)
+
 
