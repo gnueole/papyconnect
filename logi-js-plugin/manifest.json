@@ -3,7 +3,7 @@
   "id": "me.eole.papyconnect",
   "name": "PapyConnect Console",
   "version": "1.0.0",
-  "description": "Exécute des actions virtuelles via la passerelle n8n",
+  "description": "Executes virtual actions via the n8n gateway",
   "author": "Éole Lab",
   "background": {
     "scripts": ["plugin.js"]
@@ -11,46 +11,46 @@
   "actions": [
     {
       "id": "papyconnect_btn_1",
-      "name": "Bouton PapyConnect 1",
+      "name": "PapyConnect Button 1",
       "type": "custom"
     },
     {
       "id": "papyconnect_btn_2",
-      "name": "Bouton PapyConnect 2",
+      "name": "PapyConnect Button 2",
       "type": "custom"
     },
     {
       "id": "papyconnect_btn_3",
-      "name": "Bouton PapyConnect 3",
+      "name": "PapyConnect Button 3",
       "type": "custom"
     },
     {
       "id": "papyconnect_btn_4",
-      "name": "Bouton PapyConnect 4",
+      "name": "PapyConnect Button 4",
       "type": "custom"
     },
     {
       "id": "papyconnect_btn_5",
-      "name": "Bouton PapyConnect 5",
+      "name": "PapyConnect Button 5",
       "type": "custom"
     },
     {
       "id": "papyconnect_btn_6",
-      "name": "Bouton PapyConnect 6",
+      "name": "PapyConnect Button 6",
       "type": "custom"
     },
     {
       "id": "open_wizard",
-      "name": "Ouvrir le Wizard de Configuration",
+      "name": "Open Configuration Wizard",
       "type": "custom"
     }
   ],
   "settings": {
     "gronas_n8n_url": {
       "type": "string",
-      "label": "URL Gateway n8n",
+      "label": "n8n Gateway URL",
       "default": "http://gronas:5678",
-      "description": "L'URL racine de votre instance n8n locale (Gronas)."
+      "description": "The root URL of your local n8n instance (Gronas)."
     }
   }
 }

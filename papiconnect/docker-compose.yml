@@ -1,26 +1,26 @@
 version: "3.9"
 
 # ══════════════════════════════════════════════════════════════════════════════
-# PapyConnect + n8n — Stack "Clé en main"
+# PapyConnect + n8n — Turnkey Stack
 #
-# network_mode: host sur les deux services :
-#   • PapyConnect capte les broadcasts UDP du LAN (mDNS _googlecast / SSDP)
-#   • n8n requête PapyConnect nativement via http://localhost:8000
-#   • Aucun port mapping nécessaire (les services écoutent directement sur l'hôte)
+# network_mode: host on both services:
+#   • PapyConnect captures LAN UDP broadcasts (mDNS _googlecast / SSDP)
+#   • n8n requests PapyConnect natively via http://localhost:8000
+#   • No port mapping required (services listen directly on host)
 #
-# Ports utilisés sur l'hôte :
+# Ports used on host:
 #   • 8000 → PapyConnect API + Dashboard
 #   • 5678 → n8n UI + Webhook
 #
-# Structure attendue sur l'hôte (NAS ou Raspberry Pi) :
-#   /volume1/docker/papiconnect/      (ou ~/papiconnect/ sur le Pi)
+# Expected host directory structure (NAS or Raspberry Pi):
+#   /volume1/docker/papiconnect/      (or ~/papiconnect/ on Pi)
 #   ├── docker-compose.yml
 #   ├── app/
 #   │   ├── main.py
 #   │   └── templates/
 #   │       └── index.html
-#   ├── data/                         ← auto-créé (registry.json)
-#   └── n8n_data/                     ← auto-créé (workflows, credentials n8n)
+#   ├── data/                         ← auto-created (registry.json)
+#   └── n8n_data/                     ← auto-created (workflows, credentials n8n)
 # ══════════════════════════════════════════════════════════════════════════════
 
 services:

@@ -76,7 +76,7 @@ endif
 
 
 # Pretty print tree of scanned devices and available apps
-status:
+scan:
 	@python3 toolkit/print_status.py $(GRONAS_IP) $(PAPYCONNECT_PORT) $(RUN_ARGS) $(MAKEOVERRIDES)
 
 # Print current configuration status
@@ -171,36 +171,36 @@ papiconnect-sync: papiconnect-build-image
 	@rm -f papiconnect.tar.gz
 	@echo "[papiconnect] Sync and image load complete."
 
-# Recréation forcée à chaud (sans coupure lourde)
+# Hot recreate containers cleanly
 papiconnect-recreate: papiconnect-sync
 	@echo "[papiconnect] Recreating container cleanly..."
 	@ssh $(SERVER_ROOT) "cd $(REMOTE_DIR) && $(DOCKER) compose up -d --force-recreate"
 
-# Démarrage
+# Start containers
 papiconnect-up: papiconnect-sync
 	@echo "[papiconnect] Starting container on $(SERVER_ROOT)..."
 	@ssh $(SERVER_ROOT) "cd $(REMOTE_DIR) && $(DOCKER) compose up -d"
 
-# Arrêt
+# Stop containers
 papiconnect-down:
 	@echo "[papiconnect] Stopping container on $(SERVER_ROOT)..."
 	@ssh $(SERVER_ROOT) "cd $(REMOTE_DIR) && $(DOCKER) compose down"
 
-# Logs en direct
+# Live streaming logs
 papiconnect-logs:
 	@echo "[papiconnect] Streaming logs from $(SERVER_ROOT)..."
 	@ssh $(SERVER_ROOT) "cd $(REMOTE_DIR) && $(DOCKER) compose logs -f"
 
-# Statut des conteneurs
+# Container status
 papiconnect-status:
 	@echo "[papiconnect] Container status on $(SERVER_ROOT):"
 	@ssh $(SERVER_ROOT) "cd $(REMOTE_DIR) && $(DOCKER) compose ps"
 
-# Redéploiement complet (Clean restart)
+# Complete redeployment (Clean restart)
 papiconnect-redeploy: papiconnect-down papiconnect-up
 	@echo "[papiconnect] Redeployment complete — http://gronas:8000"
 
-# Outils de synchronisation de workflows n8n
+# n8n workflow sync utilities
 papiconnect-n8n-push:
 	@echo "[n8n] Pushing local workflows to gronas:5678..."
 	python3 toolkit/sync_n8n.py --push-all
