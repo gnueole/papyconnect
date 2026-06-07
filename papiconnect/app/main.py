@@ -1739,6 +1739,18 @@ async def get_vendors():
     ]
 
 
+@app.get("/api/network-prefix", summary="Retrieve local subnet prefix suggestion")
+async def get_network_prefix():
+    """Retrieve the prefix of the local subnet for manual adding suggestion (e.g. '192.168.1.')."""
+    subnet_str = _get_local_subnet()
+    if "/" in subnet_str:
+        ip_part = subnet_str.split("/")[0]
+        parts = ip_part.split(".")
+        if len(parts) == 4:
+            return {"prefix": f"{parts[0]}.{parts[1]}.{parts[2]}."}
+    return {"prefix": "192.168.1."}
+
+
 @app.get("/api/vendors/{vendor_name}/discover-schema", summary="Retrieve discovery spec details for n8n")
 async def get_vendor_discover_schema(vendor_name: str):
     """Retrieve the JSON configuration schema of the get_apps_request query sheet for a vendor."""

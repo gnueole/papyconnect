@@ -37,6 +37,15 @@
           selected: null,
           longest: null
         },
+        manualAddModal: {
+          open: false,
+          form: {
+            name: '',
+            ip: '',
+            type: 'tv',
+            vendor: 'Sony'
+          }
+        },
         factoryResetModal: {
           open: false
         },
@@ -167,6 +176,49 @@
             }
           } catch {
             this.notify('Failed to load supported vendors API specs.');
+          }
+        },
+
+        async openManualAdd() {
+          this.manualAddModal.form.name = '';
+          this.manualAddModal.form.type = 'tv';
+          this.manualAddModal.form.vendor = 'Sony';
+          this.manualAddModal.open = true;
+          try {
+            const r = await fetch('/api/network-prefix');
+            if (r.ok) {
+              const data = await r.json();
+              this.manualAddModal.form.ip = data.prefix;
+            } else {
+              this.manualAddModal.form.ip = '192.168.1.';
+            }
+          } catch {
+            this.manualAddModal.form.ip = '192.168.1.';
+          }
+        },
+
+        async submitManualAdd() {
+          try {
+            const res = await fetch('/api/devices', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                name: this.manualAddModal.form.name,
+                ip: this.manualAddModal.form.ip,
+                type: this.manualAddModal.form.type,
+                vendor: this.manualAddModal.form.vendor,
+                variables: {}
+              })
+            });
+            if (!res.ok) {
+              const err = await res.json();
+              throw new Error(err.detail || 'Failed to add device.');
+            }
+            this.manualAddModal.open = false;
+            this.notify('Device manually added successfully.');
+            await this.load();
+          } catch (e) {
+            this.notify(e.message || 'Failed to add device.');
           }
         },
 
