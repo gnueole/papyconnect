@@ -227,6 +227,36 @@ When a device is refreshed or scanned, the backend resolves its vendor discovery
 
 ---
 
+## 📝 Changelog
+
+### v1.4.0 (Recent Updates)
+* 🧱 **Modular Frontend Refactoring**: 
+  * Split the monolithic `modals.html` overlay into 7 decoupled sub-modal templates inside `app/templates/components/modals/`.
+  * Extracted hardcoded styling inside `head.html` to a clean external static stylesheet `/static/css/dashboard.css`.
+  * Factored script controllers inside `scripts.html` into external scripts `/static/js/app.js` (Alpine.js scope) and `/static/js/fireworks.js` (animation canvas).
+  * Mounted static files route `/static` in `main.py` using FastAPI's `StaticFiles`.
+* 📺 **App Configurations Expansion**:
+  * Integrated **VLC**, **YouTube Music**, **France.tv**, **HBO Max**, and **Mubi** services, including custom vector SVG icons, harmonic dark color themes, and active borders.
+  * Added the new services to the static fallback lists for LG TV, Sharp TV, Samsung TV, Roku, Xbox, PlayStation, and Google Home.
+* 🎨 **Visual & Brand Adjustments**:
+  * Customized the **Disney+** icon to display Mickey Mouse's head silhouette using overlapping circles.
+  * Dimmed down active card borders and ripple glow brightness for **Apple TV** and **Canal+** to preserve dark-theme harmony.
+* 📦 **About & Documentation**:
+  * Integrated a styled **GitHub Repository** link button inside the About modal.
+  * Documented frontend directory structures, templates, and static routes inside **[ARCHITECTURE.md](file:///home/eole/projects/papyconnect/ARCHITECTURE.md)**.
+
+### v1.3.0
+* 🛠️ **CLI Status Tree & Tools**:
+  * Added the `make status` CLI command to print a structured tree of scanned and registered devices with active application status.
+  * Added support for grouping and sorting the status output by application using `make status byapp`.
+  * Added device registration directly from the CLI via `make status add name=ip` with support for partial IPs using auto-subnet prefix lookup.
+* ⚙️ **Dynamic Vendor Database Refactoring**:
+  * Refactored vendor classes to load device properties and application discovery metadata dynamically from `vendors.json`.
+  * Standardized application list retrieval schemas across all smart home appliance types.
+  * Added common games/applications to the static fallback lists for the Xbox console.
+
+---
+
 ## 🐳 Docker Installation on Synology NAS
 
 To host the PapyConnect and n8n stack on your Synology NAS, ensure Docker is installed and SSH access is enabled:
