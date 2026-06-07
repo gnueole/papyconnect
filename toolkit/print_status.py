@@ -76,7 +76,7 @@ def main():
                     vendor = "Philips WiZ"
                     dev_type = "lighting"
                 elif "bbox" in name_lower:
-                    vendor = "Bbox"
+                    vendor = "Bouygues Bbox"
                     dev_type = "tv"
                 elif "google" in name_lower or "nest" in name_lower or "chromecast" in name_lower:
                     vendor = "Google Home"

@@ -234,6 +234,13 @@
         activeClass: 'border-amber-500/50 bg-amber-950/15 shadow-lg shadow-amber-500/5',
         glowColor: 'rgba(245, 158, 11, 0.45)'
       },
+      molotov: {
+        label: 'Molotov',
+        icon: `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12.96 5.39a.75.75 0 0 1 .253.747l-.233 1.396a5.25 5.25 0 0 0 .762 3.868l1.01 1.516a7.5 7.5 0 0 1 1.188 3.964 7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 1.188-3.964l1.01-1.516a5.25 5.25 0 0 0 .762-3.868L7.79 6.137a.75.75 0 0 1 1.27-.61L12 8.25l.96-2.86Zm-1.414 7.151a3.75 3.75 0 0 0-.486-2.478L10.5 9.193l-.56 3.36a1.5 1.5 0 0 1-.218.632l-.46.69a4.5 4.5 0 1 0 5.476 0l-.46-.69a1.5 1.5 0 0 1-.218-.632l-.56-3.36-.56 1.108a3.75 3.75 0 0 0-.486 2.478ZM12 12a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z" clip-rule="evenodd"/></svg>`,
+        bgClass: 'bg-orange-950/35 text-orange-400 border border-orange-500/20',
+        activeClass: 'border-orange-500/50 bg-orange-950/15 shadow-lg shadow-orange-500/5',
+        glowColor: 'rgba(249, 115, 22, 0.45)'
+      },
       unknown: {
         label: 'Unknown',
         icon: `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M9 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>`,
@@ -265,6 +272,10 @@
       'france.tv': 'france_tv',
       hbomax: 'hbo_max',
       hbo: 'hbo_max',
+      molotov: 'molotov',
+      molotov_tv: 'molotov',
+      'molotov.tv': 'molotov',
+      'molotov-tv': 'molotov',
     };
 
     for (const [alias, primary] of Object.entries(ALIASES)) {

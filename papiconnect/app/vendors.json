@@ -426,7 +426,7 @@
     }
   },
   "bbox": {
-    "name": "Bbox",
+    "name": "Bouygues Bbox",
     "version": "v1.0 (DIAL HTTP)",
     "description": "Bouygues Telecom Bbox Android TV devices using the DIAL protocol.",
     "type": "tv",

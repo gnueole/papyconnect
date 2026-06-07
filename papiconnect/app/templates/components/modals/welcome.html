@@ -1,0 +1,88 @@
+<!-- 
+  PapyConnect — Empty State Welcome Overlay Modal
+  =============================================================================
+  Purpose: Displays a welcoming modal overlay when the IoT registry contains zero
+           registered devices. Prompts users to run a network scan or add their 
+           first device manually using prominent center-aligned action controls.
+  
+  Architectural Glue:
+    - Renders dynamically when `devices.length === 0` and initial boot is done (`!loading`).
+    - Dismisses automatically once any scan completes or manual registration succeeds.
+-->
+<div
+  x-show="devices.length === 0 && !loading"
+  class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/85 backdrop-blur-xl"
+  x-transition:enter="transition ease-out duration-500"
+  x-transition:enter-start="opacity-0 scale-95"
+  x-transition:enter-end="opacity-100 scale-100"
+  x-transition:leave="transition ease-in duration-300"
+  x-transition:leave-start="opacity-100 scale-100"
+  x-transition:leave-end="opacity-0 scale-95"
+  x-cloak
+>
+  <div class="bg-panel/90 border border-rim/80 rounded-3xl max-w-2xl w-full p-8 md:p-12 text-center relative shadow-2xl shadow-gold/5 overflow-hidden animate-fadeUp flex flex-col items-center">
+    <!-- Glow aesthetic elements -->
+    <div class="absolute -top-32 -left-32 w-64 h-64 bg-gold/5 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-32 -right-32 w-64 h-64 bg-ember/5 rounded-full blur-3xl pointer-events-none"></div>
+    
+    <!-- Animated pulse/radar network logo -->
+    <div class="relative w-24 h-24 mb-8 flex items-center justify-center">
+      <!-- Pulsing rings -->
+      <span class="absolute inline-flex h-full w-full rounded-full bg-gold/10 opacity-75 animate-ping duration-1000"></span>
+      <span class="absolute inline-flex h-20 w-20 rounded-full bg-gold/15 opacity-50 animate-ping duration-700"></span>
+      
+      <!-- Inner scanning circle -->
+      <div class="w-16 h-16 rounded-2xl bg-gold/10 border border-gold/30 flex items-center justify-center relative z-10 shadow-lg shadow-gold/5">
+        <svg class="w-8 h-8 text-gold" :class="scanning ? 'spin' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+          <circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/>
+          <path stroke-linecap="round" d="M12 7v4M12 11l-5 6M12 11l5 6"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Title & Welcome -->
+    <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight text-white mb-4">
+      Welcome to Papy<span class="text-gold">Connect</span> 👋
+    </h2>
+    <p class="text-sm text-gray-400 max-w-lg leading-relaxed mb-10">
+      Your zero-friction home automation multimedia hub. PapyConnect auto-discovers smart devices on your local subnet and bridges them to your n8n workflows. Let's get started by scanning your network or registering a device manually.
+    </p>
+
+    <!-- Scanning State Message -->
+    <div x-show="scanning" x-transition class="mb-8 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-400 flex items-center gap-3 animate-fadeUp max-w-md w-full justify-center">
+      <span class="spin shrink-0"></span>
+      <span><b>Scan in progress:</b> Actively searching your network. Discovered devices will appear automatically...</span>
+    </div>
+
+    <!-- Action Buttons (Bigger and Centered) -->
+    <div class="flex flex-col sm:flex-row items-center gap-4 w-full max-w-md justify-center">
+      <!-- Big Scan Button -->
+      <button
+        @click="scan()"
+        :disabled="scanning"
+        class="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-4 rounded-xl font-bold text-base text-black
+               bg-gold hover:bg-ember active:scale-95 shadow-scan-btn transition-all duration-150 disabled:opacity-50"
+      >
+        <span x-show="scanning" class="spin shrink-0" aria-hidden="true"></span>
+        <span x-show="!scanning">
+          <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+          </svg>
+        </span>
+        <span x-text="scanning ? 'Scanning Network…' : 'Scan Network'"></span>
+      </button>
+
+      <!-- Big Manual Add Button -->
+      <button
+        @click="openManualAdd()"
+        class="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-4 rounded-xl font-bold text-base
+               bg-rim/25 text-gray-300 border border-rim/50 hover:bg-rim/40 hover:text-white active:scale-95 transition-all duration-150"
+      >
+        <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+        <span>Manual Add</span>
+      </button>
+    </div>
+  </div>
+</div>
