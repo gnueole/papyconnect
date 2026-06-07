@@ -446,6 +446,7 @@ class Vendor:
     name: str = "Generic"
     version: str = "1.0"
     description: str = "Generic fallback vendor"
+    type: str = "unknown"
 
     @classmethod
     def get_api_calls(cls) -> dict:
@@ -475,6 +476,7 @@ class SonyVendor(Vendor):
     name: str = "Sony"
     version: str = "v1.0 (Bravia Simple IP)"
     description: str = "Sony Bravia TVs using Pre-Shared Key (PSK) authentication."
+    type: str = "tv"
 
     @classmethod
     def get_api_calls(cls) -> dict:
@@ -560,6 +562,7 @@ class DenonVendor(Vendor):
     name: str = "Denon"
     version: str = "v1.0 (Telnet TCP)"
     description: str = "Denon and Marantz AV Receivers controlled via raw TCP Telnet protocol commands."
+    type: str = "amplifier"
 
     @classmethod
     def get_api_calls(cls) -> dict:
@@ -581,12 +584,14 @@ class GenericVendor(Vendor):
     name: str = "Generic"
     version: str = "N/A"
     description: str = "Generic unsupported hardware vendor."
+    type: str = "unknown"
 
 
 class BboxVendor(Vendor):
     name: str = "Bbox"
     version: str = "v1.0 (DIAL HTTP)"
     description: str = "Bouygues Telecom Bbox Android TV devices using the DIAL protocol."
+    type: str = "tv"
 
     @classmethod
     def get_api_calls(cls) -> dict:
@@ -631,6 +636,7 @@ class XboxVendor(Vendor):
     name: str = "Xbox"
     version: str = "v1.0 (UDP SmartGlass)"
     description: str = "Microsoft Xbox Series X/S gaming consoles."
+    type: str = "game"
 
     @classmethod
     def get_api_calls(cls) -> dict:
@@ -646,6 +652,7 @@ class PlaystationVendor(Vendor):
     name: str = "Playstation"
     version: str = "v1.0 (PS5 REST)"
     description: str = "Sony PlayStation 5 gaming consoles."
+    type: str = "game"
 
     @classmethod
     def get_api_calls(cls) -> dict:
@@ -661,6 +668,7 @@ class MarantzVendor(Vendor):
     name: str = "Marantz"
     version: str = "v1.0 (Telnet TCP)"
     description: str = "Marantz AV Receivers controlled via raw TCP Telnet protocol commands."
+    type: str = "amplifier"
 
     @classmethod
     def get_api_calls(cls) -> dict:
@@ -692,6 +700,7 @@ class LgTvVendor(Vendor):
     name: str = "LG TV"
     version: str = "v1.0 (WebOS REST)"
     description: str = "LG Smart TVs running WebOS, controlled via REST HTTP API commands."
+    type: str = "tv"
 
     @classmethod
     def get_api_calls(cls) -> dict:
@@ -733,6 +742,7 @@ class SharpTvVendor(Vendor):
     name: str = "Sharp TV"
     version: str = "v1.0 (AQUOS IP Control)"
     description: str = "Sharp AQUOS Smart TVs controlled via raw TCP commands on port 10002."
+    type: str = "tv"
 
     @classmethod
     def get_api_calls(cls) -> dict:
@@ -759,6 +769,7 @@ class SamsungTvVendor(Vendor):
     name: str = "Samsung TV"
     version: str = "v1.0 (Samsung Tizen REST)"
     description: str = "Samsung Smart TVs running Tizen OS, controlled via REST HTTP commands."
+    type: str = "tv"
 
     @classmethod
     def get_api_calls(cls) -> dict:
@@ -786,6 +797,7 @@ class PhilipsHueVendor(Vendor):
     name: str = "Philips Hue"
     version: str = "v1.0 (Hue REST)"
     description: str = "Philips Hue Smart Lighting Bridge controlling lights via local REST API."
+    type: str = "lighting"
 
     @classmethod
     def get_api_calls(cls) -> dict:
@@ -818,6 +830,7 @@ class SonosVendor(Vendor):
     name: str = "Sonos"
     version: str = "v1.0 (Sonos SOAP)"
     description: str = "Sonos smart speakers and players controlled locally via UPnP/SOAP HTTP requests."
+    type: str = "speaker"
 
     @classmethod
     def get_api_calls(cls) -> dict:
@@ -862,6 +875,7 @@ class YamahaMusicCastVendor(Vendor):
     name: str = "Yamaha MusicCast"
     version: str = "v1.0 (MusicCast REST)"
     description: str = "Yamaha AV Receivers and speakers using local MusicCast REST HTTP JSON API."
+    type: str = "amplifier"
 
     @classmethod
     def get_api_calls(cls) -> dict:
@@ -891,6 +905,7 @@ class RokuVendor(Vendor):
     name: str = "Roku"
     version: str = "v1.0 (Roku ECP)"
     description: str = "Roku Streaming players and Roku TVs controlled via External Control Protocol (ECP)."
+    type: str = "tv"
 
     @classmethod
     def get_api_calls(cls) -> dict:
@@ -920,6 +935,7 @@ class PhilipsWizVendor(Vendor):
     name: str = "Philips WiZ"
     version: str = "v1.0 (WiZ UDP)"
     description: str = "Philips WiZ WiFi smart lights controlled via local UDP JSON packets."
+    type: str = "lighting"
 
     @classmethod
     def get_api_calls(cls) -> dict:
@@ -1716,6 +1732,7 @@ async def get_vendors():
             "name": v.name,
             "version": v.version,
             "description": v.description,
+            "type": v.type,
             "api_calls": v.get_api_calls()
         }
         for name, v in VENDORS.items() if name != "Generic"

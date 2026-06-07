@@ -280,18 +280,37 @@
       <!-- Sidebar listing vendors -->
       <div class="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-rim/40 pb-4 md:pb-0 md:pr-6 shrink-0 flex flex-col">
         <h3 class="text-xs font-extrabold text-gold uppercase tracking-wider mb-4">Supported Brands</h3>
-        <div class="space-y-2 overflow-y-auto flex-1 pr-1">
-          <template x-for="v in vendorsModal.list" :key="v.name">
-            <button
-              @click="vendorsModal.selected = v"
-              class="w-full text-left px-4 py-3 rounded-xl border transition-all flex items-center justify-between active:scale-[0.98]"
-              :class="vendorsModal.selected && vendorsModal.selected.name === v.name
-                ? 'bg-gold/15 border-gold text-white font-bold shadow-lg shadow-gold/5'
-                : 'bg-panel/40 border-rim/50 text-gray-400 hover:bg-panel/60 hover:text-gray-200'"
-            >
-              <span x-text="v.name"></span>
-              <span class="text-[9px] font-semibold bg-gold/10 text-gold px-1.5 py-0.5 rounded border border-gold/20" x-text="v.version"></span>
-            </button>
+        <div class="space-y-4 overflow-y-auto flex-1 pr-1">
+          <template x-for="cat in [
+            { id: 'tv', name: 'TVs' },
+            { id: 'amplifier', name: 'Amplifiers' },
+            { id: 'game', name: 'Game Consoles' },
+            { id: 'speaker', name: 'Speakers' },
+            { id: 'lighting', name: 'Lighting' }
+          ]" :key="cat.id">
+            <div x-show="vendorsModal.list.some(v => v.type === cat.id)" class="space-y-2">
+              <!-- Category Header -->
+              <div class="flex items-center gap-2 text-[10px] font-extrabold text-gold uppercase tracking-wider select-none border-b border-rim/20 pb-1.5">
+                <div :class="iconBg(cat.id)" class="w-6 h-6 rounded flex items-center justify-center shrink-0 scale-90" x-html="icon(cat.id)"></div>
+                <span x-text="cat.name"></span>
+              </div>
+              
+              <!-- Category Vendors -->
+              <div class="space-y-1.5 pl-3 border-l border-rim/20">
+                <template x-for="v in vendorsModal.list.filter(v => v.type === cat.id)" :key="v.name">
+                  <button
+                    @click="vendorsModal.selected = v"
+                    class="w-full text-left px-3 py-2.5 rounded-xl border transition-all flex items-center justify-between active:scale-[0.98]"
+                    :class="vendorsModal.selected && vendorsModal.selected.name === v.name
+                      ? 'bg-gold/15 border-gold text-white font-bold shadow-lg shadow-gold/5'
+                      : 'bg-panel/40 border-rim/50 text-gray-400 hover:bg-panel/60 hover:text-gray-200'"
+                  >
+                    <span class="text-xs" x-text="v.name"></span>
+                    <span class="text-[8px] font-semibold bg-gold/10 text-gold px-1.5 py-0.5 rounded border border-gold/20" x-text="v.version"></span>
+                  </button>
+                </template>
+              </div>
+            </div>
           </template>
         </div>
       </div>
