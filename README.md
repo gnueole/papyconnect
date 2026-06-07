@@ -1,8 +1,26 @@
 # PapyConnect Home Lab Integration Stack
 
-This workspace organizes the PapyConnect dynamic IoT service registry (FastAPI) and the dynamic Logitech Options+ triggers. It contains both a dynamic C# plugin (**PapyConnect C# Plugin**) and a JavaScript/JSON Extension blueprint for Options+.
+> **The Pitch**: A zero-friction, visually stunning home multimedia automation hub designed specifically for parents and senior family members. The installation is performed once by a tech-savvy child on their parent's home NAS, and from that point onward, the parent is 100% autonomous. They can create, edit, or customize their Options+ smart keypad triggers using a gorgeous, simplified 3-step dashboard—no code, no configuration file editing, and no technical assistance required.
 
 ![PapyConnect Dashboard](images/main.png)
+
+## 💡 The Value Proposition & Technical Rationale
+
+### 1. Simple & Visually Stunning for "Papy"
+Typical home lab automation tools are cluttered and overwhelming. PapyConnect focuses on maximum simplicity:
+* **The 3-Step Wizard**: Creating a custom shortcut action is reduced to: 1. Choose the device, 2. Choose the command, 3. Choose the icon.
+* **Premium Micro-interactions**: The interface uses responsive visual feedback (glowing online pulses, micro-animations, glassmorphic layout) so it feels alive and intuitive.
+
+### 2. Complete Autonomy After Setup
+The system is built so the administrator installs it on the NAS once. Afterwards, the father is completely independent:
+* **Automatic Discovery**: New devices (Sony TVs, speakers, amplifiers) are found automatically on the local network via background mDNS scans.
+* **Self-Service Actions Management**: The parent can bind, unbind, delete, or rename actions on their Loupedeck/Logitech console entirely through the UI without ever editing config files or opening terminal connections.
+
+### 3. Agnostic Architecture — No Hardcoding
+PapyConnect does not lock the home lab into proprietary ecosystems or hardcoded schemas:
+* **Polymorphic Device Registry**: Interaction endpoints and payloads are resolved dynamically based on vendor capabilities, allowing brand-agnostic expansion.
+* **Payload-as-a-Recipe**: The API outputs command instructions as standard JSON recipes. n8n executes the recipes dynamically, meaning new models or application paths can be registered and operated instantly without updating backend source code.
+
 
 
 ---
@@ -172,3 +190,24 @@ When a device is refreshed or scanned, the backend resolves its vendor discovery
   "status": "online"
 }
 ```
+
+---
+
+## 🔌 Supported Brands & Appliance Testing Status
+
+> [!NOTE]
+> Not all smart home appliances and vendor integrations have been fully tested in physical setups yet. Below is the active testing and validation matrix:
+
+| Vendor / Brand | Category | mDNS Discovery | Active Pings | API App Listing | Command Execution | Tested & Validated |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: |
+| **Sony Bravia TV** | TV | 🟢 Yes | 🟢 Yes | 🟢 HTTP / DIAL | 🟢 HTTP POST | **Yes** |
+| **Bbox (Bouygues)**| TV | 🔴 No (Ghost) | 🟢 Yes | 🟢 HTTP | 🟢 HTTP/DIAL | **Yes** |
+| **Denon Amp** | Amplifier | 🔴 No (Static) | 🟢 Yes | 🟢 Static | 🟢 TCP Telnet | **Yes** |
+| **Spotify Connect**| Audio | 🟢 Yes | 🟢 Yes | 🔴 N/A | 🔴 N/A | **Yes** |
+| **Google Home** | Speaker | 🟢 Yes | 🟢 Yes | 🔴 N/A | 🔴 N/A | **Partial** |
+| **Marantz Amp** | Amplifier | 🔴 No (Static) | 🟢 Yes | 🟢 Static | 🟢 TCP Telnet | **No** (Simulated) |
+| **Yamaha Amp** | Amplifier | 🟢 Yes | 🟢 Yes | 🟢 HTTP | 🟢 HTTP | **No** (Simulated) |
+| **Roku** | TV | 🟢 Yes | 🟢 Yes | 🟢 HTTP | 🟢 HTTP | **No** (Simulated) |
+| **Apple TV** | TV | 🟢 Yes | 🟢 Yes | 🔴 N/A | 🔴 N/A | **No** |
+| **Xbox** | Game Console| 🔴 No (Static) | 🟢 Yes | 🟢 Static | 🔴 N/A | **No** |
+
