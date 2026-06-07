@@ -1,5 +1,11 @@
 -include .env
 
+# If the first argument is "status", parse the remaining targets as command arguments
+ifeq ($(firstword $(MAKECMDGOALS)),status)
+  RUN_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  $(eval $(RUN_ARGS):;@:)
+endif
+
 GRONAS_IP ?= gronas
 PAPYCONNECT_PORT ?= 8000
 N8N_PORT ?= 5678
@@ -71,7 +77,7 @@ endif
 
 # Pretty print tree of scanned devices and available apps
 status:
-	@python3 toolkit/print_status.py $(GRONAS_IP) $(PAPYCONNECT_PORT)
+	@python3 toolkit/print_status.py $(GRONAS_IP) $(PAPYCONNECT_PORT) $(RUN_ARGS) $(MAKEOVERRIDES)
 
 # Print current configuration status
 plugin-status:
