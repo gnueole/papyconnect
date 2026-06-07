@@ -30,6 +30,8 @@ graph TD
     C -->|4c. Control Scene / App| G[Other Smart Devices / Bbox, Hue]
 ```
 
+> 💡 **For Tech-Savvy Readers**: For a deep dive into the stack selections, JSON schemas, background mDNS listeners, and API dynamic contract recipes, refer to the detailed [Architecture & Technical Design Decisions Guide](ARCHITECTURE.md).
+
 ---
 
 ## 🔌 PapyConnect C# Plugin (Loupedeck/Logi)
