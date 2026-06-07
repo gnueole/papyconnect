@@ -151,21 +151,30 @@ endif
 # -------------------------------------------------
 DOCKER = /usr/local/bin/docker
 
+# Build image locally and package it
+papiconnect-build-image:
+	@echo "[papiconnect] Building Docker image locally..."
+	docker build -t papiconnect:latest -f papiconnect/Dockerfile papiconnect
+	@echo "[papiconnect] Saving image to archive..."
+	docker save papiconnect:latest | gzip > papiconnect.tar.gz
+
+# Sync packaged image and docker-compose to NAS
+papiconnect-sync: papiconnect-build-image
+	@echo "[papiconnect] Creating target directory as root..."
+	@ssh $(SERVER_ROOT) "mkdir -p $(REMOTE_DIR)"
+	@echo "[papiconnect] Copying Docker image and configuration files..."
+	scp -O papiconnect.tar.gz $(SERVER_ROOT):$(REMOTE_DIR)/
+	scp -O ./papiconnect/docker-compose.yml $(SERVER_ROOT):$(REMOTE_DIR)/
+	scp -O -r ./n8n $(SERVER_ROOT):$(REMOTE_DIR)/
+	@echo "[papiconnect] Loading Docker image on the NAS..."
+	@ssh $(SERVER_ROOT) "docker load < $(REMOTE_DIR)/papiconnect.tar.gz && rm -f $(REMOTE_DIR)/papiconnect.tar.gz"
+	@rm -f papiconnect.tar.gz
+	@echo "[papiconnect] Sync and image load complete."
+
 # Recréation forcée à chaud (sans coupure lourde)
 papiconnect-recreate: papiconnect-sync
 	@echo "[papiconnect] Recreating container cleanly..."
-	@ssh $(SERVER_ROOT) "cd $(REMOTE_DIR) && $(DOCKER) compose up -d --build --force-recreate"
-
-papiconnect-sync:
-	@echo "[papiconnect] Creating target directory as root..."
-	@ssh $(SERVER_ROOT) "mkdir -p $(REMOTE_DIR)"
-	@echo "[papiconnect] Copying files via SCP (legacy -O mode for Synology)..."
-	scp -O -r ./papiconnect/app $(SERVER_ROOT):$(REMOTE_DIR)/
-	scp -O ./papiconnect/docker-compose.yml $(SERVER_ROOT):$(REMOTE_DIR)/
-	scp -O ./papiconnect/Dockerfile $(SERVER_ROOT):$(REMOTE_DIR)/
-	scp -O ./papiconnect/requirements.txt $(SERVER_ROOT):$(REMOTE_DIR)/
-	scp -O -r ./n8n $(SERVER_ROOT):$(REMOTE_DIR)/
-	@echo "[papiconnect] Sync complete."
+	@ssh $(SERVER_ROOT) "cd $(REMOTE_DIR) && $(DOCKER) compose up -d --force-recreate"
 
 # Démarrage
 papiconnect-up: papiconnect-sync

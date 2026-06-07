@@ -26,14 +26,11 @@ version: "3.9"
 services:
   # ── Le Radar : PapyConnect ──────────────────────────────────────────────
   papiconnect:
-    build: .
+    image: papiconnect:latest
     container_name: papiconnect
     network_mode: host
     volumes:
-      - ./app:/app
       - ./data:/app/data
-    working_dir: /app
-    command: uvicorn main:app --host 0.0.0.0 --port ${PAPYCONNECT_PORT:-8000} --reload
     restart: unless-stopped
 
   # ── Le Cerveau : n8n ────────────────────────────────────────────────────
