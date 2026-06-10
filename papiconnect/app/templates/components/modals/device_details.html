@@ -111,6 +111,13 @@
           <div>
             <h4 class="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-3.5">Available Applications & Actions</h4>
             
+            <template x-if="selectedDeviceForDetails.apps_failed">
+              <div class="mb-4 p-3.5 bg-red-500/10 border border-red-500/25 rounded-xl text-xs text-red-400 flex items-center gap-2.5">
+                <span class="text-sm shrink-0">⚠️</span>
+                <span class="font-medium">Je n'ai pas réussi à récupérer la liste des applications.</span>
+              </div>
+            </template>
+            
             <template x-if="selectedDeviceForDetails.vendor === 'Generic' || selectedDeviceForDetails.vendor_deactivated">
               <div class="text-center py-8 text-gray-600 text-xs bg-rim/10 rounded-xl border border-rim/20 font-medium">
                 No actions available for deactivated vendor.

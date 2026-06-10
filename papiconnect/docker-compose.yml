@@ -31,6 +31,9 @@ services:
     network_mode: host
     volumes:
       - ./data:/app/data
+    environment:
+      - PAPYCONNECT_SUBNET=${PAPYCONNECT_SUBNET}
+      - PYTHONUNBUFFERED=1
     restart: unless-stopped
 
   # ── Le Cerveau : n8n ────────────────────────────────────────────────────

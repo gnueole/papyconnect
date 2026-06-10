@@ -7,6 +7,7 @@ function app() {
     actions:  [],
     loading:  true,
     scanning: false,
+    welcomeSubnet: '192.168.1.0/24',
     toast:    '',
     selectedDeviceForDetails: null,
     deviceDetailsModal: {
@@ -64,6 +65,16 @@ function app() {
         if (!r.ok) throw new Error();
         this.devices = await r.json();
         await this.loadActions();
+        
+        try {
+          const subnetRes = await fetch('/api/subnet');
+          if (subnetRes.ok) {
+            const subnetData = await subnetRes.json();
+            this.welcomeSubnet = subnetData.subnet;
+          }
+        } catch (subnetErr) {
+          console.error("Failed to load subnet", subnetErr);
+        }
       } catch {
         this.notify('Failed to load registry data.');
       } finally {
@@ -183,6 +194,11 @@ function app() {
         if (!r.ok) throw new Error();
         
         vendor.deactivated = nextDeactivated;
+        if (this.vendorsModal.selected && this.vendorsModal.selected.key === key) {
+          this.vendorsModal.selected.deactivated = nextDeactivated;
+          this.vendorsModal.selected = { ...this.vendorsModal.selected };
+        }
+        this.vendorsModal.list = [...this.vendorsModal.list];
         
         // Notify user
         this.notify(`${vendor.name} integration is now ${nextDeactivated ? 'deactivated' : 'activated'}.`);
@@ -199,7 +215,8 @@ function app() {
       this.scanning = true;
       this.notify('Network scan started (mDNS + ping, ~7s)…');
       try {
-        await fetch('/api/scan', { method: 'POST' });
+        const url = this.welcomeSubnet ? `/api/scan?subnet=${encodeURIComponent(this.welcomeSubnet)}` : '/api/scan';
+        await fetch(url, { method: 'POST' });
         await new Promise(r => setTimeout(r, 8000));
         await this.load();
         this.notify(`Scan completed — ${this.devices.length} device(s) found in registry.`);

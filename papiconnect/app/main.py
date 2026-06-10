@@ -19,6 +19,7 @@ import sys
 import copy
 import asyncio
 import ipaddress
+import socket
 from pathlib import Path
 
 # Add app directory to sys.path to ensure import compatibility across all deployment environments
@@ -60,6 +61,7 @@ from actions import (
     _fetch_device_apps,
     _send_tcp_command,
     _send_http_command,
+    _send_websocket_command,
     DYNAMIC_ACTIONS_CACHE
 )
 
@@ -139,8 +141,9 @@ async def get_devices():
         vendor_deactivated = vendor_name in disabled_vendors
         device["vendor_deactivated"] = vendor_deactivated
         
-        # Initialize default empty apps list
+        # Initialize default empty apps list and status flag
         device["available_apps"] = []
+        device["apps_failed"] = False
         
         # Fetch available apps from vendor_registry discover-schema
         schema = VENDORS_REGISTRY.get(vendor_name, {}).get("get_apps_request", {})
@@ -150,6 +153,8 @@ async def get_devices():
             is_online = device.get("status") == "online"
             if is_static or is_online:
                 all_apps = await _fetch_device_apps(device)
+                if not is_static and not all_apps:
+                    device["apps_failed"] = True
         
         # Filter active apps for available_apps
         disabled = device.get("disabled_apps", [])
@@ -212,10 +217,10 @@ class DeviceIn(BaseModel):
 async def add_device(body: DeviceIn):
     """Add or update an IoT device manually in the registry database."""
     if not _is_ip_in_local_subnet(body.ip):
-        log.warning("Manual registration failed: IP %s is outside of the local subnet.", body.ip)
+        log.warning("Manual registration failed: IP %s is outside of the allowed local subnet or private IP ranges.", body.ip)
         raise HTTPException(
             status_code=400,
-            detail=f"Device IP {body.ip} is outside of the local subnet {str(ipaddress.ip_network(_get_local_subnet(), strict=False))}."
+            detail=f"Device IP {body.ip} is outside of the allowed local subnet {str(ipaddress.ip_network(_get_local_subnet(), strict=False))} or private IP ranges."
         )
         
     devices = _merge_devices(_load_registry(), body.model_dump())
@@ -309,7 +314,25 @@ async def get_network_prefix():
         parts = ip_part.split(".")
         if len(parts) == 4:
             return {"prefix": f"{parts[0]}.{parts[1]}.{parts[2]}."}
+            
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+        parts = local_ip.split(".")
+        if len(parts) == 4:
+            return {"prefix": f"{parts[0]}.{parts[1]}.{parts[2]}."}
+    except Exception:
+        pass
+
     return {"prefix": "192.168.1."}
+
+
+@app.get("/api/subnet", summary="Retrieve currently configured subnet")
+async def get_subnet():
+    """Retrieve the subnet range (e.g. '192.168.1.0/24')."""
+    return {"subnet": _get_local_subnet()}
 
 
 @app.get("/api/vendors/{vendor_name}/discover-schema", summary="Retrieve discovery spec details for n8n")
@@ -345,12 +368,28 @@ async def factory_reset():
 
 
 @app.post("/api/scan", summary="Trigger mDNS and ping network scan")
-async def trigger_scan(bg: BackgroundTasks):
+async def trigger_scan(bg: BackgroundTasks, subnet: str = None):
     """Scan local network asynchronously and update registered devices registry."""
+    if subnet:
+        try:
+            ipaddress.ip_network(subnet, strict=False)
+            import os
+            os.environ["PAPYCONNECT_SUBNET"] = subnet
+            try:
+                subnet_file = Path("./data/subnet.txt")
+                subnet_file.parent.mkdir(parents=True, exist_ok=True)
+                subnet_file.write_text(subnet, encoding="utf-8")
+                log.info("Persisted custom subnet from scan configuration: %s", subnet)
+            except Exception as e:
+                log.error("Failed to write custom subnet to file: %s", e)
+        except ValueError:
+            log.warning("Invalid subnet format supplied: %s", subnet)
+            raise HTTPException(status_code=400, detail=f"Invalid subnet format: {subnet}")
+
     bg.add_task(_full_scan)
     return {
         "ok": True,
-        "message": f"Network scan triggered (mDNS {int(MDNS_SCAN_DURATION)}s + ping known)",
+        "message": f"Network scan triggered (mDNS {int(MDNS_SCAN_DURATION)}s + ping known)" + (f" on subnet {subnet}" if subnet else ""),
     }
 
 
@@ -396,10 +435,11 @@ async def run_device_action(ip: str, action_name: str):
     
     variables = device.get("variables", {})
     if isinstance(payload, str) and variables:
-        try:
-            payload = payload.format(**variables)
-        except Exception as e:
-            log.warning("Failed formatting command payload for %s: %s", ip, e)
+        if any(f"{{{k}}}" in payload for k in variables):
+            try:
+                payload = payload.format(**variables)
+            except Exception as e:
+                log.warning("Failed formatting command payload for %s: %s", ip, e)
             
     if protocol == "TCP":
         log.info("Sending TCP command to %s:%s (payload: %r)", ip, port, payload)
@@ -422,6 +462,40 @@ async def run_device_action(ip: str, action_name: str):
             raise HTTPException(status_code=502, detail=f"Could not reach device on HTTP url {url}.")
         log.info("HTTP request completed successfully on %s", url)
         return {"ok": True, "message": f"Action '{action_name}' sent successfully via HTTP to {ip}."}
+        
+    elif protocol == "WS" or protocol == "WEBSOCKET":
+        path = action_meta.get("path", "")
+        
+        # Retrieve token from variables if present and append to WebSocket path
+        variables = device.get("variables", {})
+        token = variables.get("token")
+        if token:
+            if "token=" not in path:
+                separator = "&" if "?" in path else "?"
+                path = f"{path}{separator}token={token}"
+                
+        # Construct ws or wss URL based on the port
+        proto_prefix = "wss" if port == 8002 else "ws"
+        url = f"{proto_prefix}://{ip}:{port}{path}"
+        log.info("Sending WebSocket command to %s (payload: %r)", url, payload)
+        
+        success, new_token = await _send_websocket_command(url, payload)
+        if not success:
+            log.warning("WebSocket command to %s failed", url)
+            raise HTTPException(status_code=502, detail=f"Could not reach device on WebSocket url {url}.")
+            
+        if new_token and new_token != token:
+            # Persistent storage of the pairing token in registry.json variables
+            devices = _load_registry()
+            for d in devices:
+                if d.get("ip") == ip:
+                    d.setdefault("variables", {})["token"] = new_token
+                    break
+            _save_registry(devices)
+            log.info("Persisted new WebSocket authorization token for device IP %s", ip)
+            
+        log.info("WebSocket command completed successfully on %s", url)
+        return {"ok": True, "message": f"Action '{action_name}' sent successfully via WebSocket to {ip}."}
         
     elif protocol == "STATIC":
         log.info("Static/n8n action '%s' triggered for device %s", action_name, ip)
@@ -459,10 +533,11 @@ async def get_device_action_config(ip: str, action_name: str):
     payload = action_meta.get("payload", "")
     variables = device.get("variables", {})
     if isinstance(payload, str) and variables:
-        try:
-            payload = payload.format(**variables)
-        except Exception as e:
-            log.warning("Failed formatting payload config for %s: %s", ip, e)
+        if any(f"{{{k}}}" in payload for k in variables):
+            try:
+                payload = payload.format(**variables)
+            except Exception as e:
+                log.warning("Failed formatting payload config for %s: %s", ip, e)
             
     config = {
         "ip": ip,
@@ -611,10 +686,11 @@ async def execute_action(action_id: str):
     payload = action_meta.get("payload", "")
     variables = device.get("variables", {})
     if isinstance(payload, str) and variables:
-        try:
-            payload = payload.format(**variables)
-        except Exception as e:
-            log.warning("Failed formatting execution payload config for %s: %s", ip, e)
+        if any(f"{{{k}}}" in payload for k in variables):
+            try:
+                payload = payload.format(**variables)
+            except Exception as e:
+                log.warning("Failed formatting execution payload config for %s: %s", ip, e)
             
     config = {
         "action_id": action_id,

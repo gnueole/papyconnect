@@ -1,4 +1,5 @@
 -include .env
+DEPLOY_MODE ?= remote
 
 # If the first argument is "status", parse the remaining targets as command arguments
 ifeq ($(firstword $(MAKECMDGOALS)),status)
@@ -27,12 +28,12 @@ DOTNET_EXISTS = $(shell [ -f $(DOTNET) ] && echo yes || echo no)
 .PHONY: all build deploy restart clean status plugin-status prepare check-dotnet publish help \
         papiconnect-sync papiconnect-up papiconnect-down \
         papiconnect-logs papiconnect-status papiconnect-recreate papiconnect-redeploy \
-        papiconnect-n8n-push papiconnect-n8n-backup check
+        papiconnect-n8n-push papiconnect-n8n-backup check \
+        local-build local-up local-down local-recreate local-logs local-status status-local
 
 # Default target: build, deploy and restart service
 all: build deploy restart
 
-# Show available make targets
 # Show available make targets
 help:
 	@echo ""
@@ -48,6 +49,16 @@ help:
 	@echo "    make plugin-status         Show current .NET build configuration"
 	@echo "    make prepare               Install .NET 8.0 SDK if missing"
 	@echo "  ─────────────────────────────────────────────────────────"
+ifeq ($(DEPLOY_MODE),local)
+	@echo "  PapyConnect & n8n Local Stack (localhost / WSL) :"
+	@echo "    make status                Show scanned devices tree & available apps on localhost"
+	@echo "    make papiconnect-up        Build local Docker image and start containers"
+	@echo "    make papiconnect-down      Stop local containers"
+	@echo "    make papiconnect-redeploy  Full local redeploy (down + up)"
+	@echo "    make papiconnect-recreate  Force recreate local containers"
+	@echo "    make papiconnect-logs      Stream local compose logs"
+	@echo "    make papiconnect-status    Show local container status"
+else
 	@echo "  PapyConnect & n8n Stack (gronas) :"
 	@echo "    make status                Show scanned devices tree & available apps (CLI debug)"
 	@echo "    make papiconnect-sync      Copy local app, compose and workflows to NAS via root SCP"
@@ -59,10 +70,16 @@ help:
 	@echo "    make papiconnect-status    Show remote docker compose ps"
 	@echo "    make papiconnect-n8n-push  Push local workflows to n8n container on gronas"
 	@echo "    make papiconnect-n8n-backup Backup workflows from n8n container on gronas"
+endif
 	@echo "  ─────────────────────────────────────────────────────────"
 	@echo "  Urls :"
-	@echo "    PapyConnect Radar :        http://gronas:8000"
-	@echo "    n8n Cerveau       :        http://gronas:5678"
+ifeq ($(DEPLOY_MODE),local)
+	@echo "    PapyConnect Radar :        http://localhost:8000"
+	@echo "    n8n Cerveau       :        http://localhost:5678"
+else
+	@echo "    PapyConnect Radar :        http://$(GRONAS_IP):8000"
+	@echo "    n8n Cerveau       :        http://$(GRONAS_IP):$(N8N_PORT)"
+endif
 	@echo ""
 
 # Check if dotnet exists before running commands
@@ -144,25 +161,84 @@ else
 endif
 
 
-# -------------------------------------------------
-# PapyConnect — Remote deployment (gronas NAS via ROOT SSH)
-# -------------------------------------------------
 DOCKER = /usr/local/bin/docker
 
-status: scan
+# -------------------------------------------------
+# PapyConnect — Stack Deployment Actions (Dynamic)
+# -------------------------------------------------
 
-# Pretty print tree of scanned devices and available apps
-scan:
+ifeq ($(DEPLOY_MODE),local)
+
+# Local implementations (localhost / WSL)
+papiconnect-up: local-build
+	@echo "[papiconnect-local] Starting local containers..."
+	docker compose -f papiconnect/docker-compose.yml up -d
+
+papiconnect-down:
+	@echo "[papiconnect-local] Stopping local containers..."
+	docker compose -f papiconnect/docker-compose.yml down
+
+papiconnect-recreate: local-build
+	@echo "[papiconnect-local] Recreating local containers..."
+	docker compose -f papiconnect/docker-compose.yml up -d --force-recreate
+
+papiconnect-logs:
+	@echo "[papiconnect-local] Streaming logs from local containers..."
+	docker compose -f papiconnect/docker-compose.yml logs -f
+
+papiconnect-status:
+	@echo "[papiconnect-local] Local container status:"
+	docker compose -f papiconnect/docker-compose.yml ps
+
+papiconnect-redeploy: papiconnect-down papiconnect-up
+	@echo "[papiconnect-local] Local redeployment complete — http://localhost:8000"
+
+status:
+	@python3 toolkit/print_status.py localhost $(PAPYCONNECT_PORT) $(RUN_ARGS) $(MAKEOVERRIDES)
+
+else
+
+# Remote/NAS implementations (gronas)
+papiconnect-up: papiconnect-sync
+	@echo "[papiconnect] Starting container on $(SERVER_ROOT)..."
+	@ssh $(SERVER_ROOT) "cd $(REMOTE_DIR) && $(DOCKER) compose up -d"
+
+papiconnect-down:
+	@echo "[papiconnect] Stopping container on $(SERVER_ROOT)..."
+	@ssh $(SERVER_ROOT) "cd $(REMOTE_DIR) && $(DOCKER) compose down"
+
+papiconnect-recreate: papiconnect-sync
+	@echo "[papiconnect] Recreating container cleanly..."
+	@ssh $(SERVER_ROOT) "cd $(REMOTE_DIR) && $(DOCKER) compose up -d --force-recreate"
+
+papiconnect-logs:
+	@echo "[papiconnect] Streaming logs from $(SERVER_ROOT)..."
+	@ssh $(SERVER_ROOT) "cd $(REMOTE_DIR) && $(DOCKER) compose logs -f"
+
+papiconnect-status:
+	@echo "[papiconnect] Container status on $(SERVER_ROOT):"
+	@ssh $(SERVER_ROOT) "cd $(REMOTE_DIR) && $(DOCKER) compose ps"
+
+papiconnect-redeploy: papiconnect-down papiconnect-up
+	@echo "[papiconnect] Redeployment complete — http://$(GRONAS_IP):8000"
+
+status:
 	@python3 toolkit/print_status.py $(GRONAS_IP) $(PAPYCONNECT_PORT) $(RUN_ARGS) $(MAKEOVERRIDES)
 
-# Build image locally and package it
+endif
+
+
+# Helper & Sync Utilities
+local-build:
+	@echo "[papiconnect-local] Building Docker image locally..."
+	docker build -t papiconnect:latest -f papiconnect/Dockerfile papiconnect
+
 papiconnect-build-image:
 	@echo "[papiconnect] Building Docker image locally..."
 	docker build -t papiconnect:latest -f papiconnect/Dockerfile papiconnect
 	@echo "[papiconnect] Saving image to archive..."
 	docker save papiconnect:latest | gzip > papiconnect.tar.gz
 
-# Sync packaged image and docker-compose to NAS
 papiconnect-sync: papiconnect-build-image
 	@echo "[papiconnect] Creating target directory as root..."
 	@ssh $(SERVER_ROOT) "mkdir -p $(REMOTE_DIR)"
@@ -175,45 +251,14 @@ papiconnect-sync: papiconnect-build-image
 	@rm -f papiconnect.tar.gz
 	@echo "[papiconnect] Sync and image load complete."
 
-# Hot recreate containers cleanly
-papiconnect-recreate: papiconnect-sync
-	@echo "[papiconnect] Recreating container cleanly..."
-	@ssh $(SERVER_ROOT) "cd $(REMOTE_DIR) && $(DOCKER) compose up -d --force-recreate"
-
-# Start containers
-papiconnect-up: papiconnect-sync
-	@echo "[papiconnect] Starting container on $(SERVER_ROOT)..."
-	@ssh $(SERVER_ROOT) "cd $(REMOTE_DIR) && $(DOCKER) compose up -d"
-
-# Stop containers
-papiconnect-down:
-	@echo "[papiconnect] Stopping container on $(SERVER_ROOT)..."
-	@ssh $(SERVER_ROOT) "cd $(REMOTE_DIR) && $(DOCKER) compose down"
-
-# Live streaming logs
-papiconnect-logs:
-	@echo "[papiconnect] Streaming logs from $(SERVER_ROOT)..."
-	@ssh $(SERVER_ROOT) "cd $(REMOTE_DIR) && $(DOCKER) compose logs -f"
-
-# Container status
-papiconnect-status:
-	@echo "[papiconnect] Container status on $(SERVER_ROOT):"
-	@ssh $(SERVER_ROOT) "cd $(REMOTE_DIR) && $(DOCKER) compose ps"
-
-# Complete redeployment (Clean restart)
-papiconnect-redeploy: papiconnect-down papiconnect-up
-	@echo "[papiconnect] Redeployment complete — http://gronas:8000"
-
-# n8n workflow sync utilities
 papiconnect-n8n-push:
-	@echo "[n8n] Pushing local workflows to gronas:5678..."
+	@echo "[n8n] Pushing local workflows to n8n container..."
 	python3 toolkit/sync_n8n.py --push-all
 
 papiconnect-n8n-backup:
-	@echo "[n8n] Backing up workflows from gronas:5678..."
+	@echo "[n8n] Backing up workflows from n8n container..."
 	python3 toolkit/sync_n8n.py --backup-all
 
-# Execute status checks
 check:
 	@echo "=== Checking PapyConnect API (Direct) ==="
 	curl -s http://$(GRONAS_IP):$(PAPYCONNECT_PORT)/api/actions

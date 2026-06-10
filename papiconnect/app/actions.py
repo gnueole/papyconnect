@@ -333,6 +333,24 @@ def _parse_vendor_apps(vendor_name: str, data) -> list[dict]:
             {"title": "Elden Ring", "uri": "launch_elden_ring"}
         ]
         
+    elif vendor_name == "samsung_tv":
+        apps_list = []
+        if isinstance(data, list):
+            for app in data:
+                name = app.get("name")
+                app_id = app.get("id")
+                if name and app_id:
+                    apps_list.append({"title": name, "uri": app_id})
+        elif isinstance(data, dict):
+            apps = data.get("applications") or data.get("result")
+            if isinstance(apps, list):
+                for app in apps:
+                    name = app.get("name")
+                    app_id = app.get("id")
+                    if name and app_id:
+                        apps_list.append({"title": name, "uri": app_id})
+        return apps_list
+        
     return []
 
 
@@ -413,7 +431,7 @@ async def _send_tcp_command(ip: str, port: int, payload: str, timeout: float = 3
 
 
 async def _send_http_command(url: str, method: str, headers: dict, payload: str, timeout: float = 5.0) -> bool:
-    """Send an HTTP request to a target API endpoint."""
+    """Send an HTTP request to a target API endpoint and log the device response details."""
     try:
         async with aiohttp.ClientSession() as session:
             data = None
@@ -432,7 +450,56 @@ async def _send_http_command(url: str, method: str, headers: dict, payload: str,
                 data=data,
                 timeout=timeout
             ) as response:
-                return response.status in [200, 201, 202, 204]
+                status = response.status
+                try:
+                    response_text = await response.text()
+                except Exception as text_err:
+                    response_text = f"<Unable to read body: {text_err}>"
+                
+                log.info("HTTP Response from %s: Status %s, Headers: %r, Body: %s", url, status, dict(response.headers), response_text)
+                return status in [200, 201, 202, 204]
     except Exception as e:
         log.error("Failed to send HTTP request to %s - %s", url, e)
         return False
+
+
+async def _send_websocket_command(url: str, payload: str, timeout: float = 30.0) -> tuple[bool, str | None]:
+    """Send a payload over WebSocket to a target URL, waiting for authorization/connection handshake."""
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.ws_connect(url, ssl=False, timeout=timeout) as ws:
+                log.info("WebSocket connection established. Waiting for handshake on %s...", url)
+                
+                start_time = asyncio.get_event_loop().time()
+                while (asyncio.get_event_loop().time() - start_time) < timeout:
+                    try:
+                        msg = await asyncio.wait_for(ws.receive(), timeout=1.0)
+                        if msg.type == aiohttp.WSMsgType.TEXT:
+                            data = json.loads(msg.data)
+                            log.info("Received WebSocket message: %r", data)
+                            
+                            event = data.get("event")
+                            if event == "ms.channel.connect":
+                                token = data.get("data", {}).get("token")
+                                log.info("WebSocket channel connected successfully! Token: %s", token)
+                                log.info("Sending WebSocket payload to %s: %s", url, payload)
+                                await ws.send_str(payload)
+                                await asyncio.sleep(0.5)
+                                return True, token
+                            elif event == "ms.channel.unauthorized":
+                                log.warning("WebSocket unauthorized. Please check TV screen to ALLOW the connection.")
+                                # Keep waiting in the loop for the user to click Allow on their TV screen
+                            elif event == "ms.error":
+                                log.error("WebSocket received error event: %r", data)
+                                return False, None
+                        elif msg.type in (aiohttp.WSMsgType.CLOSED, aiohttp.WSMsgType.ERROR):
+                            log.error("WebSocket closed or error type received: %s", msg.type)
+                            return False, None
+                    except asyncio.TimeoutError:
+                        continue
+                
+                log.warning("WebSocket pairing/handshake timed out after %s seconds.", timeout)
+                return False, None
+    except Exception as e:
+        log.error("Failed to send WebSocket command to %s - %s", url, e)
+        return False, None

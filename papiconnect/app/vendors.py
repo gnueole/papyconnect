@@ -39,6 +39,31 @@ class Vendor:
                 app_name = "Spotify"
         formatted = formatted.replace("{app_name}", app_name)
         
+        # For Samsung TV, we need to map app slug / URI to its appId:
+        if self.key == "samsung_tv":
+            samsung_app_ids = {
+                "netflix": "11101200001",
+                "youtube": "111299001912",
+                "spotify": "3201606009684",
+                "prime_video": "3201512006785",
+                "disney_plus": "3201901017640",
+                "apple_tv": "3201807016597",
+                "plex": "3201512006963",
+                "canal": "3201511006428",
+                "canal_": "3201511006428",
+                "twitch": "3201710015037",
+                "vlc": "3201706012437",
+                "hbo_max": "3202301029760",
+                "youtube_music": "3201908019041"
+            }
+            slug = app_uri.replace("launch_", "").lower().strip()
+            # If the slug is already an ID (numeric), use it directly
+            if slug.isdigit():
+                app_id = slug
+            else:
+                app_id = samsung_app_ids.get(slug, "11101200001") # Netflix default fallback
+            formatted = formatted.replace("{app_id}", app_id)
+            
         return json.loads(formatted)
 
 

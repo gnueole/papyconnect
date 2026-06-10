@@ -312,45 +312,22 @@
     "description": "Samsung Smart TVs running Tizen, controlled via REST HTTP Remote API.",
     "type": "tv",
     "get_apps_request": {
-      "method": "STATIC",
-      "apps": [
-        "Netflix",
-        "YouTube",
-        "Spotify",
-        "Prime Video",
-        "Canal+",
-        "Apple TV",
-        "Arte",
-        "Disney+",
-        "Twitch",
-        "Salto",
-        "VLC",
-        "YouTube Music",
-        "France.tv",
-        "HBO Max",
-        "Mubi"
-      ]
+      "method": "GET",
+      "url": "http://{device_ip}:8001/api/v2/applications/",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "payload": null
     },
     "api_calls": {
       "Get Application List": {
-        "protocol": "STATIC",
-        "apps": [
-          "Netflix",
-          "YouTube",
-          "Spotify",
-          "Prime Video",
-          "Canal+",
-          "Apple TV",
-          "Arte",
-          "Disney+",
-          "Twitch",
-          "Salto",
-          "VLC",
-          "YouTube Music",
-          "France.tv",
-          "HBO Max",
-          "Mubi"
-        ]
+        "protocol": "HTTP",
+        "method": "GET",
+        "port": 8001,
+        "path": "/api/v2/applications/",
+        "headers": {
+          "Accept": "application/json"
+        }
       },
       "Get Device Info": {
         "protocol": "HTTP",
@@ -358,16 +335,48 @@
         "port": 8001,
         "path": "/api/v2/"
       },
+      "Power On": {
+        "protocol": "WS",
+        "port": 8002,
+        "path": "/api/v2/channels/samsung.remote.control?name=UGFweUNvbm5lY3Q=",
+        "payload": "{\"method\":\"ms.remote.control\",\"params\":{\"Cmd\":\"Click\",\"DataOfCmd\":\"KEY_POWER\",\"Option\":\"false\",\"TypeOfRemote\":\"SendRemoteKey\"}}"
+      },
       "Power Off": {
+        "protocol": "WS",
+        "port": 8002,
+        "path": "/api/v2/channels/samsung.remote.control?name=UGFweUNvbm5lY3Q=",
+        "payload": "{\"method\":\"ms.remote.control\",\"params\":{\"Cmd\":\"Click\",\"DataOfCmd\":\"KEY_POWER\",\"Option\":\"false\",\"TypeOfRemote\":\"SendRemoteKey\"}}"
+      },
+      "Volume Up": {
+        "protocol": "WS",
+        "port": 8002,
+        "path": "/api/v2/channels/samsung.remote.control?name=UGFweUNvbm5lY3Q=",
+        "payload": "{\"method\":\"ms.remote.control\",\"params\":{\"Cmd\":\"Click\",\"DataOfCmd\":\"KEY_VOLUP\",\"Option\":\"false\",\"TypeOfRemote\":\"SendRemoteKey\"}}"
+      },
+      "Volume Down": {
+        "protocol": "WS",
+        "port": 8002,
+        "path": "/api/v2/channels/samsung.remote.control?name=UGFweUNvbm5lY3Q=",
+        "payload": "{\"method\":\"ms.remote.control\",\"params\":{\"Cmd\":\"Click\",\"DataOfCmd\":\"KEY_VOLDOWN\",\"Option\":\"false\",\"TypeOfRemote\":\"SendRemoteKey\"}}"
+      },
+      "Mute": {
+        "protocol": "WS",
+        "port": 8002,
+        "path": "/api/v2/channels/samsung.remote.control?name=UGFweUNvbm5lY3Q=",
+        "payload": "{\"method\":\"ms.remote.control\",\"params\":{\"Cmd\":\"Click\",\"DataOfCmd\":\"KEY_MUTE\",\"Option\":\"false\",\"TypeOfRemote\":\"SendRemoteKey\"}}"
+      },
+      "Launch Application": {
         "protocol": "HTTP",
         "method": "POST",
         "port": 8001,
-        "path": "/api/v2/channels/samsung.remote.control",
-        "headers": {
-          "Content-Type": "application/json"
-        },
-        "payload": "{\"method\":\"ms.remote.control\",\"params\":{\"Cmd\":\"Click\",\"DataOfCmd\":\"KEY_POWER\",\"Option\":\"false\",\"TypeOfRemote\":\"SendRemoteKey\"}}"
+        "path": "/api/v2/applications/{app_id}"
       }
+    },
+    "launch_action_template": {
+      "protocol": "HTTP",
+      "method": "POST",
+      "port": 8001,
+      "path": "/api/v2/applications/{app_id}"
     },
     "keywords": [
       "samsung"

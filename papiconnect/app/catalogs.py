@@ -239,19 +239,45 @@ DEVICE_CATALOGS["sharp_tv"] = {
 DEVICE_CATALOGS["samsung_tv"] = {
     "icon": "samsung_tv",
     "tuto": """
-        <h3>📺 Samsung TV Configuration (Tizen REST)</h3>
-        <p>Control is executed via REST HTTP requests on port 8001.</p>
+        <h3>📺 Samsung TV Configuration (Tizen WebSocket)</h3>
+        <p>Control is executed via WebSocket connections on port 8001.</p>
+        <ul style="text-align: left; margin-top: 8px;">
+            <li>Go to <b>Settings ➔ General ➔ Network ➔ Expert Settings</b>.</li>
+            <li>Enable <b>Power On with Mobile</b> to allow remote power control.</li>
+            <li>Ensure the TV and n8n are on the same local network subnet.</li>
+            <li>The first time you send a command, select <b>Allow</b> on your TV screen.</li>
+        </ul>
     """,
     "actions": {
-        "power_off": {
-            "protocol": "HTTP",
-            "method": "POST",
-            "port": 8001,
-            "path": "/api/v2/channels/samsung.remote.control",
-            "headers": {
-                "Content-Type": "application/json"
-            },
+        "power_on": {
+            "protocol": "WS",
+            "port": 8002,
+            "path": "/api/v2/channels/samsung.remote.control?name=UGFweUNvbm5lY3Q=",
             "payload": "{\"method\":\"ms.remote.control\",\"params\":{\"Cmd\":\"Click\",\"DataOfCmd\":\"KEY_POWER\",\"Option\":\"false\",\"TypeOfRemote\":\"SendRemoteKey\"}}"
+        },
+        "power_off": {
+            "protocol": "WS",
+            "port": 8002,
+            "path": "/api/v2/channels/samsung.remote.control?name=UGFweUNvbm5lY3Q=",
+            "payload": "{\"method\":\"ms.remote.control\",\"params\":{\"Cmd\":\"Click\",\"DataOfCmd\":\"KEY_POWER\",\"Option\":\"false\",\"TypeOfRemote\":\"SendRemoteKey\"}}"
+        },
+        "volume_up": {
+            "protocol": "WS",
+            "port": 8002,
+            "path": "/api/v2/channels/samsung.remote.control?name=UGFweUNvbm5lY3Q=",
+            "payload": "{\"method\":\"ms.remote.control\",\"params\":{\"Cmd\":\"Click\",\"DataOfCmd\":\"KEY_VOLUP\",\"Option\":\"false\",\"TypeOfRemote\":\"SendRemoteKey\"}}"
+        },
+        "volume_down": {
+            "protocol": "WS",
+            "port": 8002,
+            "path": "/api/v2/channels/samsung.remote.control?name=UGFweUNvbm5lY3Q=",
+            "payload": "{\"method\":\"ms.remote.control\",\"params\":{\"Cmd\":\"Click\",\"DataOfCmd\":\"KEY_VOLDOWN\",\"Option\":\"false\",\"TypeOfRemote\":\"SendRemoteKey\"}}"
+        },
+        "mute": {
+            "protocol": "WS",
+            "port": 8002,
+            "path": "/api/v2/channels/samsung.remote.control?name=UGFweUNvbm5lY3Q=",
+            "payload": "{\"method\":\"ms.remote.control\",\"params\":{\"Cmd\":\"Click\",\"DataOfCmd\":\"KEY_MUTE\",\"Option\":\"false\",\"TypeOfRemote\":\"SendRemoteKey\"}}"
         }
     }
 }
